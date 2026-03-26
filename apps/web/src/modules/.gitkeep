@@ -1,0 +1,4 @@
+// Feature modules — mirror backend modules
+// auth, user, song, album, artist, playlist, player, search, subscription, podcast
+// TODO: tạo từng module khi implement
+export {};

@@ -1,0 +1,3 @@
+// Custom hooks dùng chung
+// TODO: thêm hooks khi implement từng module
+export {};

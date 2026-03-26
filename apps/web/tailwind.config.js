@@ -1,0 +1,24 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        // Spotify-inspired color palette
+        brand: {
+          green: '#1DB954',
+          'green-hover': '#1ED760',
+          black: '#121212',
+          'dark-gray': '#181818',
+          'medium-gray': '#282828',
+          'light-gray': '#B3B3B3',
+          white: '#FFFFFF',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+};

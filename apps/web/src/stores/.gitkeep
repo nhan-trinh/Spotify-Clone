@@ -1,0 +1,5 @@
+// Zustand global stores
+// - playerStore: trạng thái player (track, queue, isPlaying, volume, shuffle, repeat)
+// - uiStore: sidebar mở/đóng, theme, modal
+// TODO: implement khi bắt đầu module player
+export {};

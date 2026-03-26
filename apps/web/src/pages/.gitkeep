@@ -1,0 +1,5 @@
+// Route pages
+// Cấu trúc folder = cấu trúc routes
+// auth/, home/, search/, library/, player/, artist/, album/, playlist/, admin/
+// TODO: tạo từng page khi implement
+export {};
