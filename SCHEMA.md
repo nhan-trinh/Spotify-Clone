@@ -1,0 +1,550 @@
+# SCHEMA.md — Database Schema (ERD Text)
+
+> PostgreSQL (Prisma) là nguồn sự thật chính.
+> MongoDB schema mô tả dạng document.
+
+---
+
+## PostgreSQL — Prisma Schema
+
+### Enums
+
+```prisma
+enum Role {
+  USER_FREE
+  USER_PREMIUM
+  ARTIST
+  PODCAST_HOST
+  MODERATOR
+  ADMIN
+}
+
+enum SongStatus {
+  PENDING       // Chờ moderator duyệt
+  APPROVED      // Đã duyệt, public
+  REJECTED      // Bị từ chối
+  ARCHIVED      // Đã ẩn
+}
+
+enum AlbumStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM_INDIVIDUAL
+  PREMIUM_DUO
+  PREMIUM_FAMILY
+  PREMIUM_STUDENT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+enum StrikeReason {
+  COPYRIGHT_VIOLATION
+  INAPPROPRIATE_CONTENT
+  SPAM
+  OTHER
+}
+
+enum AuditAction {
+  USER_BANNED
+  USER_UNBANNED
+  SONG_APPROVED
+  SONG_REJECTED
+  REPORT_RESOLVED
+  ROLE_CHANGED
+  CONFIG_UPDATED
+}
+```
+
+---
+
+### Users & Auth
+
+```prisma
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String?   // null nếu đăng nhập Google
+  name              String
+  dateOfBirth       DateTime
+  gender            String?   // man | woman | non-binary | prefer_not_to_say
+  avatarUrl         String?
+  role              Role      @default(USER_FREE)
+  isEmailVerified   Boolean   @default(false)
+  isBanned          Boolean   @default(false)
+  banReason         String?
+  loginAttempts     Int       @default(0)
+  lockedUntil       DateTime?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  googleId          String?   @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  subscription      Subscription?
+  artistProfile     Artist?
+  podcastHostProfile PodcastHost?
+  playlists         Playlist[]
+  likedSongs        LikedSong[]
+  followedArtists   FollowedArtist[]
+  followedAlbums    FollowedAlbum[]
+  hiddenSongs       HiddenSong[]
+  reports           Report[]       @relation("ReportedBy")
+  strikes           Strike[]
+  payments          Payment[]
+  invoices          Invoice[]
+}
+```
+
+```prisma
+model Artist {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  stageName     String
+  bio           String?
+  avatarUrl     String?
+  isVerified    Boolean   @default(false)
+  socialLinks   Json?     // { instagram, facebook, youtube, ... }
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  songs         Song[]
+  albums        Album[]
+  songFeatures  SongArtist[] // Co-artist / Featured
+}
+```
+
+```prisma
+model PodcastHost {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id])
+  displayName String
+  bio         String?
+  avatarUrl   String?
+  createdAt   DateTime  @default(now())
+
+  shows       PodcastShow[]
+}
+```
+
+---
+
+### Music Content
+
+```prisma
+model Song {
+  id              String      @id @default(uuid())
+  title           String
+  artistId        String
+  artist          Artist      @relation(fields: [artistId], references: [id])
+  albumId         String?
+  album           Album?      @relation(fields: [albumId], references: [id])
+  genreId         String?
+  genre           Genre?      @relation(fields: [genreId], references: [id])
+  duration        Int         // giây
+  audioUrl128     String?     // S3 URL — 128kbps (Free)
+  audioUrl320     String?     // S3 URL — 320kbps (Premium)
+  coverUrl        String?
+  lyrics          String?
+  syncedLyrics    Json?       // [{ time: 12.5, text: "..." }]
+  language        String?
+  releaseDate     DateTime?
+  status          SongStatus  @default(PENDING)
+  playCount       Int         @default(0)
+  likeCount       Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  coArtists       SongArtist[]
+  playlists       PlaylistSong[]
+  likedBy         LikedSong[]
+  hiddenBy        HiddenSong[]
+  reports         Report[]
+}
+```
+
+```prisma
+model SongArtist {
+  id        String  @id @default(uuid())
+  songId    String
+  song      Song    @relation(fields: [songId], references: [id])
+  artistId  String
+  artist    Artist  @relation(fields: [artistId], references: [id])
+  role      String  // "featured" | "co-artist" | "producer"
+}
+```
+
+```prisma
+model Album {
+  id            String      @id @default(uuid())
+  title         String
+  artistId      String
+  artist        Artist      @relation(fields: [artistId], references: [id])
+  coverUrl      String?
+  releaseDate   DateTime?
+  status        AlbumStatus @default(DRAFT)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  songs         Song[]
+  followedBy    FollowedAlbum[]
+}
+```
+
+```prisma
+model Genre {
+  id        String  @id @default(uuid())
+  name      String  @unique
+  slug      String  @unique
+  coverUrl  String?
+
+  songs     Song[]
+}
+```
+
+---
+
+### Playlist
+
+```prisma
+model Playlist {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  coverUrl        String?
+  ownerId         String?   // null = playlist hệ thống (Admin tạo)
+  owner           User?     @relation(fields: [ownerId], references: [id])
+  isPublic        Boolean   @default(false)
+  isSystem        Boolean   @default(false)    // Top 100, Trending
+  isFeatured      Boolean   @default(false)    // Ghim trang chủ
+  isPinned        Boolean   @default(false)
+  isCollaborative Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  songs           PlaylistSong[]
+  collaborators   PlaylistCollaborator[]
+}
+```
+
+```prisma
+model PlaylistSong {
+  id          String    @id @default(uuid())
+  playlistId  String
+  playlist    Playlist  @relation(fields: [playlistId], references: [id])
+  songId      String
+  song        Song      @relation(fields: [songId], references: [id])
+  addedBy     String
+  position    Int
+  addedAt     DateTime  @default(now())
+
+  @@unique([playlistId, songId])
+}
+```
+
+```prisma
+model PlaylistCollaborator {
+  id          String    @id @default(uuid())
+  playlistId  String
+  playlist    Playlist  @relation(fields: [playlistId], references: [id])
+  userId      String
+  addedAt     DateTime  @default(now())
+}
+```
+
+---
+
+### User Interactions
+
+```prisma
+model LikedSong {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  songId    String
+  song      Song      @relation(fields: [songId], references: [id])
+  likedAt   DateTime  @default(now())
+
+  @@unique([userId, songId])
+}
+```
+
+```prisma
+model HiddenSong {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  songId      String
+  song        Song      @relation(fields: [songId], references: [id])
+  playlistId  String?   // null = ẩn toàn cục
+  hiddenAt    DateTime  @default(now())
+}
+```
+
+```prisma
+model FollowedArtist {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  artistId    String
+  artist      Artist    @relation(fields: [artistId], references: [id])
+  followedAt  DateTime  @default(now())
+
+  @@unique([userId, artistId])
+}
+```
+
+```prisma
+model FollowedAlbum {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  albumId     String
+  album       Album     @relation(fields: [albumId], references: [id])
+  followedAt  DateTime  @default(now())
+
+  @@unique([userId, albumId])
+}
+```
+
+---
+
+### Subscription & Payment
+
+```prisma
+model Subscription {
+  id          String              @id @default(uuid())
+  userId      String              @unique
+  user        User                @relation(fields: [userId], references: [id])
+  plan        SubscriptionPlan    @default(FREE)
+  status      SubscriptionStatus  @default(ACTIVE)
+  autoRenew   Boolean             @default(true)
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+```
+
+```prisma
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  plan            SubscriptionPlan
+  amount          Int           // VND
+  status          PaymentStatus @default(PENDING)
+  vnpayTxnRef     String?       @unique
+  vnpayResponseCode String?
+  idempotencyKey  String        @unique
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  invoice         Invoice?
+}
+```
+
+```prisma
+model Invoice {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  paymentId   String    @unique
+  payment     Payment   @relation(fields: [paymentId], references: [id])
+  amount      Int
+  plan        SubscriptionPlan
+  issuedAt    DateTime  @default(now())
+}
+```
+
+---
+
+### Moderation
+
+```prisma
+model Report {
+  id          String        @id @default(uuid())
+  reportedBy  String
+  reporter    User          @relation("ReportedBy", fields: [reportedBy], references: [id])
+  songId      String?
+  song        Song?         @relation(fields: [songId], references: [id])
+  reason      String
+  status      ReportStatus  @default(PENDING)
+  resolvedBy  String?       // Moderator userId
+  resolvedAt  DateTime?
+  note        String?
+  createdAt   DateTime      @default(now())
+}
+```
+
+```prisma
+model Strike {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  issuedBy    String        // Moderator userId
+  reason      StrikeReason
+  note        String?
+  createdAt   DateTime      @default(now())
+}
+```
+
+```prisma
+model AuditLog {
+  id          String      @id @default(uuid())
+  actorId     String      // Admin hoặc Moderator userId
+  action      AuditAction
+  targetId    String?     // userId / songId / reportId bị tác động
+  targetType  String?     // "user" | "song" | "report"
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+}
+```
+
+---
+
+### Podcast
+
+```prisma
+model PodcastShow {
+  id            String      @id @default(uuid())
+  hostId        String
+  host          PodcastHost @relation(fields: [hostId], references: [id])
+  title         String
+  description   String?
+  coverUrl      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  episodes      PodcastEpisode[]
+  subscribers   PodcastSubscriber[]
+}
+```
+
+```prisma
+model PodcastEpisode {
+  id            String      @id @default(uuid())
+  showId        String
+  show          PodcastShow @relation(fields: [showId], references: [id])
+  title         String
+  description   String?
+  audioUrl      String
+  duration      Int
+  publishedAt   DateTime?
+  status        AlbumStatus @default(DRAFT)
+  playCount     Int         @default(0)
+  createdAt     DateTime    @default(now())
+}
+```
+
+```prisma
+model PodcastSubscriber {
+  id          String      @id @default(uuid())
+  showId      String
+  show        PodcastShow @relation(fields: [showId], references: [id])
+  userId      String
+  subscribedAt DateTime   @default(now())
+
+  @@unique([showId, userId])
+}
+```
+
+---
+
+## MongoDB — Document Schemas
+
+### listening_history
+```ts
+{
+  _id: ObjectId,
+  userId: string,           // PostgreSQL user.id
+  songId: string,           // PostgreSQL song.id
+  playedAt: Date,
+  durationPlayed: number,   // giây — bao lâu thực sự nghe
+  completed: boolean,       // nghe hết bài chưa
+  deviceType: string,       // web | mobile
+}
+// Index: { userId: 1, playedAt: -1 }
+```
+
+### notifications
+```ts
+{
+  _id: ObjectId,
+  userId: string,
+  type: string,             // "new_song" | "song_approved" | "subscription_expiry" | ...
+  title: string,
+  body: string,
+  payload: object,          // { songId, artistId, ... } tùy type
+  isRead: boolean,
+  createdAt: Date,
+}
+// Index: { userId: 1, isRead: 1, createdAt: -1 }
+```
+
+### recently_played
+```ts
+{
+  _id: ObjectId,
+  userId: string,
+  items: [
+    {
+      songId: string,
+      playedAt: Date,
+    }
+  ],                        // Max 50 items, FIFO
+  updatedAt: Date,
+}
+// Index: { userId: 1 }
+```
+
+---
+
+## Quan hệ tóm tắt
+
+```
+User ──1:1──► Subscription
+User ──1:1──► Artist
+User ──1:1──► PodcastHost
+User ──1:N──► Playlist
+User ──N:M──► Song         (qua LikedSong)
+User ──N:M──► Artist       (qua FollowedArtist)
+User ──N:M──► Album        (qua FollowedAlbum)
+
+Artist ──1:N──► Song
+Artist ──1:N──► Album
+Song ──N:M──► Artist       (qua SongArtist — co-artist)
+Song ──N:M──► Playlist     (qua PlaylistSong)
+
+PodcastHost ──1:N──► PodcastShow
+PodcastShow ──1:N──► PodcastEpisode
+
+Payment ──1:1──► Invoice
+User ──1:1──► Subscription
+```
