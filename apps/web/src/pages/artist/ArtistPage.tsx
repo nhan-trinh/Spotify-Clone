@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
+import { useLibraryStore } from '../../stores/library.store';
 import { FastAverageColor } from 'fast-average-color';
-import { Play, Pause, MoreHorizontal } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { BadgeCheck } from 'lucide-react';
 
@@ -14,6 +15,7 @@ export const ArtistPage = () => {
   const [loading, setLoading] = useState(true);
 
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { isFollowing, toggleFollow, isLiked, toggleLike } = useLibraryStore();
 
   useEffect(() => {
     const fetchArtist = async () => {
@@ -153,8 +155,15 @@ export const ArtistPage = () => {
         >
           {isThisPlaying ? <Pause size={28} className="fill-current" /> : <Play size={28} className="fill-current ml-1" />}
         </button>
-        <button className="text-white text-xs font-bold border border-[#727272] hover:border-white px-4 py-2 rounded-full transition-colors uppercase tracking-widest">
-          Đang theo dõi
+        <button
+          onClick={() => id && toggleFollow(id, artist.stageName)}
+          className={`text-xs font-bold border px-5 py-1.5 rounded-full transition-colors uppercase tracking-widest ${
+            isFollowing(id || '')
+              ? 'border-white text-white hover:border-[#b3b3b3] hover:text-[#b3b3b3]'
+              : 'border-[#727272] text-white hover:border-white'
+          }`}
+        >
+          {isFollowing(id || '') ? 'Đang theo dõi' : 'Theo dõi'}
         </button>
         <button className="text-[#b3b3b3] hover:text-white transition-colors">
           <MoreHorizontal size={32} />
@@ -206,7 +215,15 @@ export const ArtistPage = () => {
                   {track.playCount.toLocaleString()}
                 </div>
 
-                <div className="flex justify-end pr-8 text-sm">
+                <div className="flex justify-end items-center gap-4 pr-4 text-sm">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleLike(track.id, track.title); }}
+                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isLiked(track.id) ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+                    }`}
+                  >
+                    <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
+                  </button>
                   {formatTime(track.duration)}
                 </div>
               </div>

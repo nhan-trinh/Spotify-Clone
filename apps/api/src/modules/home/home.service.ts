@@ -2,39 +2,31 @@ import { prisma } from '../../shared/config/database';
 
 export const HomeService = {
   getFeed: async () => {
-    // 1. Made For You: Chúng ta sẽ lấy ngẫu nhiên một số playlist public
+    // 1. Made For You: Playlist public ngẫu nhiên
     const madeForYou = await prisma.playlist.findMany({
       where: { isPublic: true },
       take: 4,
       include: {
         songs: {
           take: 5,
-          include: {
-            song: {
-              include: { artist: true }
-            }
-          }
+          include: { song: { include: { artist: true } } }
         }
       }
     });
 
-    // 2. Trending: Các playlist do system tạo (Top Hit)
+    // 2. Trending: Playlist hệ thống
     const trending = await prisma.playlist.findMany({
       where: { isSystem: true, isPublic: true },
       take: 3,
       include: {
         songs: {
           take: 5,
-          include: {
-            song: {
-              include: { artist: true }
-            }
-          }
+          include: { song: { include: { artist: true } } }
         }
       }
     });
 
-    // 3. Recently Played: Lấy các Playlist Public (Giả lập History)
+    // 3. Recently Played (giả lập)
     const recentPlaylists = await prisma.playlist.findMany({
       where: { isPublic: true },
       take: 6,
@@ -42,24 +34,40 @@ export const HomeService = {
       include: {
         songs: {
           take: 5,
-          include: {
-            song: {
-              include: { artist: true }
-            }
-          }
+          include: { song: { include: { artist: true } } }
         }
       }
     });
-    
-    // Map songs ra format mock
+
+    // 4. ✅ NEW RELEASES – Bài hát mới được APPROVED, lấy thẳng từ Song table
+    const newReleaseSongs = await prisma.song.findMany({
+      where: { status: 'APPROVED' },
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        artist: { select: { id: true, stageName: true, avatarUrl: true } },
+        album: { select: { id: true, title: true } },
+      }
+    });
+
+    // 5. ✅ TOP SONGS – Bài hát có lượt nghe cao nhất
+    const topSongs = await prisma.song.findMany({
+      where: { status: 'APPROVED' },
+      take: 8,
+      orderBy: { playCount: 'desc' },
+      include: {
+        artist: { select: { id: true, stageName: true, avatarUrl: true } },
+      }
+    });
+
     const mapSong = (s: any) => ({
       id: s.id,
       title: s.title,
       artistName: s.artist.stageName,
+      artistId: s.artistId ?? s.artist?.id,
       coverUrl: s.coverUrl,
       audioUrl: s.audioUrl320 || s.audioUrl128,
       duration: s.duration,
-      artistId: s.artistId
     });
 
     const formatPlaylistCards = (playlists: any[]) => playlists.map(p => ({
@@ -70,12 +78,12 @@ export const HomeService = {
       songs: p.songs.map((ps: any) => mapSong(ps.song))
     }));
 
-    const recentlyPlayed = formatPlaylistCards(recentPlaylists);
-
     return {
-      recentlyPlayed,
+      recentlyPlayed: formatPlaylistCards(recentPlaylists),
       madeForYou: formatPlaylistCards(madeForYou),
       trending: formatPlaylistCards(trending),
+      newReleases: newReleaseSongs.map(mapSong),
+      topSongs: topSongs.map(mapSong),
     };
   }
 };

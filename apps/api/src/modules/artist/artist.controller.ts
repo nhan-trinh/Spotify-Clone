@@ -10,6 +10,12 @@ export const artistController = {
     sendSuccess(res, result, 'Lấy thông tin Artist thành công');
   }),
 
+  setupProfile: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const result = await ArtistService.setupProfile(user.id, req.body);
+    sendSuccess(res, result, 'Tạo profile nghệ sĩ thành công', 201);
+  }),
+
   updateProfile: catchAsync(async (req: Request, res: Response) => {
     const user = req.user!;
     const result = await ArtistService.updateProfile(user.id, req.body);

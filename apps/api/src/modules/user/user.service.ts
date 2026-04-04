@@ -81,7 +81,18 @@ export const UserService = {
     const likedSongs = await prisma.likedSong.findMany({
       where: { userId },
       include: {
-        song: { select: { id: true, title: true, coverUrl: true, artist: { select: { stageName: true } } } }
+        song: {
+          select: {
+            id: true,
+            title: true,
+            coverUrl: true,
+            duration: true,
+            artistId: true,
+            audioUrl320: true,
+            audioUrl128: true,
+            artist: { select: { id: true, stageName: true } }
+          }
+        }
       },
       orderBy: { likedAt: 'desc' },
       take: 50
@@ -106,9 +117,21 @@ export const UserService = {
     });
 
     return {
-      likedSongs: likedSongs.map(ls => ls.song),
+      likedSongs: likedSongs.map(ls => ({
+        id: ls.song.id,
+        title: ls.song.title,
+        coverUrl: ls.song.coverUrl,
+        duration: ls.song.duration,
+        artistId: ls.song.artistId,
+        artistName: ls.song.artist.stageName,
+        audioUrl: ls.song.audioUrl320 || ls.song.audioUrl128 || '',
+        likedAt: ls.likedAt,
+      })),
       followedArtists: followedArtists.map(fa => fa.artist),
       followedAlbums: followedAlbums.map(fa => fa.album),
+      // Thống kê nhanh
+      likedSongIds: likedSongs.map(ls => ls.songId),
+      followedArtistIds: followedArtists.map(fa => fa.artistId),
     };
   },
 };

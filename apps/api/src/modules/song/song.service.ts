@@ -3,7 +3,32 @@ import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 import { SupabaseUtil } from '../../shared/utils/supabase.util';
 
 export const SongService = {
-  // 1. Khởi tạo Metadata + Trả về Upload URL
+  // 1. Tạo bài hát với URL trực tiếp (Demo mode - không cần Supabase upload)
+  createSongWithUrl: async (userId: string, data: any) => {
+    const artist = await prisma.artist.findUnique({ where: { userId } });
+    if (!artist) throw new AppError('Chỉ nghệ sĩ mới được đăng bài', 403, ErrorCodes.FORBIDDEN);
+
+    const song = await prisma.song.create({
+      data: {
+        title: data.title,
+        genreId: data.genreId || null,
+        albumId: data.albumId || null,
+        coverUrl: data.coverUrl || null,
+        lyrics: data.lyrics || null,
+        language: data.language || null,
+        duration: data.duration || 0,
+        artistId: artist.id,
+        audioUrl320: data.audioUrl || null,
+        audioUrl128: data.audioUrl || null,
+        // TODO Phase 7: đổi lại PENDING khi Moderator Panel hoàn thành
+        status: 'APPROVED',
+      },
+    });
+
+    return { songId: song.id, title: song.title, status: song.status };
+  },
+
+  // 2. Tạo Metadata + Trả về Upload URL (Production mode - Supabase)
   createSongMetadata: async (userId: string, data: any) => {
     const artist = await prisma.artist.findUnique({ where: { userId } });
     if (!artist) throw new AppError('Chỉ nghệ sĩ mới được đăng bài', 403, ErrorCodes.FORBIDDEN);

@@ -20,5 +20,6 @@ songRouter.post('/:id/like', songController.likeSong);
 songRouter.delete('/:id/like', songController.unlikeSong);
 
 // Quản lý riêng của ARTIST
+songRouter.post('/with-url', authorize('ARTIST'), songController.createWithUrl);
 songRouter.post('/', authorize('ARTIST'), validateRequest(createSongSchema), songController.createMetadata);
 songRouter.post('/:id/upload-complete', authorize('ARTIST'), songController.uploadComplete);

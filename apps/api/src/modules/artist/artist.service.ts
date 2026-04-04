@@ -33,11 +33,30 @@ export const ArtistService = {
         duration: song.duration,
         playCount: song.playCount,
         coverUrl: song.coverUrl,
+        artistId: song.artistId,
         artist: song.artist
       }
     }));
 
     return { ...artist, followersCount: 125000, songs: formattedSongs };
+  },
+
+  setupProfile: async (userId: string, data: any) => {
+    const existing = await prisma.artist.findUnique({ where: { userId } });
+    if (existing) {
+      // Đã tồn tại → trả về lược kèm flag
+      return { ...existing, alreadyExists: true };
+    }
+    const artist = await prisma.artist.create({
+      data: {
+        userId,
+        stageName: data.stageName || 'Nghệ sĩ mới',
+        bio: data.bio || null,
+        avatarUrl: data.avatarUrl || null,
+        isVerified: false,
+      },
+    });
+    return { ...artist, alreadyExists: false };
   },
 
   updateProfile: async (userId: string, data: any) => {

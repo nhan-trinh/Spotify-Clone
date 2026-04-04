@@ -4,6 +4,12 @@ import { sendSuccess } from '../../shared/utils/response';
 import { catchAsync } from '../../shared/utils/catch-async';
 
 export const songController = {
+  createWithUrl: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const result = await SongService.createSongWithUrl(user.id, req.body);
+    sendSuccess(res, result, 'Bài hát đã được gửi chờ kiểm duyệt', 201);
+  }),
+
   createMetadata: catchAsync(async (req: Request, res: Response) => {
     const user = req.user!;
     const result = await SongService.createSongMetadata(user.id, req.body);

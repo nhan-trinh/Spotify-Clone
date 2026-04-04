@@ -13,6 +13,14 @@ import { HomePage } from './pages/home/HomePage';
 import { SearchPage } from './pages/search/SearchPage';
 import { PlaylistPage } from './pages/playlist/PlaylistPage';
 import { ArtistPage } from './pages/artist/ArtistPage';
+import { LibraryPage } from './pages/library/LibraryPage';
+import { AlbumPage } from './pages/album/AlbumPage';
+import { ArtistDashboardLayout } from './pages/artist-dashboard/ArtistDashboardLayout';
+import { ArtistAnalyticsPage } from './pages/artist-dashboard/ArtistAnalyticsPage';
+import { ArtistSongsPage } from './pages/artist-dashboard/ArtistSongsPage';
+import { useLibraryStore } from './stores/library.store';
+import { useAuthStore } from './stores/auth.store';
+import { useEffect } from 'react';
 
 // Placeholder tạm thời — xóa khi implement từng page
 const PlaceholderPage = ({ name, color = "#1DB954" }: { name: string, color?: string }) => (
@@ -35,6 +43,15 @@ const FullScreenPlaceholder = ({ name }: { name: string }) => (
 );
 
 function App() {
+  const { isAuthenticated } = useAuthStore();
+  const { hydrate, isHydrated } = useLibraryStore();
+
+  useEffect(() => {
+    if (isAuthenticated && !isHydrated) {
+      hydrate();
+    }
+  }, [isAuthenticated, isHydrated, hydrate]);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -50,15 +67,20 @@ function App() {
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/library" element={<PlaceholderPage name="Thư viện" color="#522bb3" />} />
+          <Route path="/library" element={<LibraryPage />} />
           <Route path="/playlist/:id" element={<PlaylistPage />} />
-          <Route path="/album/:id" element={<PlaceholderPage name="Album" color="#a67124" />} />
+          <Route path="/album/:id" element={<AlbumPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="/song/:id" element={<PlaceholderPage name="Bài hát" color="#1DB954" />} />
         </Route>
 
-        {/* Full screen routes for creators/admins */}
-        <Route path="/artist-dashboard" element={<FullScreenPlaceholder name="Artist Dashboard" />} />
+        {/* Artist Dashboard (full screen, no MainLayout) */}
+        <Route path="/artist-dashboard" element={<ProtectedRoute><ArtistDashboardLayout /></ProtectedRoute>}>
+          <Route index element={<ArtistAnalyticsPage />} />
+          <Route path="songs" element={<ArtistSongsPage />} />
+          <Route path="albums" element={<PlaceholderPage name="Quản lý Album" color="#a67124" />} />
+          <Route path="settings" element={<PlaceholderPage name="Cài đặt" color="#522bb3" />} />
+        </Route>
         <Route path="/admin" element={<FullScreenPlaceholder name="Admin Dashboard" />} />
 
         {/* Fallback */}

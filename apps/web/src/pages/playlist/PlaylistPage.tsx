@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
+import { useLibraryStore } from '../../stores/library.store';
 import { FastAverageColor } from 'fast-average-color';
 import { Play, Pause, Heart, MoreHorizontal, Clock } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
@@ -14,6 +15,7 @@ export const PlaylistPage = () => {
   const [loading, setLoading] = useState(true);
 
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { isLiked, toggleLike } = useLibraryStore();
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -152,7 +154,11 @@ export const PlaylistPage = () => {
         >
           {isThisPlaying ? <Pause size={28} className="fill-current" /> : <Play size={28} className="fill-current ml-1" />}
         </button>
-        <button className="text-[#b3b3b3] hover:text-white transition-colors">
+        <button
+          className={`transition-colors ${
+            false ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+          }`}
+        >
           <Heart size={32} />
         </button>
         <button className="text-[#b3b3b3] hover:text-white transition-colors">
@@ -205,7 +211,7 @@ export const PlaylistPage = () => {
                   <img src={track.coverUrl} alt={track.title} className="w-10 h-10 object-cover flex-shrink-0 rounded shadow" />
                   <div className="flex flex-col truncate">
                     <span className={cn("text-base truncate font-medium", isRowPlaying ? "text-[#1db954]" : "text-white")}>{track.title}</span>
-                    <Link to={`/artist/${track.artist.id}`} onClick={(e) => e.stopPropagation()} className="text-sm truncate hover:underline hover:text-white inline-block">
+                    <Link to={`/artist/${track.artistId}`} onClick={(e) => e.stopPropagation()} className="text-sm truncate hover:underline hover:text-white inline-block">
                       {track.artist.stageName}
                     </Link>
                   </div>
@@ -215,7 +221,15 @@ export const PlaylistPage = () => {
                   {track.playCount.toLocaleString()}
                 </div>
 
-                <div className="flex justify-end pr-8 text-sm">
+                <div className="flex justify-end items-center gap-4 pr-4 text-sm">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleLike(track.id, track.title); }}
+                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isLiked(track.id) ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+                    }`}
+                  >
+                    <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
+                  </button>
                   {formatTime(track.duration)}
                 </div>
               </div>
