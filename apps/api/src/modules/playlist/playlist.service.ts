@@ -45,7 +45,7 @@ export const PlaylistService = {
           orderBy: { position: 'asc' },
           include: {
             song: {
-              select: { id: true, title: true, duration: true, playCount: true, coverUrl: true, artist: { select: { stageName: true } } }
+              select: { id: true, title: true, duration: true, playCount: true, coverUrl: true, audioUrl320: true, audioUrl128: true, artistId: true, artist: { select: { id: true, stageName: true } } }
             }
           }
         },
@@ -60,7 +60,7 @@ export const PlaylistService = {
       if (!currentUserId) throw new AppError('Cần đăng nhập', 401, ErrorCodes.UNAUTHORIZED);
       const isOwner = playlist.ownerId === currentUserId;
       const isCollab = playlist.collaborators.some(c => c.userId === currentUserId);
-      const isSystem = playlist.isSystem; // Nếu system admin, query role admin ở route
+      const isSystem = playlist.isSystem;
 
       if (!isOwner && !isCollab && !isSystem) {
         throw new AppError('Playlist riêng tư', 403, ErrorCodes.FORBIDDEN);
@@ -78,7 +78,16 @@ export const PlaylistService = {
       playlist.songs = playlist.songs.filter(ps => !hiddenIds.includes(ps.songId));
     }
 
-    return playlist;
+    // Pass data for UI audio mapping
+    const formattedSongs = playlist.songs.map((ps) => {
+      const audioUrl = ps.song.audioUrl320 || ps.song.audioUrl128;
+      return {
+        ...ps,
+        audioUrl
+      };
+    });
+
+    return { ...playlist, songs: formattedSongs };
   },
 
   // 4. Sửa thông tin Playlist

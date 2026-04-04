@@ -47,8 +47,29 @@ export const HomePage = () => {
 
   if (!feedData) {
     return (
-      <div className="flex-1 overflow-y-auto w-full p-6 text-white bg-[#121212] pt-24">
-        Đang tải nhạc...
+      <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
+        {/* Skeleton cho Recently Played */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-16 lg:h-20 bg-white/10 rounded flex overflow-hidden animate-pulse">
+              <div className="w-16 lg:w-20 bg-white/20"></div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Skeleton cho Made for you */}
+        <div className="mb-8">
+          <div className="h-8 w-48 bg-white/10 rounded mb-4 animate-pulse"></div>
+          <div className="flex gap-6 overflow-hidden">
+             {Array.from({ length: 4 }).map((_, i) => (
+               <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse min-w-[200px] flex-1">
+                 <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
+                 <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
+                 <div className="h-3 bg-white/10 rounded w-1/2"></div>
+               </div>
+             ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -78,6 +99,7 @@ export const HomePage = () => {
               title={item.title}
               coverUrl={item.coverUrl}
               songs={item.songs}
+              isSong={item.isSong}
             />
           ))}
         </div>

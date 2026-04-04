@@ -21,8 +21,12 @@ export const SearchService = {
       releaseDate: s.releaseDate?.getTime() || 0,
       playCount: s.playCount,
       status: s.status,
+      // Pass data render Frontend
+      audioUrl: s.audioUrl320 || s.audioUrl128 || '',
+      coverUrl: s.coverUrl || '',
+      artistId: s.artistId
     }));
-    await meilisearch.index('songs').addDocuments(songDocs);
+    await meilisearch.index('songs').addDocuments(songDocs, { primaryKey: 'id' });
 
     // b. Đồng bộ Artists
     const artists = await prisma.artist.findMany();
@@ -32,7 +36,7 @@ export const SearchService = {
       bio: a.bio || '',
       isVerified: a.isVerified,
     }));
-    await meilisearch.index('artists').addDocuments(artistDocs);
+    await meilisearch.index('artists').addDocuments(artistDocs, { primaryKey: 'id' });
 
     // c. Đồng bộ Albums
     const albums = await prisma.album.findMany({
@@ -45,33 +49,28 @@ export const SearchService = {
       artistName: a.artist.stageName,
       releaseDate: a.releaseDate?.getTime() || 0,
     }));
-    await meilisearch.index('albums').addDocuments(albumDocs);
+    await meilisearch.index('albums').addDocuments(albumDocs, { primaryKey: 'id' });
 
     return { message: 'Đã đồng bộ xong dữ liệu Meilisearch' };
   },
 
-  // 2. Cổng Tìm kiếm hợp nhất (Multi-index search)
-  globalSearch: async (query: string, type?: string) => {
+  // 2. Mock Tìm kiếm hợp nhất -> Đã chuyển sang MEILISEARCH REAL
+  globalSearch: async (query: string, _type?: string) => {
     if (!query) return { songs: [], artists: [], albums: [] };
 
-    const results: any = {};
+    const q = query.toLowerCase();
 
-    if (!type || type === 'song') {
-      const songHits = await meilisearch.index('songs').search(query, { limit: 10 });
-      results.songs = songHits.hits;
-    }
+    const [songsRes, artistsRes, albumsRes] = await Promise.all([
+      meilisearch.index('songs').search(q, { limit: 10 }),
+      meilisearch.index('artists').search(q, { limit: 5 }),
+      meilisearch.index('albums').search(q, { limit: 5 }),
+    ]);
 
-    if (!type || type === 'artist') {
-      const artistHits = await meilisearch.index('artists').search(query, { limit: 10 });
-      results.artists = artistHits.hits;
-    }
-
-    if (!type || type === 'album') {
-      const albumHits = await meilisearch.index('albums').search(query, { limit: 10 });
-      results.albums = albumHits.hits;
-    }
-
-    return results;
+    return { 
+      songs: songsRes.hits, 
+      artists: artistsRes.hits,
+      albums: albumsRes.hits 
+    };
   },
 
   // 3. Top Charts (Trending theo playCount cached 1h)

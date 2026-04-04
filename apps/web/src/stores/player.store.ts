@@ -5,6 +5,7 @@ export interface Track {
   id: string;
   title: string;
   artistName: string;
+  artistId?: string;
   coverUrl: string;
   audioUrl: string;
   duration: number; // in seconds

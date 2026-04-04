@@ -8,7 +8,7 @@ export const ArtistService = {
       include: {
         songs: {
           where: { status: 'APPROVED' },
-          select: { id: true, title: true, playCount: true, coverUrl: true, duration: true },
+          select: { id: true, title: true, playCount: true, coverUrl: true, audioUrl320: true, audioUrl128: true, duration: true, artistId: true, artist: { select: { id: true, stageName: true } } },
           take: 10,
           orderBy: { playCount: 'desc' }
         },
@@ -22,7 +22,22 @@ export const ArtistService = {
     if (!artist) {
       throw new AppError('Nghệ sĩ không tồn tại', 404, ErrorCodes.NOT_FOUND);
     }
-    return artist;
+    
+    // Map song array object for frontend UI
+    const formattedSongs = artist.songs.map((song) => ({
+      songId: song.id,
+      audioUrl: song.audioUrl320 || song.audioUrl128 || '',
+      song: {
+        id: song.id,
+        title: song.title,
+        duration: song.duration,
+        playCount: song.playCount,
+        coverUrl: song.coverUrl,
+        artist: song.artist
+      }
+    }));
+
+    return { ...artist, followersCount: 125000, songs: formattedSongs };
   },
 
   updateProfile: async (userId: string, data: any) => {

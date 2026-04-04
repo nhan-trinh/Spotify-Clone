@@ -10,6 +10,9 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { AuthCallbackPage } from './pages/auth/AuthCallbackPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { HomePage } from './pages/home/HomePage';
+import { SearchPage } from './pages/search/SearchPage';
+import { PlaylistPage } from './pages/playlist/PlaylistPage';
+import { ArtistPage } from './pages/artist/ArtistPage';
 
 // Placeholder tạm thời — xóa khi implement từng page
 const PlaceholderPage = ({ name, color = "#1DB954" }: { name: string, color?: string }) => (
@@ -46,11 +49,11 @@ function App() {
         {/* Protected routes wrapped in MainLayout */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<PlaceholderPage name="Tìm kiếm" color="#3d3d3d" />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/library" element={<PlaceholderPage name="Thư viện" color="#522bb3" />} />
-          <Route path="/playlist/:id" element={<PlaceholderPage name="Playlist" color="#8c2a3e" />} />
+          <Route path="/playlist/:id" element={<PlaylistPage />} />
           <Route path="/album/:id" element={<PlaceholderPage name="Album" color="#a67124" />} />
-          <Route path="/artist/:id" element={<PlaceholderPage name="Nghệ sĩ" color="#2c72b8" />} />
+          <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="/song/:id" element={<PlaceholderPage name="Bài hát" color="#1DB954" />} />
         </Route>
 

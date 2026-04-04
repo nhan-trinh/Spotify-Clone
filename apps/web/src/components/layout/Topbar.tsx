@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, User, Bell, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { cn } from '../../lib/utils';
+import { SearchInput } from '../search/SearchInput';
 
 export const Topbar = () => {
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ export const Topbar = () => {
         >
           <ChevronRight className="h-5 w-5 pl-[1px]" />
         </button>
+      </div>
+
+      <div className="flex flex-1 justify-center px-4">
+        <SearchInput />
       </div>
 
       <div className="flex items-center gap-4">

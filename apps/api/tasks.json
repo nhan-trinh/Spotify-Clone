@@ -1,0 +1,101 @@
+{
+  "results": [
+    {
+      "uid": 144,
+      "batchUid": 144,
+      "indexUid": "albums",
+      "status": "succeeded",
+      "type": "documentAdditionOrUpdate",
+      "canceledBy": null,
+      "details": {
+        "receivedDocuments": 0,
+        "indexedDocuments": 0
+      },
+      "error": null,
+      "duration": "PT0.038141772S",
+      "enqueuedAt": "2026-04-04T11:55:04.178024287Z",
+      "startedAt": "2026-04-04T11:55:04.18021379Z",
+      "finishedAt": "2026-04-04T11:55:04.218355562Z"
+    },
+    {
+      "uid": 143,
+      "batchUid": 143,
+      "indexUid": "artists",
+      "status": "succeeded",
+      "type": "documentAdditionOrUpdate",
+      "canceledBy": null,
+      "details": {
+        "receivedDocuments": 2,
+        "indexedDocuments": 2
+      },
+      "error": null,
+      "duration": "PT0.042003682S",
+      "enqueuedAt": "2026-04-04T11:55:03.816859238Z",
+      "startedAt": "2026-04-04T11:55:03.81892636Z",
+      "finishedAt": "2026-04-04T11:55:03.860930042Z"
+    },
+    {
+      "uid": 142,
+      "batchUid": 142,
+      "indexUid": "songs",
+      "status": "failed",
+      "type": "documentAdditionOrUpdate",
+      "canceledBy": null,
+      "details": {
+        "receivedDocuments": 10,
+        "indexedDocuments": 0
+      },
+      "error": {
+        "message": "The primary key inference failed as the engine found 2 fields ending with `id` in their names: 'artistId' and 'id'. Please specify the primary key manually using the `primaryKey` query parameter.",
+        "code": "index_primary_key_multiple_candidates_found",
+        "type": "invalid_request",
+        "link": "https://docs.meilisearch.com/errors#index_primary_key_multiple_candidates_found"
+      },
+      "duration": "PT0.002870246S",
+      "enqueuedAt": "2026-04-04T11:55:03.486928868Z",
+      "startedAt": "2026-04-04T11:55:03.489006115Z",
+      "finishedAt": "2026-04-04T11:55:03.491876361Z"
+    },
+    {
+      "uid": 141,
+      "batchUid": 141,
+      "indexUid": "artists",
+      "status": "succeeded",
+      "type": "settingsUpdate",
+      "canceledBy": null,
+      "details": {
+        "filterableAttributes": [
+          "isVerified"
+        ]
+      },
+      "error": null,
+      "duration": "PT0.006317364S",
+      "enqueuedAt": "2026-04-04T11:37:31.600619495Z",
+      "startedAt": "2026-04-04T11:37:31.604469196Z",
+      "finishedAt": "2026-04-04T11:37:31.61078656Z"
+    },
+    {
+      "uid": 140,
+      "batchUid": 140,
+      "indexUid": "songs",
+      "status": "succeeded",
+      "type": "settingsUpdate",
+      "canceledBy": null,
+      "details": {
+        "sortableAttributes": [
+          "playCount",
+          "releaseDate"
+        ]
+      },
+      "error": null,
+      "duration": "PT0.004374355S",
+      "enqueuedAt": "2026-04-04T11:37:31.537364898Z",
+      "startedAt": "2026-04-04T11:37:31.539340358Z",
+      "finishedAt": "2026-04-04T11:37:31.543714713Z"
+    }
+  ],
+  "total": 145,
+  "limit": 5,
+  "from": 144,
+  "next": 139
+}

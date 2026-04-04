@@ -2,6 +2,7 @@ import { usePlayerStore } from '../../stores/player.store';
 import { Play, Pause } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface MediaCardProps {
   id: string;
@@ -10,17 +11,20 @@ interface MediaCardProps {
   coverUrl: string;
   isCircle?: boolean;
   songs?: any[];
+  type?: 'playlist' | 'album' | 'artist' | 'song';
 }
 
-export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [] }: MediaCardProps) => {
+export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist' }: MediaCardProps) => {
   const { setQueueAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   // Nhận diện theo ngữ cảnh Card Id
   const isThisPlaying = currentContextId === id && isPlaying;
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Không ăn click parent
     if (songs.length === 0) return;
 
     // Nếu đang phát list này thì sang Pause
@@ -31,9 +35,24 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
     }
   };
 
+  const handleCardClick = () => {
+    if (type === 'song') {
+      if (songs && songs.length > 0) {
+        setQueueAndPlay(songs, 0, id);
+      }
+    } else if (type === 'artist') {
+      navigate(`/artist/${id}`);
+    } else if (type === 'album') {
+      navigate(`/album/${id}`);
+    } else {
+      navigate(`/playlist/${id}`);
+    }
+  };
+
   return (
     <div
       data-id={id}
+      onClick={handleCardClick}
       className="hover:bg-[#282828] p-4 flex flex-col rounded-md transition-colors cursor-pointer group relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
