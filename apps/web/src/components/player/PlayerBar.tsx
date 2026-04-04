@@ -22,8 +22,8 @@ export const PlayerBar = () => {
   };
 
   return (
-    <div className="h-[90px] bg-[#181818] border-t border-[#282828] flex items-center justify-between px-4 fixed bottom-0 w-full z-50">
-      
+    <div className="h-[90px] border-[#282828] flex items-center justify-between px-4 fixed bottom-0 w-full z-50">
+
       {/* 1. Track Info (Bên trái) */}
       <div className="flex w-[30%] min-w-[180px] items-center gap-4">
         {currentTrack ? (
@@ -35,7 +35,7 @@ export const PlayerBar = () => {
             </div>
           </>
         ) : (
-          <button 
+          <button
             onClick={handleTestLoad}
             className="text-white text-xs px-4 py-2 bg-[#1db954] rounded-full font-bold hover:scale-105"
           >

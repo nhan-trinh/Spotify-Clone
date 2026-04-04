@@ -20,6 +20,7 @@ import { podcastRouter } from './modules/podcast/podcast.router';
 import { notificationRouter } from './modules/notification/notification.router';
 import { moderationRouter } from './modules/moderation/moderation.router';
 import { adminRouter } from './modules/admin/admin.router';
+import { homeRouter } from './modules/home/home.router';
 
 export const createApp = (): Application => {
   const app = express();
@@ -63,6 +64,7 @@ export const createApp = (): Application => {
   app.use(`${API_V1}/notifications`, notificationRouter);
   app.use(`${API_V1}/moderation`, moderationRouter);
   app.use(`${API_V1}/admin`, adminRouter);
+  app.use(`${API_V1}/home`, homeRouter);
 
   // ---- 404 Handler ----
   app.use((_req: Request, res: Response) => {

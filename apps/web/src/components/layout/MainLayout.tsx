@@ -11,9 +11,15 @@ export const MainLayout = () => {
       <div className="flex flex-1 overflow-hidden p-2 gap-2 pb-0">
         <Sidebar className="w-[300px] shrink-0" />
 
-        <main className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-[#121212]">
-          <Topbar />
-          <div className="flex-1 overflow-y-auto w-full">
+        <main className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-[#121212] isolate">
+          {/* Topbar float over content */}
+          <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
+            <div className="pointer-events-auto">
+              <Topbar />
+            </div>
+          </div>
+          {/* Scrollable Container */}
+          <div id="main-scroll" className="flex-1 overflow-y-auto w-full h-full relative z-0">
             <Outlet />
           </div>
         </main>

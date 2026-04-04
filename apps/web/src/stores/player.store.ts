@@ -21,9 +21,10 @@ interface PlayerState {
   isShuffle: boolean;
   repeatMode: 'off' | 'all' | 'one';
   originalQueue: Track[];
+  currentContextId: string | null;
   _howl: Howl | null;
   
-  setQueueAndPlay: (queue: Track[], startIndex?: number) => void;
+  setQueueAndPlay: (queue: Track[], startIndex?: number, contextId?: string) => void;
   playTrack: (index: number) => void;
   pause: () => void;
   resume: () => void;
@@ -50,6 +51,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isShuffle: false,
   repeatMode: 'off',
   originalQueue: [],
+  currentContextId: null,
   _howl: null,
 
   updateProgress: () => {
@@ -59,8 +61,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  setQueueAndPlay: (queue, startIndex = 0) => {
-    set({ queue, originalQueue: [...queue], isShuffle: false });
+  setQueueAndPlay: (queue, startIndex = 0, contextId) => {
+    set({ queue, originalQueue: [...queue], isShuffle: false, currentContextId: contextId || null });
     if (queue.length > 0) {
       get().playTrack(startIndex);
     }

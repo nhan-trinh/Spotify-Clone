@@ -1,15 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, User, Bell, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
+import { cn } from '../../lib/utils';
 
 export const Topbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [showMenu, setShowMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const scrollContainer = document.getElementById('main-scroll');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      setIsScrolled(scrollContainer.scrollTop > 50);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between bg-transparent flex-shrink-0 px-4 transition-colors duration-300">
+    <header className={cn(
+      "sticky top-0 z-10 flex h-16 items-center justify-between flex-shrink-0 px-4 transition-colors duration-300",
+      isScrolled ? "bg-black/80 backdrop-blur-md" : "bg-transparent"
+    )}>
       <div className="flex gap-2">
         <button 
           onClick={() => navigate(-1)}

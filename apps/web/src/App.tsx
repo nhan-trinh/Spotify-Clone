@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { AuthCallbackPage } from './pages/auth/AuthCallbackPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { HomePage } from './pages/home/HomePage';
 
 // Placeholder tạm thời — xóa khi implement từng page
 const PlaceholderPage = ({ name, color = "#1DB954" }: { name: string, color?: string }) => (
@@ -44,7 +45,7 @@ function App() {
 
         {/* Protected routes wrapped in MainLayout */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-          <Route path="/" element={<PlaceholderPage name="Trang chủ" color="#1DB954" />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<PlaceholderPage name="Tìm kiếm" color="#3d3d3d" />} />
           <Route path="/library" element={<PlaceholderPage name="Thư viện" color="#522bb3" />} />
           <Route path="/playlist/:id" element={<PlaceholderPage name="Playlist" color="#8c2a3e" />} />
