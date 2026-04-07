@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Icons } from '../../components/ui/icons';
+import logoSvg from '../../assets/logo.png';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email.').email('Email không hợp lệ.'),
@@ -84,9 +85,9 @@ export const LoginPage = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-[#121212] lg:bg-gradient-to-b lg:from-[#2a2a2a] lg:to-[#000000]">
-      <header className="px-8 py-6 w-full flex justify-center sm:justify-start">
+      <header className="mb-10 w-full flex justify-center">
         <Link to="/">
-          <Icons.logo className="" />
+          <img src={logoSvg} alt="Spotify" className="h-40 w-auto object-contain" />
         </Link>
       </header>
 

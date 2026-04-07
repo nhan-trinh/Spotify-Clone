@@ -62,18 +62,18 @@ export const HomePage = () => {
             </div>
           ))}
         </div>
-        
+
         {/* Skeleton cho Made for you */}
         <div className="mb-8">
           <div className="h-8 w-48 bg-white/10 rounded mb-4 animate-pulse"></div>
           <div className="flex gap-6 overflow-hidden">
-             {Array.from({ length: 4 }).map((_, i) => (
-               <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse min-w-[200px] flex-1">
-                 <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
-                 <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
-                 <div className="h-3 bg-white/10 rounded w-1/2"></div>
-               </div>
-             ))}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse min-w-[200px] flex-1">
+                <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
+                <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-white/10 rounded w-1/2"></div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export const HomePage = () => {
   return (
     <div className="flex-1 w-full min-h-full overflow-y-auto relative isolate">
       {/* Dynamic Gradient Background Layer */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none transition-colors duration-1000 ease-in-out -z-10"
         style={{ background: `linear-gradient(to bottom, ${dominantColor}88 0%, #121212 332px)` }}
       />
@@ -119,7 +119,7 @@ export const HomePage = () => {
 
         {/* ✅ Top Songs - Đang thịnh */}
         {feedData.topSongs?.length > 0 && (
-          <Section title="Đang thịnh">
+          <Section title="Đang thịnh hành">
             <SongRow songs={feedData.topSongs} contextId="top-songs" />
           </Section>
         )}
@@ -190,9 +190,8 @@ const SongRow = ({ songs, contextId }: { songs: any[], contextId: string }) => {
               <div className="flex items-center gap-3 flex-shrink-0">
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleLike(song.id, song.title); }}
-                  className={`transition-opacity ${
-                    isLiked(song.id) ? 'text-[#1DB954] opacity-100' : 'opacity-0 group-hover:opacity-100 hover:text-white'
-                  }`}
+                  className={`transition-opacity ${isLiked(song.id) ? 'text-[#1DB954] opacity-100' : 'opacity-0 group-hover:opacity-100 hover:text-white'
+                    }`}
                 >
                   <Heart size={14} className={isLiked(song.id) ? 'fill-[#1DB954]' : ''} />
                 </button>
@@ -224,7 +223,7 @@ const AlbumGrid = ({ albums }: { albums: any[] }) => (
       <Link
         key={album.id}
         to={`/album/${album.id}`}
-        className="group bg-[#181818] hover:bg-[#282828] p-4 rounded-xl transition-colors cursor-pointer"
+        className="group hover:bg-[#282828] p-4 rounded-xl transition-colors cursor-pointer"
       >
         <div className="relative mb-4">
           {album.coverUrl ? (
