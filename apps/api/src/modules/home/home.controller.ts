@@ -8,4 +8,8 @@ export const homeController = {
     const data = await HomeService.getFeed();
     sendSuccess(res, data, 'Lấy dữ liệu trang chủ thành công');
   }),
+  getSettings: catchAsync(async (_req: Request, res: Response) => {
+    const data = await HomeService.getSettings();
+    sendSuccess(res, data);
+  }),
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, User, Bell, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, User, Bell, LogOut, ShieldAlert, Mic2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { cn } from '../../lib/utils';
 import { SearchInput } from '../search/SearchInput';
@@ -87,6 +87,27 @@ export const Topbar = () => {
                   <p className="text-sm font-bold text-white truncate">{user.name}</p>
                   <p className="text-xs text-[#B3B3B3] truncate">{user.email}</p>
                 </div>
+                
+                {/* Admin / Mod Panel Link */}
+                {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+                  <Link
+                    to="/admin"
+                    className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-[#3E3E3E] transition-colors"
+                  >
+                    <ShieldAlert className="h-4 w-4 text-[#e22134]" /> Admin Panel
+                  </Link>
+                )}
+
+                {/* Artist Dashboard Link */}
+                {(user.role === 'ADMIN' || user.role === 'ARTIST') && (
+                  <Link
+                    to="/artist-dashboard"
+                    className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-[#3E3E3E] transition-colors border-b border-[#3E3E3E]"
+                  >
+                    <Mic2 className="h-4 w-4 text-[#1DB954]" /> Artist Dashboard
+                  </Link>
+                )}
+
                 <button
                   className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-[#3E3E3E] transition-colors"
                   onClick={() => {

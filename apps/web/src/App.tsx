@@ -20,6 +20,13 @@ import { ArtistAnalyticsPage } from './pages/artist-dashboard/ArtistAnalyticsPag
 import { ArtistSongsPage } from './pages/artist-dashboard/ArtistSongsPage';
 import { ArtistAlbumsPage } from './pages/artist-dashboard/ArtistAlbumsPage';
 import { ArtistSettingsPage } from './pages/artist-dashboard/ArtistSettingsPage';
+import { AdminLayout } from './pages/admin/AdminLayout';
+import { AdminOverviewPage } from './pages/admin/AdminOverviewPage';
+import { AdminPendingSongsPage } from './pages/admin/AdminPendingSongsPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { AdminReportsPage } from './pages/admin/AdminReportsPage';
+import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { useLibraryStore } from './stores/library.store';
 import { useAuthStore } from './stores/auth.store';
 import { useEffect } from 'react';
@@ -35,15 +42,6 @@ const PlaceholderPage = ({ name, color = "#1DB954" }: { name: string, color?: st
 );
 
 // Màn hình full không có Sidebar (cho Login/Register)
-const FullScreenPlaceholder = ({ name }: { name: string }) => (
-  <div className="flex h-screen items-center justify-center bg-[#121212] text-white">
-    <div className="text-center">
-      <h1 className="text-4xl font-bold text-[#1DB954] mb-2">Spotify Clone</h1>
-      <p className="text-[#B3B3B3]">Trang {name}</p>
-    </div>
-  </div>
-);
-
 function App() {
   const { isAuthenticated } = useAuthStore();
   const { hydrate, isHydrated } = useLibraryStore();
@@ -77,13 +75,22 @@ function App() {
         </Route>
 
         {/* Artist Dashboard (full screen, no MainLayout) */}
-        <Route path="/artist-dashboard" element={<ProtectedRoute><ArtistDashboardLayout /></ProtectedRoute>}>
+        <Route path="/artist-dashboard" element={<ProtectedRoute roles={['ARTIST', 'ADMIN']}><ArtistDashboardLayout /></ProtectedRoute>}>
           <Route index element={<ArtistAnalyticsPage />} />
           <Route path="songs" element={<ArtistSongsPage />} />
           <Route path="albums" element={<ArtistAlbumsPage />} />
           <Route path="settings" element={<ArtistSettingsPage />} />
         </Route>
-        <Route path="/admin" element={<FullScreenPlaceholder name="Admin Dashboard" />} />
+
+        {/* Admin Dashboard */}
+        <Route path="/admin" element={<ProtectedRoute roles={['ADMIN', 'MODERATOR']}><AdminLayout /></ProtectedRoute>}>
+          <Route index element={<AdminOverviewPage />} />
+          <Route path="songs" element={<AdminPendingSongsPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="reports" element={<AdminReportsPage />} />
+          <Route path="audit" element={<AdminAuditLogsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -80,4 +80,17 @@ export const adminController = {
   getTopArtists: catchAsync(async (_req: Request, res: Response) => {
     sendSuccess(res, await AdminService.getTopArtists());
   }),
+
+  // System
+  getSettings: catchAsync(async (_req: Request, res: Response) => {
+    sendSuccess(res, await AdminService.getSettings());
+  }),
+  updateSettings: catchAsync(async (req: Request, res: Response) => {
+    const result = await AdminService.updateSettings(req.user!.id, req.body);
+    sendSuccess(res, result);
+  }),
+  clearCache: catchAsync(async (req: Request, res: Response) => {
+    const result = await AdminService.clearCache(req.user!.id);
+    sendSuccess(res, result);
+  }),
 };

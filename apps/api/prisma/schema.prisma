@@ -119,6 +119,8 @@ model User {
   hiddenSongs        HiddenSong[]
   reports            Report[]         @relation("ReportedBy")
   strikes            Strike[]
+  issuedStrikes      Strike[]         @relation("IssuedBy")
+  auditLogs          AuditLog[]       @relation("Actor")
   payments           Payment[]
   invoices           Invoice[]
 }
@@ -379,6 +381,7 @@ model Strike {
   userId    String
   user      User         @relation(fields: [userId], references: [id])
   issuedBy  String // Moderator userId
+  issuer    User         @relation("IssuedBy", fields: [issuedBy], references: [id])
   reason    StrikeReason
   note      String?
   createdAt DateTime     @default(now())
@@ -387,6 +390,7 @@ model Strike {
 model AuditLog {
   id         String      @id @default(uuid())
   actorId    String // Admin hoặc Moderator userId
+  actor      User        @relation("Actor", fields: [actorId], references: [id])
   action     AuditAction
   targetId   String? // userId / songId / reportId bị tác động
   targetType String? // "user" | "song" | "report"
@@ -448,4 +452,10 @@ model PlaylistFollower {
   followedAt DateTime @default(now())
 
   @@id([userId, playlistId])
+}
+
+model SystemConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

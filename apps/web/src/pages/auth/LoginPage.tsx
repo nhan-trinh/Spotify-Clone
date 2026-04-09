@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useLogin } from '../../hooks/useAuthMutation';
 import { api } from '../../lib/api';
+import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -24,10 +25,21 @@ export const LoginPage = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const loginMutation = useLogin();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'Account_Banned') {
+      toast.error('Tài khoản đã bị khóa! Không thể đăng nhập bằng Google.', { duration: 5000 });
+      setErrorMsg('Tài khoản đã bị quản trị viên khóa.');
+    } else if (errorParam) {
+      toast.error(`Lỗi đăng nhập: ${errorParam}`);
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -91,7 +103,7 @@ export const LoginPage = () => {
         </Link>
       </header>
 
-      <div className="flex-1 flex flex-col items-center pt-8 px-4 pb-16">
+      <div className="flex-1 flex flex-col items-center pt-2 px-2 pb-16">
 
         <div className="mx-auto w-full max-w-[324px]">
           {step === 1 && (

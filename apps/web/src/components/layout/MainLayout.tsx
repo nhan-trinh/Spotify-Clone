@@ -3,10 +3,12 @@ import { Sidebar } from '../layout/Sidebar';
 import { Topbar } from '../layout/Topbar';
 import { PlayerBar } from '../player/PlayerBar';
 import { Outlet } from 'react-router-dom';
+import { GlobalBanner } from './GlobalBanner';
 
 export const MainLayout = () => {
   return (
     <div className="flex h-screen w-full flex-col bg-[#000000] overflow-hidden text-white">
+      <GlobalBanner />
       {/* Top Section: Sidebar + Main Content */}
       <div className="flex flex-1 overflow-hidden p-2 gap-2 pb-0">
         <Sidebar className="w-[300px] shrink-0" />

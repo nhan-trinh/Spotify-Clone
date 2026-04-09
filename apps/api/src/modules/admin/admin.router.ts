@@ -34,3 +34,8 @@ adminRouter.get('/audit-logs', adminController.getAuditLogs);
 adminRouter.get('/analytics/overview', adminController.getOverview);
 adminRouter.get('/analytics/top-songs', adminController.getTopSongs);
 adminRouter.get('/analytics/top-artists', adminController.getTopArtists);
+
+// System Settings
+adminRouter.get('/settings', adminController.getSettings);
+adminRouter.post('/settings', adminController.updateSettings);
+adminRouter.post('/system/clear-cache', adminController.clearCache);

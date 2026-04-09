@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './shared/config/env';
 import { errorMiddleware } from './shared/middleware/error.middleware';
+import { optionalAuthMiddleware } from './shared/middleware/auth.middleware';
+import { maintenanceMiddleware } from './shared/middleware/maintenance.middleware';
 
 // Module routers
 import { authRouter } from './modules/auth/auth.router';
@@ -50,6 +52,10 @@ export const createApp = (): Application => {
 
   // ---- API Routes ----
   const API_V1 = '/api/v1';
+
+  // Maintenance & Optional Auth Global Check
+  app.use(optionalAuthMiddleware);
+  app.use(maintenanceMiddleware);
 
   app.use(`${API_V1}/auth`, authRouter);
   app.use(`${API_V1}/users`, userRouter);

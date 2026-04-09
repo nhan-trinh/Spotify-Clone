@@ -97,7 +97,7 @@ export const SongService = {
         duration: data.duration ? parseInt(data.duration) : 0,
         artistId: artist.id,
         // Tạo chưa có audio
-        status: 'APPROVED', // Phase 6 = auto approve
+        status: 'PENDING', // Phase 7 = chờ Moderation duyệt
       },
     });
 
@@ -115,7 +115,7 @@ export const SongService = {
       }
     });
 
-    return { songId: song.id, title: song.title, status: 'APPROVED' };
+    return { songId: song.id, title: song.title, status: 'PENDING' };
   },
 
   // 2.6: Cập nhật bài hát

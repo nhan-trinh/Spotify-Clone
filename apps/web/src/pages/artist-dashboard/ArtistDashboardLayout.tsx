@@ -108,9 +108,10 @@ export const ArtistDashboardLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex">
-      {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 bg-[#111] flex flex-col border-r border-[#282828]">
+    <div className="flex h-screen w-full flex-col bg-[#000000] overflow-hidden text-white">
+      <div className="flex flex-1 overflow-hidden p-2 gap-2">
+        {/* Sidebar */}
+        <aside className="w-[260px] flex-shrink-0 bg-[#000000] flex flex-col rounded-lg">
         <div className="p-6 border-b border-[#282828]">
           <div className="flex items-center gap-2 mb-1">
             <Mic2 size={20} className="text-[#1DB954]" />
@@ -150,10 +151,11 @@ export const ArtistDashboardLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 bg-[#121212] rounded-lg overflow-y-auto relative isolate">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

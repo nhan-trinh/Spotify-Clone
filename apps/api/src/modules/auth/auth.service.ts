@@ -86,6 +86,10 @@ export const AuthService = {
       throw new AppError('Email hoặc mật khẩu không đúng', 401, ErrorCodes.INVALID_CREDENTIALS);
     }
 
+    if (user.isBanned) {
+      throw new AppError(`Tài khoản đã bị khóa! Lý do: ${user.banReason || 'Vi phạm tiêu chuẩn cộng đồng'}`, 403, ErrorCodes.FORBIDDEN);
+    }
+
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new AppError('Tài khoản đã bị khóa tạm thời', 403, ErrorCodes.ACCOUNT_LOCKED);
     }

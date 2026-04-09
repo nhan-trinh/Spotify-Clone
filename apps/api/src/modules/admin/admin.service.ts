@@ -10,7 +10,7 @@ export const AdminService = {
       ? { OR: [{ name: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }] }
       : {};
     const [users, total] = await Promise.all([
-      prisma.user.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, email: true, role: true, isBanned: true, isEmailVerified: true, createdAt: true } }),
+      prisma.user.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' }, select: { id: true, name: true, email: true, role: true, isBanned: true, isEmailVerified: true, createdAt: true, artistProfile: { select: { id: true, isVerified: true } }, _count: { select: { strikes: true } } } }),
       prisma.user.count({ where }),
     ]);
     return { users, total, page, totalPages: Math.ceil(total / limit) };
@@ -33,7 +33,7 @@ export const AdminService = {
 
   banUser: async (adminId: string, targetId: string, reason: string) => {
     await prisma.user.update({ where: { id: targetId }, data: { isBanned: true, banReason: reason } });
-    await redis.del(`refresh_tokens:${targetId}`);
+    await redis.del(`refresh_token:${targetId}`);
     await prisma.auditLog.create({ data: { actorId: adminId, action: 'USER_BANNED', targetId, targetType: 'user', metadata: { reason } } });
     return { message: 'Đã khóa tài khoản' };
   },
@@ -111,7 +111,12 @@ export const AdminService = {
   // ── Audit Logs ──
   getAuditLogs: async (page = 1) => {
     const [logs, total] = await Promise.all([
-      prisma.auditLog.findMany({ skip: (page - 1) * 50, take: 50, orderBy: { createdAt: 'desc' } }),
+      prisma.auditLog.findMany({ 
+        skip: (page - 1) * 50, 
+        take: 50, 
+        orderBy: { createdAt: 'desc' },
+        include: { actor: { select: { name: true } } } 
+      }),
       prisma.auditLog.count(),
     ]);
     return { logs, total, page };
@@ -149,5 +154,55 @@ export const AdminService = {
       orderBy: { songs: { _count: 'desc' } },
       select: { id: true, stageName: true, isVerified: true, _count: { select: { songs: true, followedBy: true } } },
     });
+  },
+  
+  // ── System Configuration ──
+  getSettings: async () => {
+    const settings = await prisma.systemConfig.findMany();
+    return settings.reduce((acc: any, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {});
+  },
+
+  updateSettings: async (adminId: string, settings: Record<string, any>) => {
+    const operations = Object.entries(settings).map(([key, value]) => 
+      prisma.systemConfig.upsert({
+        where: { key },
+        update: { value },
+        create: { key, value },
+      })
+    );
+    
+    await prisma.$transaction(operations);
+    await prisma.auditLog.create({
+      data: {
+        actorId: adminId,
+        action: 'CONFIG_UPDATED',
+        targetType: 'system',
+        metadata: { updatedKeys: Object.keys(settings) }
+      }
+    });
+    
+    // Clear specific caches related to settings if any
+    await redis.del('system_settings');
+    
+    return { message: 'Đã cập nhật cấu hình hệ thống' };
+  },
+
+  clearCache: async (adminId: string) => {
+    // Xóa sạch toàn bộ redis
+    await redis.flushall();
+    
+    await prisma.auditLog.create({
+      data: {
+        actorId: adminId,
+        action: 'CONFIG_UPDATED', // Giả sử dùng code này cho cache flush
+        targetType: 'system',
+        metadata: { action: 'cache_flush' }
+      }
+    });
+    
+    return { message: 'Đã xóa sạch bộ nhớ đệm (Cache)' };
   },
 };

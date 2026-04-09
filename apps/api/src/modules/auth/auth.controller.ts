@@ -103,6 +103,10 @@ export const authController = {
       });
     }
 
+    if (user.isBanned) {
+      return res.redirect(`${env.FRONTEND_URL}/login?error=Account_Banned`);
+    }
+
     const appTokens = TokenUtil.generateTokens(user.id, user.role);
     await redis.set(`refresh_token:${user.id}`, appTokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
 

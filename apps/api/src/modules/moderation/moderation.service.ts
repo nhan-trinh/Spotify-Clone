@@ -103,7 +103,7 @@ export const ModerationService = {
       // Auto-ban
       await prisma.user.update({ where: { id: targetUserId }, data: { isBanned: true, banReason: 'Bị khóa do vi phạm 3 lần' } });
       // Blacklist tất cả refresh tokens
-      await redis.del(`refresh_tokens:${targetUserId}`);
+      await redis.del(`refresh_token:${targetUserId}`);
     }
 
     return { strike, totalStrikes, banned: totalStrikes >= 3 };

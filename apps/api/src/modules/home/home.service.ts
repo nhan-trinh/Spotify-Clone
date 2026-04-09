@@ -1,4 +1,5 @@
 import { prisma } from '../../shared/config/database';
+import { redis } from '../../shared/config/redis';
 
 export const HomeService = {
   getFeed: async () => {
@@ -107,5 +108,20 @@ export const HomeService = {
       topSongs: topSongs.map(mapSong),
       newAlbums: newAlbums.map(mapAlbum),
     };
+  },
+
+  getSettings: async () => {
+    const cacheKey = 'system_settings';
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const settings = await prisma.systemConfig.findMany();
+    const data = settings.reduce((acc: any, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {});
+
+    await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600);
+    return data;
   }
 };

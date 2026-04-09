@@ -26,10 +26,12 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none; /* Chặn bounce/rubber-band khi overscroll */
 }
 
 #root {
   height: 100%;
+  overflow: hidden; /* Đảm bảo #root không tự scroll */
 }
 
 /* Scrollbar tùy chỉnh */
