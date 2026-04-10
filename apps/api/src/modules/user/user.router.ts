@@ -19,3 +19,7 @@ userRouter.post('/avatar', uploadImage.single('avatar'), userController.uploadAv
 
 // Danh mục Social (Nhạc đã thích, đang flow ai)
 userRouter.get('/library', userController.getLibrary);
+userRouter.get('/history', userController.getRecentlyPlayed);
+
+// Hồ sơ công khai
+userRouter.get('/:id', userController.getPublicProfile);

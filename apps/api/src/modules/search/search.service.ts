@@ -24,6 +24,7 @@ export const SearchService = {
       // Pass data render Frontend
       audioUrl: s.audioUrl320 || s.audioUrl128 || '',
       coverUrl: s.coverUrl || '',
+      canvasUrl: s.canvasUrl || '',
       artistId: s.artistId
     }));
     await meilisearch.index('songs').addDocuments(songDocs, { primaryKey: 'id' });

@@ -3,20 +3,28 @@ import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
+import { useAuthStore } from '../../stores/auth.store';
 import { FastAverageColor } from 'fast-average-color';
-import { Play, Pause, Heart, MoreHorizontal, Clock } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Clock, Edit2, Camera, X, Loader2 } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { Link } from 'react-router-dom';
+import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 
 export const PlaylistPage = () => {
   const { id } = useParams();
   const [playlist, setPlaylist] = useState<any>(null);
   const [dominantColor, setDominantColor] = useState('#121212');
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '', coverUrl: '' });
+  const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
+  const { user } = useAuthStore();
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingPlaylist, toggleFollowPlaylist } = useLibraryStore();
   const playlistFollowed = id ? isFollowingPlaylist(id) : false;
+  const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -24,6 +32,11 @@ export const PlaylistPage = () => {
       try {
         const res = await api.get(`/playlists/${id}`) as any;
         setPlaylist(res.data);
+        setEditForm({
+          title: res.data.title || '',
+          description: res.data.description || '',
+          coverUrl: res.data.coverUrl || '',
+        });
 
         if (res.data?.coverUrl) {
           const fac = new FastAverageColor();
@@ -84,14 +97,15 @@ export const PlaylistPage = () => {
 
   const isThisPlaying = currentContextId === id && isPlaying;
   // Format for player store
-  const trackList = playlist.songs.map((item: any) => ({
-    id: item.song.id,
-    title: item.song.title,
-    artistName: item.song.artist.stageName,
-    artistId: item.song.artistId,
-    coverUrl: item.song.coverUrl,
-    audioUrl: item.audioUrl,
-    duration: item.song.duration,
+  const trackList = playlist.songs.map((ps: any) => ({
+    id: ps.song.id,
+    title: ps.song.title,
+    artistName: ps.song.artist.stageName,
+    artistId: ps.song.artistId,
+    coverUrl: ps.song.coverUrl,
+    audioUrl: ps.song.audioUrl320 || ps.song.audioUrl128 || '',
+    canvasUrl: ps.song.canvasUrl,
+    duration: ps.song.duration,
   }));
 
   const handleMainPlay = () => {
@@ -112,6 +126,42 @@ export const PlaylistPage = () => {
     }
   };
 
+  const handleUpdatePlaylist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.patch(`/playlists/${id}`, editForm);
+      setPlaylist({ ...playlist, ...editForm });
+      setIsEditing(false);
+    } catch (e) {
+      console.error('Failed to update playlist:', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('cover', file);
+      const res = await api.patch(`/playlists/${id}/cover`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }) as any;
+      const newUrl = res.data.coverUrl;
+      setEditForm((prev: any) => ({ ...prev, coverUrl: newUrl }));
+      setPlaylist((prev: any) => ({ ...prev, coverUrl: newUrl }));
+    } catch (e) {
+      console.error('Failed to upload cover:', e);
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const isOwner = playlist.ownerId === user?.id;
+
   return (
     <div className="flex-1 w-full min-h-full overflow-y-auto relative isolate text-white">
       {/* Dynamic Header Gradient Background */}
@@ -124,14 +174,46 @@ export const PlaylistPage = () => {
 
       {/* Header Info */}
       <div className="flex items-end gap-6 px-6 pt-24 pb-6 w-full max-w-screen-2xl mx-auto">
-        <img 
-          src={playlist.coverUrl} 
-          alt={playlist.title} 
-          className="w-[232px] h-[232px] object-cover shadow-[0_8px_40px_rgba(0,0,0,0.5)]" 
-        />
+        <div 
+          className={cn(
+            "relative group flex-shrink-0 shadow-[0_8px_40px_rgba(0,0,0,0.5)]",
+            isOwner && "cursor-pointer"
+          )}
+          onClick={() => isOwner && setIsEditing(true)}
+        >
+          <img 
+            src={playlist.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'} 
+            alt={playlist.title} 
+            className="w-[232px] h-[232px] object-cover" 
+          />
+          {isOwner && (
+            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+               <Edit2 size={48} className="text-white mb-2" />
+               <span className="text-white text-sm font-bold">Chọn ảnh</span>
+            </div>
+          )}
+        </div>
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-bold">Playlist</span>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-2 line-clamp-2">{playlist.title}</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold">Danh sách phát</span>
+            <span className={cn(
+              "text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider",
+              playlist.isPublic ? "bg-[#1db954]/20 text-[#1db954] border border-[#1db954]/30" : "bg-white/10 text-[#b3b3b3] border border-white/20"
+            )}>
+              {playlist.isPublic ? "Công khai" : "Riêng tư"}
+            </span>
+          </div>
+          <div className="relative group/title">
+            <h1 
+              className={cn(
+                "text-5xl md:text-7xl font-bold tracking-tighter mb-2 line-clamp-2",
+                isOwner && "cursor-pointer"
+              )}
+              onClick={() => isOwner && setIsEditing(true)}
+            >
+              {playlist.title}
+            </h1>
+          </div>
           <p className="text-sm text-[#b3b3b3]">{playlist.description}</p>
           <div className="flex items-center gap-1 text-sm mt-1">
             <span className="font-bold hover:underline cursor-pointer">{playlist.owner?.name}</span>
@@ -189,6 +271,7 @@ export const PlaylistPage = () => {
                 key={item.songId} 
                 className="grid grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)] gap-4 px-4 py-2 rounded-md hover:bg-white/10 group cursor-pointer text-[#b3b3b3] items-center"
                 onDoubleClick={() => handleTrackPlay(index)}
+                onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist.stageName })}
               >
                 {/* Chỗ này sẽ chuyển từ số thành Nút play khi hover */}
                 <div className="text-base flex items-center justify-center w-full">
@@ -234,6 +317,12 @@ export const PlaylistPage = () => {
                     <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
                   </button>
                   {formatTime(track.duration)}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openTrackMenu(e, { ...track, artistName: track.artist.stageName }); }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
                 </div>
               </div>
             );
@@ -241,6 +330,83 @@ export const PlaylistPage = () => {
         </div>
       </div>
 
+      {/* Edit Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+          <div className="bg-[#282828] w-full max-w-[524px] rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 pb-0">
+              <h2 className="text-2xl font-bold">Sửa chi tiết</h2>
+              <button onClick={() => setIsEditing(false)} className="text-[#b3b3b3] hover:text-white transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePlaylist} className="p-6 space-y-4">
+              <div className="flex gap-4">
+                <div className="relative group w-48 h-48 bg-[#333] shadow-lg flex-shrink-0">
+                  <img 
+                    src={editForm.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'} 
+                    className="w-full h-full object-cover" 
+                    alt="" 
+                  />
+                  <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    {uploadingCover ? <Loader2 className="animate-spin text-white" /> : <Camera size={48} className="text-white" />}
+                    <span className="text-xs text-white font-bold mt-2">Chọn ảnh</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} />
+                  </label>
+                </div>
+                
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#b3b3b3]">Tên</label>
+                    <input 
+                      className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-white/20"
+                      value={editForm.title}
+                      onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))}
+                      placeholder="Thêm tên"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#b3b3b3]">Mô tả</label>
+                    <textarea 
+                      className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm h-28 focus:outline-none focus:ring-1 focus:ring-white/20 resize-none"
+                      value={editForm.description}
+                      onChange={e => setEditForm((p: any) => ({ ...p, description: e.target.value }))}
+                      placeholder="Thêm mô tả tùy chọn"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button 
+                  type="submit" 
+                  disabled={saving}
+                  className="bg-white text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform disabled:opacity-50"
+                >
+                  {saving ? 'Đang lưu...' : 'Lưu'}
+                </button>
+              </div>
+              <p className="text-[10px] text-[#b3b3b3] leading-tight mt-4">
+                Bằng cách tiếp tục, bạn đồng ý cho phép sếp tải hình ảnh lên dịch vụ của mình. Vui lòng đảm bảo sếp có quyền tải hình ảnh này lên.
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {trackMenu && (
+        <SongContextMenu 
+          song={trackMenu.song}
+          position={trackMenu.position}
+          onClose={closeTrackMenu}
+          onPlay={() => {
+            const idx = playlist.songs.findIndex((s: any) => s.song.id === trackMenu.song.id);
+            if (idx !== -1) handleTrackPlay(idx);
+          }}
+        />
+      )}
     </div>
   );
 };

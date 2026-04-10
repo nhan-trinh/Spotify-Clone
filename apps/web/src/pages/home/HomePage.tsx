@@ -5,9 +5,10 @@ import { RecentCard } from '../../components/shared/RecentCard';
 import { FastAverageColor } from 'fast-average-color';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
-import { Play, Pause, Heart } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react';
 import { formatTime } from '../../lib/utils';
 import { Link } from 'react-router-dom';
+import { clsx } from 'clsx';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 
 export const HomePage = () => {
@@ -112,14 +113,14 @@ export const HomePage = () => {
 
         {/* ✅ New Releases - Bài hát mới nhất */}
         {feedData.newReleases?.length > 0 && (
-          <Section title="Mới phát hành">
+          <Section title="Mới phát hành" showAllLink="/search?q=new">
             <SongRow songs={feedData.newReleases} contextId="new-releases" />
           </Section>
         )}
 
-        {/* ✅ Top Songs - Đang thịnh */}
+        {/* ✅ Top Songs - Được nghe nhiều */}
         {feedData.topSongs?.length > 0 && (
-          <Section title="Đang thịnh hành">
+          <Section title="Được nghe nhiều nhất" showAllLink="/search?q=top">
             <SongRow songs={feedData.topSongs} contextId="top-songs" />
           </Section>
         )}
@@ -136,10 +137,15 @@ export const HomePage = () => {
 };
 
 // ─── Helper Components ─────────────────────────────────────────────────────────
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const Section = ({ title, showAllLink, children }: { title: string; showAllLink?: string; children: React.ReactNode }) => (
   <section className="mb-10 w-full">
     <div className="flex items-end justify-between mb-4">
-      <h2 className="text-2xl font-bold text-white">{title}</h2>
+      <h2 className="text-2xl font-bold text-white tracking-tight hover:underline cursor-pointer">{title}</h2>
+      {showAllLink && (
+        <Link to={showAllLink} className="text-sm font-bold text-[#b3b3b3] hover:text-white transition-colors hover:underline">
+          Hiện tất cả
+        </Link>
+      )}
     </div>
     {children}
   </section>
@@ -148,7 +154,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const CardGrid = ({ items }: { items: any[] }) => (
   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 w-full">
     {items?.map((item: any) => (
-      <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} />
+      <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} />
     ))}
   </div>
 );
@@ -160,7 +166,7 @@ const SongRow = ({ songs, contextId }: { songs: any[], contextId: string }) => {
 
   return (
     <>
-      <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-0.5">
         {songs.map((song: any, index: number) => {
           const isRowPlaying = currentContextId === contextId && currentTrack?.id === song.id;
           const handlePlay = () => {
@@ -172,30 +178,47 @@ const SongRow = ({ songs, contextId }: { songs: any[], contextId: string }) => {
               key={song.id}
               onDoubleClick={handlePlay}
               onContextMenu={(e) => openMenu(e, song)}
-              className="group flex items-center gap-4 px-3 py-2 rounded-md hover:bg-white/10 cursor-pointer text-[#b3b3b3]"
+              className="group flex items-center gap-4 px-2 py-2 rounded-md bg-[#181818] hover:bg-white/10 cursor-pointer text-[#b3b3b3] transition-colors relative"
             >
-              <div className="w-10 h-10 relative flex-shrink-0">
-                <img src={song.coverUrl || '/placeholder.jpg'} alt={song.title} className="w-10 h-10 rounded object-cover" />
+              {/* Rank Number / Play Icon */}
+              <div className="w-4 text-right flex-shrink-0">
+                <span className="text-sm font-medium group-hover:hidden">
+                  {isRowPlaying && isPlaying ? <div className="w-3 h-3 bg-[#1DB954] rounded-full animate-pulse mx-auto" /> : index + 1}
+                </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); handlePlay(); }}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded transition-opacity"
+                  className="hidden group-hover:block text-white"
                 >
-                  {isRowPlaying && isPlaying ? <Pause size={14} className="fill-white text-white" /> : <Play size={14} className="fill-white text-white ml-0.5" />}
+                  {isRowPlaying && isPlaying ? <Pause size={14} className="fill-white" /> : <Play size={14} className="fill-white ml-0.5" />}
                 </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${isRowPlaying ? 'text-[#1DB954]' : 'text-white'}`}>{song.title}</p>
-                <p className="text-xs truncate">{song.artistName}</p>
+
+              <div className="w-10 h-10 relative flex-shrink-0 ml-1">
+                <img src={song.coverUrl || '/placeholder.jpg'} alt={song.title} className="w-10 h-10 rounded object-cover shadow-lg" />
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold truncate ${isRowPlaying ? 'text-[#1DB954]' : 'text-white'}`}>{song.title}</p>
+                <p className="text-xs font-medium truncate group-hover:text-white transition-colors">{song.artistName}</p>
+              </div>
+
+              <div className="flex items-center gap-4 flex-shrink-0 pr-2">
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleLike(song.id, song.title); }}
-                  className={`transition-opacity ${isLiked(song.id) ? 'text-[#1DB954] opacity-100' : 'opacity-0 group-hover:opacity-100 hover:text-white'
-                    }`}
+                  className={clsx(
+                    "transition-all duration-200",
+                    isLiked(song.id) ? "text-[#1DB954] opacity-100 scale-110" : "opacity-0 group-hover:opacity-100 hover:text-white hover:scale-110"
+                  )}
                 >
-                  <Heart size={14} className={isLiked(song.id) ? 'fill-[#1DB954]' : ''} />
+                  <Heart size={15} className={isLiked(song.id) ? 'fill-[#1DB954]' : ''} />
                 </button>
-                <span className="text-xs">{formatTime(song.duration)}</span>
+                <span className="text-xs font-medium tabular-nums">{formatTime(song.duration)}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); openMenu(e, song); }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
+                >
+                  <MoreHorizontal size={16} />
+                </button>
               </div>
             </div>
           );

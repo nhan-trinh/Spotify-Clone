@@ -3,6 +3,9 @@ import { Play, Pause } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SongContextMenu, useContextMenu } from './SongContextMenu';
+import { PlaylistContextMenu, usePlaylistContextMenu } from './PlaylistContextMenu';
+import { useLibraryStore } from '../../stores/library.store';
 
 interface MediaCardProps {
   id: string;
@@ -12,19 +15,25 @@ interface MediaCardProps {
   isCircle?: boolean;
   songs?: any[];
   type?: 'playlist' | 'album' | 'artist' | 'song';
+  isPublic?: boolean;
 }
 
-export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist' }: MediaCardProps) => {
+export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic }: MediaCardProps) => {
   const { setQueueAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+  const { updatePlaylist } = useLibraryStore();
+  const { menu: songMenu, openMenu: openSongMenu, closeMenu: closeSongMenu } = useContextMenu();
+  const { menu: playlistMenu, openPlaylistMenu, closePlaylistMenu } = usePlaylistContextMenu();
 
   // Nhận diện theo ngữ cảnh Card Id
   const isThisPlaying = currentContextId === id && isPlaying;
 
-  const handlePlayClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Không ăn click parent
+  const handlePlayClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation(); // Không ăn click parent
+    }
     if (songs.length === 0) return;
 
     // Nếu đang phát list này thì sang Pause
@@ -49,10 +58,19 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (type === 'song' && songs && songs.length > 0) {
+      openSongMenu(e, songs[0]);
+    } else if (type === 'playlist') {
+      openPlaylistMenu(e, { id, title, coverUrl, isPublic });
+    }
+  };
+
   return (
     <div
       data-id={id}
       onClick={handleCardClick}
+      onContextMenu={handleContextMenu}
       className="hover:bg-[#282828] p-4 flex flex-col rounded-md transition-colors cursor-pointer group relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -79,6 +97,29 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
 
       <h3 className="text-white font-bold text-base truncate mb-1">{title}</h3>
       <p className="text-[#a7a7a7] text-sm font-medium line-clamp-2">{subtitle}</p>
+
+      {songMenu && (
+        <SongContextMenu 
+          song={songMenu.song}
+          position={songMenu.position}
+          onClose={closeSongMenu}
+          onPlay={() => handlePlayClick()}
+        />
+      )}
+
+      {playlistMenu && (
+        <PlaylistContextMenu 
+          playlist={playlistMenu.playlist}
+          position={playlistMenu.position}
+          onClose={closePlaylistMenu}
+          onRename={() => {
+            const newTitle = prompt('Nhập tên mới cho playlist:', title);
+            if (newTitle && newTitle.trim() && newTitle !== title) {
+              updatePlaylist(id, { title: newTitle.trim() });
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

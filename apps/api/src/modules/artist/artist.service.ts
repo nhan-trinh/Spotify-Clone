@@ -81,8 +81,15 @@ export const ArtistService = {
     const filePath = `avatars/${artist.id}.${ext}`;
     const avatarUrl = await SupabaseUtil.uploadBuffer('images', filePath, file.buffer, file.mimetype);
 
+    // 1. Cập nhật Artist profile
     await prisma.artist.update({
       where: { id: artist.id },
+      data: { avatarUrl },
+    });
+
+    // 2. Đồng bộ ngược sang User profile
+    await prisma.user.update({
+      where: { id: userId },
       data: { avatarUrl },
     });
 
@@ -96,10 +103,22 @@ export const ArtistService = {
     }
 
     const { stageName, bio, avatarUrl, socialLinks } = data;
-    return await prisma.artist.update({
+    
+    // 1. Cập nhật Artist profile
+    const updatedArtist = await prisma.artist.update({
       where: { id: artist.id },
       data: { stageName, bio, avatarUrl, socialLinks },
     });
+
+    // 2. Đồng bộ ngược sang User profile (chủ yếu là StageName -> Name)
+    if (stageName) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { name: stageName }
+      });
+    }
+
+    return updatedArtist;
   },
 
   getAnalytics: async (userId: string) => {

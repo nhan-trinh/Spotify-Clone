@@ -34,6 +34,7 @@ interface LibraryState {
   deletePlaylist: (playlistId: string) => Promise<void>;
   addSongToPlaylist: (playlistId: string, songId: string, songTitle?: string) => Promise<void>;
   removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>;
+  updatePlaylist: (playlistId: string, data: Partial<Playlist>) => Promise<void>;
   fetchPlaylists: () => Promise<void>;
 }
 
@@ -213,6 +214,19 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       toast.success('Đã xóa khỏi playlist');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Không thể xóa bài hát');
+    }
+  },
+
+  updatePlaylist: async (playlistId: string, data: Partial<Playlist>) => {
+    try {
+      const res = await api.patch(`/playlists/${playlistId}`, data) as any;
+      const updated = res.data;
+      set(state => ({
+        playlists: state.playlists.map(p => p.id === playlistId ? { ...p, ...updated } : p)
+      }));
+      toast.success('Đã cập nhật playlist');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Không thể cập nhật playlist');
     }
   },
 }));

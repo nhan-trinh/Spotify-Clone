@@ -5,6 +5,8 @@ interface User {
   id: string;
   email: string;
   name: string;
+  gender?: string | null;
+  googleId?: string | null;
   role: 'USER_FREE' | 'USER_PREMIUM' | 'ARTIST' | 'PODCAST_HOST' | 'MODERATOR' | 'ADMIN';
   avatarUrl: string | null;
 }

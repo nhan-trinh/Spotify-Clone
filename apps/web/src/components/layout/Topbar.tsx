@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, User, Bell, LogOut, ShieldAlert, Mic2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, Bell, LogOut, ShieldAlert, Mic2, Settings } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
@@ -128,6 +128,22 @@ export const Topbar = () => {
                     <p className="text-sm font-bold text-white truncate">{user.name}</p>
                     <p className="text-xs text-[#B3B3B3] truncate">{user.email}</p>
                   </div>
+                  
+                  <Link
+                    to="/profile"
+                    className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-[#3E3E3E] transition-colors"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <User className="h-4 w-4" /> Hồ sơ
+                  </Link>
+
+                  <Link
+                    to="/settings"
+                    className="w-full text-left flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-[#3E3E3E] transition-colors"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <Settings className="h-4 w-4" /> Cài đặt
+                  </Link>
                   
                   {/* Admin / Mod Panel Link */}
                   {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (

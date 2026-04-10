@@ -64,7 +64,8 @@ export const songController = {
   }),
 
   recordPlay: catchAsync(async (req: Request, res: Response) => {
-    const result = await SongService.recordPlay(req.params.id);
+    const userId = req.user?.id;
+    const result = await SongService.recordPlay(req.params.id, userId);
     sendSuccess(res, result, 'Đã ghi nhận tương tác');
   }),
 

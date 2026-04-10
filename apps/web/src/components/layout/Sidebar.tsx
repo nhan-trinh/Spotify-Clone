@@ -6,6 +6,7 @@ import { useLibraryStore } from '../../stores/library.store';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth.store';
+import { PlaylistContextMenu, usePlaylistContextMenu } from '../shared/PlaylistContextMenu';
 
 export const Sidebar = ({ className }: { className?: string }) => {
   const location = useLocation();
@@ -13,11 +14,12 @@ export const Sidebar = ({ className }: { className?: string }) => {
   const { isAuthenticated, user } = useAuthStore();
   const {
     isHydrated, libraryVersion, playlists,
-    createPlaylist,
+    createPlaylist, updatePlaylist,
   } = useLibraryStore();
   const [likedSongs, setLikedSongs] = useState<any[]>([]);
   const [followedArtists, setFollowedArtists] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
+  const { menu, openPlaylistMenu, closePlaylistMenu } = usePlaylistContextMenu();
 
   const isArtist = user?.role === 'ARTIST';
   const isAdmin = user?.role === 'ADMIN';
@@ -40,6 +42,13 @@ export const Sidebar = ({ className }: { className?: string }) => {
     const playlist = await createPlaylist('Playlist mới');
     setCreating(false);
     if (playlist) navigate(`/playlist/${playlist.id}`);
+  };
+
+  const handleRenamePlaylist = async (playlist: any) => {
+    const newTitle = prompt('Nhập tên mới cho playlist:', playlist.title);
+    if (newTitle && newTitle.trim() && newTitle !== playlist.title) {
+      await updatePlaylist(playlist.id, { title: newTitle.trim() });
+    }
   };
 
   const navItems = [
@@ -157,6 +166,7 @@ export const Sidebar = ({ className }: { className?: string }) => {
                 <Link
                   key={playlist.id}
                   to={`/playlist/${playlist.id}`}
+                  onContextMenu={(e) => openPlaylistMenu(e, { ...playlist, isPublic: playlist.isPublic })}
                   className={clsx(
                     'flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer group',
                     location.pathname === `/playlist/${playlist.id}` && 'bg-[#282828]'
@@ -199,6 +209,15 @@ export const Sidebar = ({ className }: { className?: string }) => {
           )}
         </div>
       </div>
+      
+      {menu && (
+        <PlaylistContextMenu 
+          playlist={menu.playlist}
+          position={menu.position}
+          onClose={closePlaylistMenu}
+          onRename={() => handleRenamePlaylist(menu.playlist)}
+        />
+      )}
     </nav>
   );
 };

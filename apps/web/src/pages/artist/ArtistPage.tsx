@@ -4,9 +4,9 @@ import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { FastAverageColor } from 'fast-average-color';
-import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react';
+import { Play, Pause, MoreHorizontal, BadgeCheck, Heart } from 'lucide-react';
+import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 import { formatTime, cn } from '../../lib/utils';
-import { BadgeCheck } from 'lucide-react';
 
 export const ArtistPage = () => {
   const { id } = useParams();
@@ -16,6 +16,7 @@ export const ArtistPage = () => {
 
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
   const { isFollowing, toggleFollow, isLiked, toggleLike } = useLibraryStore();
+  const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
 
   useEffect(() => {
     const fetchArtist = async () => {
@@ -184,6 +185,7 @@ export const ArtistPage = () => {
                 key={item.songId} 
                 className="grid grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)] gap-4 px-4 py-2 rounded-md hover:bg-white/10 group cursor-pointer text-[#b3b3b3] items-center"
                 onDoubleClick={() => handleTrackPlay(index)}
+                onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: artist.stageName })}
               >
                 {/* Chỗ này sẽ chuyển từ số thành Nút play khi hover */}
                 <div className="text-base flex items-center justify-center w-full">
@@ -226,6 +228,12 @@ export const ArtistPage = () => {
                     <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
                   </button>
                   {formatTime(track.duration)}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openTrackMenu(e, { ...track, artistName: artist.stageName }); }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
                 </div>
               </div>
             );
@@ -233,6 +241,17 @@ export const ArtistPage = () => {
         </div>
       </div>
 
+      {trackMenu && (
+        <SongContextMenu 
+          song={trackMenu.song}
+          position={trackMenu.position}
+          onClose={closeTrackMenu}
+          onPlay={() => {
+            const idx = artist.songs.findIndex((s: any) => s.song.id === trackMenu.song.id);
+            if (idx !== -1) handleTrackPlay(idx);
+          }}
+        />
+      )}
     </div>
   );
 };

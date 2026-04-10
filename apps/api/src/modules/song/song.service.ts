@@ -2,6 +2,7 @@ import { prisma } from '../../shared/config/database';
 import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 import { SupabaseUtil } from '../../shared/utils/supabase.util';
 import { NotificationService } from '../notification/notification.service';
+import { PlayerService } from '../player/player.service';
 
 export const SongService = {
   // 1. Tạo bài hát với URL trực tiếp (Demo mode - không cần Supabase upload)
@@ -234,12 +235,21 @@ export const SongService = {
     });
   },
 
-  // 5. Ghi nhận PlayCount (Gọi sau ~30 giây nghe)
-  recordPlay: async (songId: string) => {
+  // 5. Ghi nhận PlayCount (Gọi sau ~30 giây nghe) và lưu lịch sử MongoDB
+  recordPlay: async (songId: string, userId?: string) => {
+    // a. Tăng playCount trên Postgre
     await prisma.song.update({
       where: { id: songId },
       data: { playCount: { increment: 1 } },
     });
+
+    // b. Nếu có userId, ghi vào MongoDB qua PlayerService
+    if (userId) {
+      // Mặc định coi bài hát là đã nghe xong (completed: true) khi FE gọi recordPlay
+      // vì FE thường gọi sau >30s hoặc >50% bài.
+      await PlayerService.recordPlay(userId, songId, 30, true); 
+    }
+
     return { message: 'Recorded' };
   },
 

@@ -3,6 +3,7 @@ import { PlaylistService } from './playlist.service';
 import { sendSuccess } from '../../shared/utils/response';
 import { catchAsync } from '../../shared/utils/catch-async';
 import { prisma } from '../../shared/config/database';
+import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 
 export const playlistController = {
   create: catchAsync(async (req: Request, res: Response) => {
@@ -33,6 +34,13 @@ export const playlistController = {
     const user = req.user!;
     const result = await PlaylistService.deletePlaylist(req.params.id, user.id);
     sendSuccess(res, result, 'Xóa playlist thành công');
+  }),
+
+  uploadCover: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    if (!req.file) throw new AppError('Vui lòng chọn ảnh', 400, ErrorCodes.VALIDATION_ERROR);
+    const result = await PlaylistService.uploadCover(req.params.id, user.id, req.file);
+    sendSuccess(res, result, 'Đã cập nhật ảnh bìa playlist');
   }),
 
   addSong: catchAsync(async (req: Request, res: Response) => {

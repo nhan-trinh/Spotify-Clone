@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Heart, Music2, CheckCircle2, Clock } from 'lucide-react';
+import { Play, Heart, Music2, Clock } from 'lucide-react';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
+import { MediaCard } from '../../components/shared/MediaCard';
+import { MoreHorizontal } from 'lucide-react';
 
 const LibrarySkeletonRow = () => (
   <div className="flex items-center gap-4 px-4 py-2 animate-pulse">
@@ -38,7 +40,7 @@ export const LibraryPage = () => {
   const [loading, setLoading] = useState(true);
 
   const { setQueueAndPlay, currentTrack, isPlaying, togglePlay, currentContextId } = usePlayerStore();
-  const { isLiked, toggleLike, isFollowing, toggleFollow, libraryVersion } = useLibraryStore();
+  const { isLiked, toggleLike, libraryVersion } = useLibraryStore();
   const { menu, openMenu, closeMenu } = useContextMenu();
 
   // Re-fetch sau khi API hoàn thành (libraryVersion++ trigger effect này)
@@ -68,6 +70,7 @@ export const LibraryPage = () => {
       artistId: s.artistId,
       coverUrl: s.coverUrl,
       audioUrl: s.audioUrl,
+      canvasUrl: s.canvasUrl,
       duration: s.duration,
     }));
     if (currentContextId === LIBRARY_CONTEXT_ID) {
@@ -86,6 +89,7 @@ export const LibraryPage = () => {
       artistId: s.artistId,
       coverUrl: s.coverUrl,
       audioUrl: s.audioUrl,
+      canvasUrl: s.canvasUrl,
       duration: s.duration,
     }));
     if (currentContextId === LIBRARY_CONTEXT_ID && currentTrack?.id === tracks[index].id) {
@@ -131,11 +135,10 @@ export const LibraryPage = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                activeTab === tab.key
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${activeTab === tab.key
                   ? 'bg-white text-black'
                   : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -215,7 +218,7 @@ export const LibraryPage = () => {
                           <Link
                             to={`/artist/${song.artistId}`}
                             className="text-xs text-[#b3b3b3] hover:underline truncate block"
-                            onClick={e => e.stopPropagation()}
+                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
                           >
                             {song.artistName}
                           </Link>
@@ -224,12 +227,27 @@ export const LibraryPage = () => {
 
                       <div className="flex items-center gap-4">
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleLike(song.id, song.title); }}
+                          onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleLike(song.id, song.title); }}
                           className={`opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(song.id) ? 'text-[#1DB954]' : 'text-[#b3b3b3] hover:text-white'}`}
                         >
                           <Heart size={16} className={isLiked(song.id) ? 'fill-[#1DB954]' : ''} />
                         </button>
                         <span className="text-[#b3b3b3] text-sm">{formatDuration(song.duration)}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); openMenu(e, {
+                              id: song.id,
+                              title: song.title,
+                              artistName: song.artistName,
+                              coverUrl: song.coverUrl,
+                              audioUrl: song.audioUrl,
+                              duration: song.duration,
+                            });
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
+                        >
+                          <MoreHorizontal size={16} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -265,30 +283,15 @@ export const LibraryPage = () => {
               </div>
             ) : (
               library?.followedArtists?.map((artist: any) => (
-                <Link
+                <MediaCard
                   key={artist.id}
-                  to={`/artist/${artist.id}`}
-                  className="group bg-[#181818] hover:bg-[#282828] p-4 rounded-xl transition-colors cursor-pointer"
-                >
-                  <div className="relative mb-4">
-                    <img
-                      src={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3?auto=format&fit=crop&q=80&w=300&h=300'}
-                      alt={artist.stageName}
-                      className="w-full aspect-square rounded-full object-cover shadow-lg"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-white truncate">{artist.stageName}</p>
-                    {artist.isVerified && <CheckCircle2 size={14} className="text-[#1DB954] flex-shrink-0" />}
-                  </div>
-                  <p className="text-sm text-[#b3b3b3] mt-1">Nghệ sĩ</p>
-                  <button
-                    onClick={(e) => { e.preventDefault(); toggleFollow(artist.id, artist.stageName); }}
-                    className="mt-3 px-4 py-1.5 rounded-full text-xs font-bold border transition-colors border-[#b3b3b3] text-[#b3b3b3] hover:border-white hover:text-white"
-                  >
-                    {isFollowing(artist.id) ? 'Đang theo dõi' : 'Theo dõi'}
-                  </button>
-                </Link>
+                  id={artist.id}
+                  title={artist.stageName}
+                  subtitle="Nghệ sĩ"
+                  coverUrl={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3?auto=format&fit=crop&q=80&w=300&h=300'}
+                  isCircle={true}
+                  type="artist"
+                />
               ))
             )}
           </div>
@@ -313,15 +316,14 @@ export const LibraryPage = () => {
               </div>
             ) : (
               library?.followedAlbums?.map((album: any) => (
-                <div key={album.id} className="group bg-[#181818] hover:bg-[#282828] p-4 rounded-xl transition-colors cursor-pointer">
-                  <img
-                    src={album.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=300&h=300'}
-                    alt={album.title}
-                    className="w-full aspect-square rounded shadow-lg mb-4 object-cover"
-                  />
-                  <p className="font-bold text-white truncate">{album.title}</p>
-                  <p className="text-sm text-[#b3b3b3] mt-1 truncate">{album.artist?.stageName}</p>
-                </div>
+                <MediaCard
+                  key={album.id}
+                  id={album.id}
+                  title={album.title}
+                  subtitle={album.artist?.stageName || 'Album'}
+                  coverUrl={album.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=300&h=300'}
+                  type="album"
+                />
               ))
             )}
           </div>

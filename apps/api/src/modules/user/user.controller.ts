@@ -33,4 +33,17 @@ export const userController = {
     const result = await UserService.getLibrary(user.id);
     sendSuccess(res, result, 'Thư viện âm nhạc');
   }),
+
+  // Phase 9
+  getRecentlyPlayed: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const result = await UserService.getRecentlyPlayed(user.id);
+    sendSuccess(res, result, 'Lịch sử nghe nhạc gần đây');
+  }),
+
+  getPublicProfile: catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.getPublicProfile(id);
+    sendSuccess(res, result, 'Hồ sơ người dùng');
+  }),
 };

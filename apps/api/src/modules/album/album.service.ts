@@ -34,6 +34,7 @@ export const AlbumService = {
             artistId: true,
             audioUrl128: true,
             audioUrl320: true,
+            canvasUrl: true,
             status: true,
           },
           where: { status: 'APPROVED' },

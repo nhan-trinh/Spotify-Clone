@@ -6,6 +6,7 @@ import { useLibraryStore } from '../../stores/library.store';
 import { FastAverageColor } from 'fast-average-color';
 import { Play, Pause, Heart, MoreHorizontal, Clock, BadgeCheck } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
+import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 
 const AlbumSkeleton = () => (
   <div className="flex-1 w-full min-h-full bg-[#121212] text-white">
@@ -46,6 +47,7 @@ export const AlbumPage = () => {
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingAlbum, toggleFollowAlbum } = useLibraryStore();
   const albumFollowed = id ? isFollowingAlbum(id) : false;
+  const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
 
   useEffect(() => {
     const fetchAlbum = async () => {
@@ -91,6 +93,7 @@ export const AlbumPage = () => {
     artistId: album.artist.id,
     coverUrl: song.coverUrl || album.coverUrl,
     audioUrl: song.audioUrl320 || song.audioUrl128 || '',
+    canvasUrl: song.canvasUrl,
     duration: song.duration,
   }));
 
@@ -199,6 +202,7 @@ export const AlbumPage = () => {
                 <div
                   key={track.id}
                   onDoubleClick={() => handleTrackPlay(index)}
+                  onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: album.artist.stageName })}
                   className="group grid grid-cols-[16px_minmax(0,1fr)_minmax(0,1fr)_auto] gap-4 px-4 py-2 rounded-md hover:bg-white/10 cursor-pointer text-[#b3b3b3] items-center"
                 >
                   {/* Index / Play */}
@@ -246,6 +250,12 @@ export const AlbumPage = () => {
                       <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
                     </button>
                     <span className="text-sm">{formatTime(track.duration)}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openTrackMenu(e, { ...track, artistName: album.artist.stageName }); }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
                   </div>
                 </div>
               );
@@ -260,6 +270,17 @@ export const AlbumPage = () => {
           </div>
         )}
       </div>
+      {trackMenu && (
+        <SongContextMenu 
+          song={trackMenu.song}
+          position={trackMenu.position}
+          onClose={closeTrackMenu}
+          onPlay={() => {
+            const idx = album.songs.findIndex((s: any) => s.id === trackMenu.song.id);
+            if (idx !== -1) handleTrackPlay(idx);
+          }}
+        />
+      )}
     </div>
   );
 };

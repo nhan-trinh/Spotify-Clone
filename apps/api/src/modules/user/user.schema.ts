@@ -3,9 +3,9 @@ import { z } from 'zod';
 export const updateProfileSchema = z.object({
   body: z.object({
     name: z.string().min(2, 'Tên phải dài ít nhất 2 ký tự').max(100).optional(),
-    bio: z.string().max(300, 'Tiểu sử không quá 300 ký tự').optional(), // Only for Artist/Host later
-    gender: z.enum(['man', 'woman', 'non-binary', 'prefer_not_to_say']).optional(),
-  }),
+    bio: z.string().max(300, 'Tiểu sử không quá 300 ký tự').optional(),
+    gender: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['man', 'woman', 'non-binary', 'prefer_not_to_say']).optional()),
+  }).passthrough(),
 });
 
 export const changePasswordSchema = z.object({

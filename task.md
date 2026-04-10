@@ -42,23 +42,23 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
   - [x] Tính năng Xóa thông báo & Điều hướng thông minh (Deep Linking).
   - [x] **Bonus**: Hoàn thiện trang chi tiết bài hát `/track/:id` (TrackPage).
 
-- [ ] **Phase 9: User Profile & Account Settings (Hồ sơ người dùng)**
-  - Màn hình Mini Profile cho Free User / Premium User.
-  - Cài đặt tài khoản (Đổi mật khẩu, Xoá tài khoản GDPR).
-  - Lịch sử nghe nhạc gần đây (Recently played) & Cập nhật trạng thái "Now Playing" lên Profile.
+- [x] **Phase 9: User Profile & Account Settings (Hồ sơ người dùng)**
+  - [x] Màn hình Mini Profile cho Free User / Premium User.
+  - [x] Cài đặt tài khoản (Đổi mật khẩu, Xoá tài khoản GDPR).
+  - [x] Lịch sử nghe nhạc gần đây (Recently played) & Cập nhật trạng thái "Now Playing" lên Profile.
 
 - [ ] **Phase 10: Audio Processing Worker (FFmpeg & BullMQ)**
   - Xây dựng Worker xử lý tệp MP3 ở Backend (Convert sang `128kbps` tiêu chuẩn và `320kbps` cho Premium).
   - Hỗ trợ Crossfade & Equalizer ở phía frontend Player.
 
-- [ ] **Phase 11: Tối Ưu Tìm Kiếm (Meilisearch Integration)**
-  - Tích hợp Engine `Meilisearch` để tìm kiếm siêu tốc bài hát/artist/album/playlist có dấu hoặc không dấu.
-  - Bảng xếp hạng Top Charts / Trending dựa trên dữ liệu realtime.
+- [x] **Phase 11: Tối Ưu Tìm Kiếm (Meilisearch Integration)**
+  - [x] Tích hợp Engine `Meilisearch` để tìm kiếm siêu tốc bài hát/artist/album/playlist có dấu hoặc không dấu.
+  - [x] Bảng xếp hạng Top Charts / Trending dựa trên dữ liệu realtime.
 
-- [ ] **Phase 12: Giao diện "Đang phát" & Spotify Canvas (Now Playing View)**
-  - Sidebar bên phải hiển thị chi tiết bài hát, ảnh nghệ sĩ và mục "About Artist".
-  - Hỗ trợ Spotify Canvas: Hiển thị video loop ngắn (<10s) hoặc ảnh thay cho bìa đĩa (Art).
-  - Tích hợp hiệu ứng giao diện mượt mà (Glassmorphism).
+- [x] **Phase 12: Giao diện "Đang phát" & Spotify Canvas (Now Playing View)**
+  - [x] Sidebar bên phải hiển thị chi tiết bài hát, ảnh nghệ sĩ và mục "About Artist".
+  - [x] Hỗ trợ Spotify Canvas: Hiển thị video loop ngắn (<10s) hoặc ảnh thay cho bìa đĩa (Art).
+  - [x] Tích hợp hiệu ứng giao diện mượt mà (Glassmorphism).
 
 - [ ] **Phase 13: Lời bài hát đồng bộ (Synced Lyrics)**
   - Hiển thị Lyrics tĩnh hoặc Lyrics đồng bộ chạy theo nhạc (Chỉ dành cho tài khoản Premium).

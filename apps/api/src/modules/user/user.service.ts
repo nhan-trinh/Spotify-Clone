@@ -2,6 +2,7 @@ import { prisma } from '../../shared/config/database';
 import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 import { v2 as cloudinary } from 'cloudinary';
 import bcrypt from 'bcryptjs';
+import { RecentlyPlayed } from '../player/player.model';
 
 export const UserService = {
   getProfile: async (userId: string) => {
@@ -27,12 +28,27 @@ export const UserService = {
 
   updateProfile: async (userId: string, data: any) => {
     const { name, gender } = data;
+    
+    // 1. Cập nhật User chính
     const user = await prisma.user.update({
       where: { id: userId },
       data: { name, gender },
-      select: { id: true, name: true, gender: true, avatarUrl: true },
     });
-    return user;
+
+    // 2. Nếu là Artist, đồng bộ StageName (nếu cần) hoặc các thông tin chung
+    if (user.role === 'ARTIST') {
+      await prisma.artist.updateMany({
+        where: { userId },
+        data: { stageName: name }
+      });
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      gender: user.gender,
+      avatarUrl: user.avatarUrl,
+    };
   },
 
   changePassword: async (userId: string, data: any) => {
@@ -64,17 +80,121 @@ export const UserService = {
           if (error) return reject(new AppError('Upload ảnh thất bại', 500, ErrorCodes.INTERNAL_ERROR));
           if (!result) return reject(new AppError('Không nhận được kết quả Cloudinary', 500, ErrorCodes.INTERNAL_ERROR));
 
+          // 1. Cập nhật User avatar
           const user = await prisma.user.update({
             where: { id: userId },
             data: { avatarUrl: result.secure_url },
-            select: { id: true, avatarUrl: true },
           });
 
-          resolve(user);
+          // 2. Đồng bộ Artist avatar (nếu có role ARTIST)
+          if (user.role === 'ARTIST') {
+            await prisma.artist.updateMany({
+              where: { userId },
+              data: { avatarUrl: result.secure_url }
+            });
+          }
+
+          resolve({ id: user.id, avatarUrl: user.avatarUrl });
         }
       );
       stream.end(file.buffer);
     });
+  },
+
+  getRecentlyPlayed: async (userId: string) => {
+    const history = await RecentlyPlayed.findOne({ userId }).lean();
+    if (!history || !history.items || history.items.length === 0) return [];
+
+    // Lấy 20 bài gần nhất
+    const recentItems = [...history.items].sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime()).slice(0, 20);
+    const songIds = recentItems.map(item => item.songId);
+
+    const songs = await prisma.song.findMany({
+      where: { id: { in: songIds } },
+      select: {
+        id: true,
+        title: true,
+        coverUrl: true,
+        duration: true,
+        artistId: true,
+        canvasUrl: true,
+        artist: { select: { stageName: true } }
+      }
+    });
+
+    const songMap = new Map(songs.map(s => [s.id, s]));
+
+    return recentItems.map(item => {
+      const song = songMap.get(item.songId);
+      if (!song) return null;
+      return {
+        ...song,
+        canvasUrl: (song as any).canvasUrl,
+        playedAt: item.playedAt,
+        artistName: song.artist.stageName,
+      };
+    }).filter(Boolean);
+  },
+
+  getPublicProfile: async (id: string) => {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        role: true,
+        createdAt: true,
+      }
+    });
+
+    if (!user) throw new AppError('Người dùng không tồn tại', 404, ErrorCodes.NOT_FOUND);
+    
+    // 1. Thống kê Followers (Nếu là Artist)
+    let followersCount = 0;
+    let isVerified = false;
+    let artistId = null;
+    let albums: any[] = [];
+
+    if (user.role === 'ARTIST') {
+      const artist = await prisma.artist.findUnique({
+        where: { userId: id },
+        select: { id: true, isVerified: true }
+      });
+      if (artist) {
+        artistId = artist.id;
+        isVerified = artist.isVerified;
+        followersCount = await prisma.followedArtist.count({
+          where: { artistId: artist.id }
+        });
+        
+        // Lấy danh sách album của nghệ sĩ
+        albums = await prisma.album.findMany({
+          where: { artistId: artist.id, status: 'PUBLISHED' },
+          select: { id: true, title: true, coverUrl: true, releaseDate: true },
+          orderBy: { releaseDate: 'desc' }
+        });
+      }
+    }
+
+    // 2. Lấy danh sách Playlist công khai
+    const playlists = await prisma.playlist.findMany({
+      where: { ownerId: id, isPublic: true },
+      select: { id: true, title: true, coverUrl: true, description: true },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    return { 
+      ...user, 
+      isVerified, 
+      artistId,
+      stats: {
+        followers: followersCount,
+        playlists: playlists.length,
+      },
+      playlists,
+      albums
+    };
   },
 
   getLibrary: async (userId: string) => {
@@ -90,6 +210,7 @@ export const UserService = {
             artistId: true,
             audioUrl320: true,
             audioUrl128: true,
+            canvasUrl: true,
             artist: { select: { id: true, stageName: true } }
           }
         }
@@ -134,6 +255,7 @@ export const UserService = {
         artistId: ls.song.artistId,
         artistName: ls.song.artist.stageName,
         audioUrl: ls.song.audioUrl320 || ls.song.audioUrl128 || '',
+        canvasUrl: (ls.song as any).canvasUrl,
         likedAt: ls.likedAt,
       })),
       followedArtists: followedArtists.map((fa: any) => fa.artist),

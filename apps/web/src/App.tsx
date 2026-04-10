@@ -28,6 +28,8 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { ProfilePage } from './pages/profile/ProfilePage';
+import { AccountSettingsPage } from './pages/settings/AccountSettingsPage';
 import { useLibraryStore } from './stores/library.store';
 import { useAuthStore } from './stores/auth.store';
 import { useEffect } from 'react';
@@ -65,6 +67,9 @@ function App() {
           <Route path="/album/:id" element={<AlbumPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="/track/:id" element={<TrackPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/settings" element={<AccountSettingsPage />} />
           <Route path="/song/:id" element={<Navigate to="/track/:id" replace />} />
         </Route>
 

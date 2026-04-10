@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Camera, Loader2, BadgeCheck, Send, Upload } from 'lucide-react';
 
 export const ArtistSettingsPage = () => {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,6 +70,7 @@ export const ArtistSettingsPage = () => {
       }) as any;
       const newUrl = res.data?.avatarUrl;
       setForm((p) => ({ ...p, avatarUrl: newUrl }));
+      updateUser({ avatarUrl: newUrl }); // Đồng bộ lên Topbar ngay lập tức
       toast.success('Đã cập nhật ảnh đại diện! 🎤');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Upload thất bại');
@@ -85,6 +86,7 @@ export const ArtistSettingsPage = () => {
       // Không gửi avatarUrl trong PATCH – đã được cập nhật riêng qua /me/avatar
       const { avatarUrl: _skip, ...patchBody } = form;
       await api.patch('/artists/me', patchBody);
+      updateUser({ name: form.stageName }); // Đồng bộ lên Topbar ngay lập tức
       toast.success('Đã lưu thông tin!');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Không thể lưu thông tin');

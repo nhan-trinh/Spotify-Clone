@@ -100,34 +100,38 @@ export const NowPlayingSidebar = () => {
         <div className="p-4">
           <div className="bg-[#242424] rounded-xl overflow-hidden group/card hover:bg-[#2a2a2a] transition-colors relative isolate border border-white/5">
             {/* Artist Cover/Avatar Header */}
-            <div className="h-48 w-full relative">
+            <div className="h-52 w-full relative overflow-hidden">
               <img 
                 src={artist?.avatarUrl || currentTrack.coverUrl} 
-                className="w-full h-full object-cover brightness-75 group-hover/card:scale-105 transition-transform duration-500" 
+                className="w-full h-full object-cover brightness-[0.85] group-hover/card:scale-110 transition-transform duration-700" 
                 alt="" 
               />
-              <div className="absolute top-4 left-4">
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-white drop-shadow-md">Giới thiệu về nghệ sĩ</p>
+              <div className="absolute top-4 left-4 z-20">
+                 <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white drop-shadow-lg bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded">Giới thiệu về nghệ sĩ</p>
               </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#242424] via-transparent to-transparent z-10" />
             </div>
 
             {/* Content info */}
-            <div className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
+            <div className="p-5 space-y-4 relative z-20 -mt-2">
+              <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base hover:underline cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]">
+                    <h3 className="font-extrabold text-lg hover:underline cursor-pointer tracking-tight">
                       {currentTrack.artistName}
                     </h3>
-                    {artist?.isVerified && <CheckCircle2 size={16} className="text-[#3d91ff] fill-[#3d91ff] text-white" />}
+                    {artist?.isVerified && <CheckCircle2 size={18} className="text-[#3d91ff] fill-[#3d91ff] text-white" />}
                   </div>
-                  <p className="text-sm text-[#b3b3b3]">{artist?.followersCount?.toLocaleString() || '0'} người theo dõi</p>
+                  <div className="flex flex-col">
+                    <span className="text-xl font-black text-white">{artist?.followersCount?.toLocaleString() || '0'}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#b3b3b3]">Người theo dõi</span>
+                  </div>
                 </div>
                 <button 
                   onClick={() => artist?.id && toggleFollow(artist.id, currentTrack.artistName)}
                   className={cn(
-                    "text-xs font-bold px-4 py-1.5 rounded-full border border-[#727272] hover:scale-105 transition-all",
-                    isFollowing(currentTrack.artistId || '') ? "bg-white text-black border-white" : "text-white border-[#727272] hover:border-white"
+                    "text-xs font-bold px-5 py-2 rounded-full border border-white/20 hover:scale-105 active:scale-95 transition-all shadow-xl",
+                    isFollowing(currentTrack.artistId || '') ? "bg-white text-black border-white" : "text-white border-white/30 hover:border-white"
                   )}
                 >
                   {isFollowing(currentTrack.artistId || '') ? 'Đang theo dõi' : 'Theo dõi'}
@@ -135,7 +139,7 @@ export const NowPlayingSidebar = () => {
               </div>
 
               {artist?.bio && (
-                <p className="text-sm text-[#b3b3b3] line-clamp-3 leading-relaxed">
+                <p className="text-sm text-[#b3b3b3] line-clamp-3 leading-6 font-medium">
                   {artist.bio}
                 </p>
               )}

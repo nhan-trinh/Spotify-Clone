@@ -111,7 +111,7 @@ export const SongContextMenu = ({
           />
 
           {showPlaylistSubmenu && (
-            <div className="absolute left-full top-0 ml-1 bg-[#282828] rounded-lg shadow-2xl w-52 py-1 border border-[#3e3e3e]">
+            <div className="absolute left-[calc(100%-4px)] top-0 bg-[#282828] rounded-lg shadow-2xl w-52 py-1 border border-[#3e3e3e] animate-in fade-in slide-in-from-left-2 duration-150">
               {/* Create new playlist inline */}
               <div className="px-3 py-2 border-b border-[#3e3e3e]">
                 <div className="text-xs text-[#b3b3b3] mb-1.5 flex items-center gap-1">

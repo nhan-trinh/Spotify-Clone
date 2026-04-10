@@ -1,5 +1,6 @@
 import { prisma } from '../../shared/config/database';
 import { AppError, ErrorCodes } from '../../shared/utils/app-error';
+import { SupabaseUtil } from '../../shared/utils/supabase.util';
 
 export const PlaylistService = {
   // 1. Tạo Playlist
@@ -16,7 +17,7 @@ export const PlaylistService = {
       data: {
         title: data.title,
         description: data.description,
-        isPublic: data.isPublic || false,
+        isPublic: data.isPublic !== undefined ? data.isPublic : true,
         ownerId: userId,
       },
     });
@@ -45,7 +46,7 @@ export const PlaylistService = {
           orderBy: { position: 'asc' },
           include: {
             song: {
-              select: { id: true, title: true, duration: true, playCount: true, coverUrl: true, audioUrl320: true, audioUrl128: true, artistId: true, artist: { select: { id: true, stageName: true } } }
+              select: { id: true, title: true, duration: true, playCount: true, coverUrl: true, canvasUrl: true, audioUrl320: true, audioUrl128: true, artistId: true, artist: { select: { id: true, stageName: true } } }
             }
           }
         },
@@ -96,7 +97,11 @@ export const PlaylistService = {
     if (!playlist || playlist.ownerId !== userId) {
       throw new AppError('Không có quyền chỉnh sửa', 403, ErrorCodes.FORBIDDEN);
     }
-    return await prisma.playlist.update({ where: { id: playlistId }, data });
+    const { title, description, coverUrl, isPublic } = data;
+    return await prisma.playlist.update({ 
+      where: { id: playlistId }, 
+      data: { title, description, coverUrl, isPublic } 
+    });
   },
 
   // 5. Xóa Playlist
@@ -114,6 +119,25 @@ export const PlaylistService = {
     ]);
 
     return { message: 'Đã xóa playlist' };
+  },
+
+  // 5.5 Upload Cover
+  uploadCover: async (playlistId: string, userId: string, file: Express.Multer.File) => {
+    const playlist = await prisma.playlist.findUnique({ where: { id: playlistId } });
+    if (!playlist || playlist.ownerId !== userId) {
+      throw new AppError('Không có quyền chỉnh sửa', 403, ErrorCodes.FORBIDDEN);
+    }
+
+    const ext = file.mimetype.split('/')[1] || 'jpg';
+    const filePath = `playlist-covers/${playlistId}.${ext}`;
+    const coverUrl = await SupabaseUtil.uploadBuffer('images', filePath, file.buffer, file.mimetype);
+
+    await prisma.playlist.update({
+      where: { id: playlistId },
+      data: { coverUrl }
+    });
+
+    return { coverUrl };
   },
 
   // 6. Thêm bài hát (Owner hoặc Collaborator)
@@ -140,16 +164,27 @@ export const PlaylistService = {
     const insertPos = position !== undefined ? position : count;
 
     try {
-      await prisma.playlistSong.create({
-        data: {
-          playlistId,
-          songId,
-          addedBy: userId,
-          position: insertPos,
+      await prisma.$transaction(async (tx) => {
+        await tx.playlistSong.create({
+          data: {
+            playlistId,
+            songId,
+            addedBy: userId,
+            position: insertPos,
+          }
+        });
+
+        // Tự động cập nhật ảnh bìa playlist nếu đang để trống
+        if (!playlist.coverUrl && song.coverUrl) {
+          await tx.playlist.update({
+            where: { id: playlistId },
+            data: { coverUrl: song.coverUrl }
+          });
         }
       });
-    } catch {
-       throw new AppError('Bài hát đã có trong playlist', 400, ErrorCodes.VALIDATION_ERROR);
+    } catch (e) {
+       console.error('Lỗi addSong:', e);
+       throw new AppError('Bài hát đã có trong playlist hoặc lỗi hệ thống', 400, ErrorCodes.VALIDATION_ERROR);
     }
 
     return { message: 'Đã thêm bài hát vào playlist' };
