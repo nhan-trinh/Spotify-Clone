@@ -65,7 +65,7 @@ export const AuthService = {
 
     await redis.del(`${OTP_PREFIX}${email}`);
     const tokens = TokenUtil.generateTokens(user.id, user.role);
-    await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
+    await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 30 * 24 * 60 * 60);
 
     return {
       accessToken: tokens.accessToken,
@@ -122,7 +122,7 @@ export const AuthService = {
     }
 
     const tokens = TokenUtil.generateTokens(user.id, user.role);
-    await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
+    await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 30 * 24 * 60 * 60);
 
     return {
       accessToken: tokens.accessToken,

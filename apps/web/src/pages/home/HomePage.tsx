@@ -2,14 +2,9 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { MediaCard } from '../../components/shared/MediaCard';
 import { RecentCard } from '../../components/shared/RecentCard';
+import { MediaCarousel } from '../../components/shared/MediaCarousel';
 import { FastAverageColor } from 'fast-average-color';
-import { usePlayerStore } from '../../stores/player.store';
-import { useLibraryStore } from '../../stores/library.store';
-import { Play, Pause, Heart, MoreHorizontal } from 'lucide-react';
-import { formatTime } from '../../lib/utils';
 import { Link } from 'react-router-dom';
-import { clsx } from 'clsx';
-import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 
 export const HomePage = () => {
   const [feedData, setFeedData] = useState<any>(null);
@@ -100,35 +95,78 @@ export const HomePage = () => {
         </div>
 
         {/* Made For You Section */}
-        <Section title="Dành cho bạn">
-          <CardGrid items={feedData.madeForYou} />
+        <Section title="Dành cho bạn" showAllLink="/section/made-for-you">
+          <MediaCarousel>
+            {feedData.madeForYou?.map((item: any) => (
+              <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} ownerId={item.ownerId} />
+            ))}
+          </MediaCarousel>
         </Section>
 
         {/* Trending Section */}
         {feedData.trending?.length > 0 && (
-          <Section title="Thịnh hành">
-            <CardGrid items={feedData.trending} />
+          <Section title="Thịnh hành" showAllLink="/section/trending">
+            <MediaCarousel>
+              {feedData.trending?.map((item: any) => (
+                <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} ownerId={item.ownerId} />
+              ))}
+            </MediaCarousel>
           </Section>
         )}
 
         {/* ✅ New Releases - Bài hát mới nhất */}
         {feedData.newReleases?.length > 0 && (
-          <Section title="Mới phát hành" showAllLink="/search?q=new">
-            <SongRow songs={feedData.newReleases} contextId="new-releases" />
+          <Section title="Mới phát hành" showAllLink="/section/new-releases">
+            <MediaCarousel>
+              {feedData.newReleases?.map((song: any) => (
+                <MediaCard 
+                   key={song.id} 
+                   id={song.id} 
+                   title={song.title} 
+                   subtitle={song.artistName} 
+                   coverUrl={song.coverUrl} 
+                   type="song"
+                   songs={[song]}
+                />
+              ))}
+            </MediaCarousel>
           </Section>
         )}
 
         {/* ✅ Top Songs - Được nghe nhiều */}
         {feedData.topSongs?.length > 0 && (
-          <Section title="Được nghe nhiều nhất" showAllLink="/search?q=top">
-            <SongRow songs={feedData.topSongs} contextId="top-songs" />
+          <Section title="Được nghe nhiều nhất" showAllLink="/section/top-songs">
+            <MediaCarousel>
+                {feedData.topSongs?.map((song: any) => (
+                  <MediaCard 
+                    key={song.id} 
+                    id={song.id} 
+                    title={song.title} 
+                    subtitle={song.artistName} 
+                    coverUrl={song.coverUrl} 
+                    type="song"
+                    songs={[song]}
+                  />
+                ))}
+            </MediaCarousel>
           </Section>
         )}
 
         {/* ✅ New Albums */}
         {feedData.newAlbums?.length > 0 && (
-          <Section title="Album mới phát hành">
-            <AlbumGrid albums={feedData.newAlbums} />
+          <Section title="Album mới phát hành" showAllLink="/section/new-albums">
+            <MediaCarousel>
+                {feedData.newAlbums?.map((album: any) => (
+                  <MediaCard 
+                    key={album.id} 
+                    id={album.id} 
+                    title={album.title} 
+                    subtitle={album.artistName} 
+                    coverUrl={album.coverUrl} 
+                    type="album"
+                  />
+                ))}
+            </MediaCarousel>
           </Section>
         )}
       </div>
@@ -151,125 +189,4 @@ const Section = ({ title, showAllLink, children }: { title: string; showAllLink?
   </section>
 );
 
-const CardGrid = ({ items }: { items: any[] }) => (
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 w-full">
-    {items?.map((item: any) => (
-      <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} ownerId={item.ownerId} />
-    ))}
-  </div>
-);
-
-const SongRow = ({ songs, contextId }: { songs: any[], contextId: string }) => {
-  const { setQueueAndPlay, currentTrack, currentContextId, isPlaying, togglePlay } = usePlayerStore();
-  const { isLiked, toggleLike } = useLibraryStore();
-  const { menu, openMenu, closeMenu } = useContextMenu();
-
-  return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-0.5">
-        {songs.map((song: any, index: number) => {
-          const isRowPlaying = currentContextId === contextId && currentTrack?.id === song.id;
-          const handlePlay = () => {
-            if (isRowPlaying) { togglePlay(); }
-            else { setQueueAndPlay(songs, index, contextId); }
-          };
-          return (
-            <div
-              key={song.id}
-              onDoubleClick={handlePlay}
-              onContextMenu={(e) => openMenu(e, song)}
-              className="group flex items-center gap-4 px-2 py-2 rounded-md bg-[#181818] hover:bg-white/10 cursor-pointer text-[#b3b3b3] transition-colors relative"
-            >
-              {/* Rank Number / Play Icon */}
-              <div className="w-4 text-right flex-shrink-0">
-                <span className="text-sm font-medium group-hover:hidden">
-                  {isRowPlaying && isPlaying ? <div className="w-3 h-3 bg-[#1DB954] rounded-full animate-pulse mx-auto" /> : index + 1}
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handlePlay(); }}
-                  className="hidden group-hover:block text-white"
-                >
-                  {isRowPlaying && isPlaying ? <Pause size={14} className="fill-white" /> : <Play size={14} className="fill-white ml-0.5" />}
-                </button>
-              </div>
-
-              <div className="w-10 h-10 relative flex-shrink-0 ml-1">
-                <img src={song.coverUrl || '/placeholder.jpg'} alt={song.title} className="w-10 h-10 rounded object-cover shadow-lg" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold truncate ${isRowPlaying ? 'text-[#1DB954]' : 'text-white'}`}>{song.title}</p>
-                <p className="text-xs font-medium truncate group-hover:text-white transition-colors">{song.artistName}</p>
-              </div>
-
-              <div className="flex items-center gap-4 flex-shrink-0 pr-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleLike(song.id, song.title); }}
-                  className={clsx(
-                    "transition-all duration-200",
-                    isLiked(song.id) ? "text-[#1DB954] opacity-100 scale-110" : "opacity-0 group-hover:opacity-100 hover:text-white hover:scale-110"
-                  )}
-                >
-                  <Heart size={15} className={isLiked(song.id) ? 'fill-[#1DB954]' : ''} />
-                </button>
-                <span className="text-xs font-medium tabular-nums">{formatTime(song.duration)}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); openMenu(e, song); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
-                >
-                  <MoreHorizontal size={16} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {menu && (
-        <SongContextMenu
-          song={menu.song}
-          position={menu.position}
-          onClose={closeMenu}
-          onPlay={() => {
-            const idx = songs.findIndex(s => s.id === menu.song.id);
-            if (idx !== -1) setQueueAndPlay(songs, idx, contextId);
-          }}
-        />
-      )}
-    </>
-  );
-};
-
-const AlbumGrid = ({ albums }: { albums: any[] }) => (
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 w-full">
-    {albums.map((album) => (
-      <Link
-        key={album.id}
-        to={`/album/${album.id}`}
-        className="group hover:bg-[#282828] p-4 rounded-xl transition-colors cursor-pointer"
-      >
-        <div className="relative mb-4">
-          {album.coverUrl ? (
-            <img
-              src={album.coverUrl}
-              alt={album.title}
-              className="w-full aspect-square object-cover rounded-md shadow-lg"
-            />
-          ) : (
-            <div className="w-full aspect-square bg-[#282828] group-hover:bg-[#3e3e3e] rounded-md flex items-center justify-center transition-colors">
-              <span className="text-4xl">💿</span>
-            </div>
-          )}
-          <button className="absolute bottom-2 right-2 w-10 h-10 bg-[#1DB954] text-black rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-200">
-            <Play size={18} className="fill-current ml-0.5" />
-          </button>
-        </div>
-        <p className="font-bold text-white truncate text-sm">{album.title}</p>
-        <p className="text-xs text-[#b3b3b3] mt-1 truncate">
-          {album.artistName} • {album.songCount} bài
-        </p>
-      </Link>
-    ))}
-  </div>
-);
 

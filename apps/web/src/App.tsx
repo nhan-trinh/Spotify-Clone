@@ -30,6 +30,7 @@ import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { AccountSettingsPage } from './pages/settings/AccountSettingsPage';
+import { SectionPage } from './pages/section/SectionPage';
 import { useLibraryStore } from './stores/library.store';
 import { useAuthStore } from './stores/auth.store';
 import { useEffect } from 'react';
@@ -70,6 +71,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/settings" element={<AccountSettingsPage />} />
+          <Route path="/section/:id" element={<SectionPage />} />
           <Route path="/song/:id" element={<Navigate to="/track/:id" replace />} />
         </Route>
 

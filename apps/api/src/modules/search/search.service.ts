@@ -61,10 +61,25 @@ export const SearchService = {
 
     const q = query.toLowerCase();
 
+    if (q === 'new-releases') {
+      const songs = await meilisearch.index('songs').search('', { sort: ['releaseDate:desc'], limit: 50 });
+      return { songs: songs.hits, artists: [], albums: [] };
+    }
+
+    if (q === 'top-songs') {
+      const songs = await meilisearch.index('songs').search('', { sort: ['playCount:desc'], limit: 50 });
+      return { songs: songs.hits, artists: [], albums: [] };
+    }
+
+    if (q === 'new-albums') {
+      const albums = await meilisearch.index('albums').search('', { sort: ['releaseDate:desc'], limit: 50 });
+      return { songs: [], artists: [], albums: albums.hits };
+    }
+
     const [songsRes, artistsRes, albumsRes] = await Promise.all([
-      meilisearch.index('songs').search(q, { limit: 10 }),
-      meilisearch.index('artists').search(q, { limit: 5 }),
-      meilisearch.index('albums').search(q, { limit: 5 }),
+      meilisearch.index('songs').search(q, { limit: 20 }),
+      meilisearch.index('artists').search(q, { limit: 10 }),
+      meilisearch.index('albums').search(q, { limit: 10 }),
     ]);
 
     return { 

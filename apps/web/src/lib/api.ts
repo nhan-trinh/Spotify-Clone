@@ -78,7 +78,7 @@ api.interceptors.response.use(
 
         // Gọi API cấp token mới băng axios cơ bản (để khỏi lặp interceptor cũ)
         const refreshResponse = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'}/auth/refresh-token`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'}/auth/refresh`,
           { refreshToken }
         );
 
