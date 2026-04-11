@@ -15,8 +15,10 @@ class MailUtility {
       },
       tls: {
         rejectUnauthorized: false
-      }
-    });
+      },
+      // Trick quan trọng: Ép Render sử dụng IPv4 thuần thay vì bị IPv6 của Google block đường biên
+      family: 4 
+    } as any);
   }
 
   /**
@@ -28,12 +30,14 @@ class MailUtility {
    */
   async sendEmail(to: string, subject: string, text: string, html?: string): Promise<boolean> {
     try {
+      console.log(`[MailUtil] BẮT ĐẦU xử lý gửi Email tới > ${to}`);
+      
       if (!env.SMTP_USER || !env.SMTP_PASS) {
-        console.warn(`[MailUtil] Không có config SMTP. Bỏ qua gửi email tới: ${to}`);
+        console.warn(`[MailUtil] THẤT BẠI: Không có config SMTP_USER hay SMTP_PASS trên Render!`);
         return false;
       }
 
-      await this.transporter.sendMail({
+      const info = await this.transporter.sendMail({
         from: `"RingBeat Music" <${env.EMAIL_FROM}>`,
         to,
         subject,
@@ -41,9 +45,10 @@ class MailUtility {
         html: html || text,
       });
 
+      console.log(`[MailUtil] THÀNH CÔNG! Email đã bay tới ${to}. ID: ${info.messageId}`);
       return true;
     } catch (error) {
-      console.error(`[MailUtil] Lỗi khi gửi email tới ${to}:`, error);
+      console.error(`[MailUtil] LỖI CỰC ĐỘ khi gửi tới ${to}:`, error);
       return false;
     }
   }
