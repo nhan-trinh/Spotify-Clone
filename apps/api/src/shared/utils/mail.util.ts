@@ -7,11 +7,11 @@ class MailUtility {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: env.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(env.SMTP_PORT) || 587,
-      secure: false, // Bật true cho cổng 465 (nếu dùng), false cho 587 (dùng StartTLS)
+      port: Number(env.SMTP_PORT) === 587 ? 587 : 465,
+      secure: Number(env.SMTP_PORT) !== 587, // true nếu dùng cổng 465 (chuẩn HTTPS Cloud)
       auth: {
         user: env.SMTP_USER,
-        pass: env.SMTP_PASS, // Cần App Password nếu là Gmail
+        pass: env.SMTP_PASS,
       },
       tls: {
         rejectUnauthorized: false

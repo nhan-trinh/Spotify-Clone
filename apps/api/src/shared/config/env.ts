@@ -27,7 +27,7 @@ const envSchema = z.object({
 
   // Email
   SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.string().default('587'),
+  SMTP_PORT: z.string().default('465'),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   EMAIL_FROM: z.string().default('noreply@spotify-clone.com'),
