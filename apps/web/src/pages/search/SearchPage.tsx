@@ -145,6 +145,7 @@ export const SearchPage = () => {
                       artistId: song.artistId,
                       coverUrl: song.coverUrl,
                       audioUrl: song.audioUrl,
+                      canvasUrl: song.canvasUrl,
                       duration: song.duration
                     }]}
                   />

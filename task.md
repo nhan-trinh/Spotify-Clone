@@ -60,7 +60,7 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
   - [x] Hỗ trợ Spotify Canvas: Hiển thị video loop ngắn (<10s) hoặc ảnh thay cho bìa đĩa (Art).
   - [x] Tích hợp hiệu ứng giao diện mượt mà (Glassmorphism).
 
-- [ ] **Phase 13: Lời bài hát đồng bộ (Synced Lyrics)**
+- [x] **Phase 13: Lời bài hát đồng bộ (Synced Lyrics)**
   - Hiển thị Lyrics tĩnh hoặc Lyrics đồng bộ chạy theo nhạc (Chỉ dành cho tài khoản Premium).
 
 - [ ] **Phase 14: Thuật toán Gợi ý Nhạc (Discover Weekly)**

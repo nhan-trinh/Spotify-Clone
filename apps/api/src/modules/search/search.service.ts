@@ -82,8 +82,31 @@ export const SearchService = {
       meilisearch.index('albums').search(q, { limit: 10 }),
     ]);
 
+    // Làm giàu dữ liệu Songs từ Database để đảm bảo URL luôn mới nhất và đầy đủ
+    const songIds = songsRes.hits.map(h => h.id);
+    const fullSongs = await prisma.song.findMany({
+      where: { id: { in: songIds }, status: 'APPROVED' },
+      include: { artist: { select: { id: true, stageName: true } } }
+    });
+
+    // Map lại theo đúng thứ tự của Meilisearch (ưu tiên độ liên quan)
+    const sortedSongs = songIds.map(id => {
+      const s = fullSongs.find(fs => fs.id === id);
+      if (!s) return null;
+      return {
+        id: s.id,
+        title: s.title,
+        artistName: s.artist.stageName,
+        artistId: s.artist.id,
+        coverUrl: s.coverUrl,
+        audioUrl: s.audioUrl320 || s.audioUrl128,
+        canvasUrl: s.canvasUrl,
+        duration: s.duration
+      };
+    }).filter(Boolean);
+
     return { 
-      songs: songsRes.hits, 
+      songs: sortedSongs, 
       artists: artistsRes.hits,
       albums: albumsRes.hits 
     };
@@ -119,5 +142,35 @@ export const SearchService = {
        skip,
        include: { artist: { select: { stageName: true } } }
     });
-  }
+  },
+  // 4. Đồng bộ lẻ 1 bài hát
+  syncOneSong: async (songId: string) => {
+    const song = await prisma.song.findUnique({
+      where: { id: songId },
+      include: { artist: { select: { stageName: true } }, album: { select: { title: true } } }
+    });
+
+    if (!song || song.status !== 'APPROVED') {
+       await meilisearch.index('songs').deleteDocument(songId);
+       return;
+    }
+
+    const doc = {
+      id: song.id,
+      title: song.title,
+      artistName: song.artist.stageName,
+      albumTitle: song.album?.title || '',
+      genre: song.genreId || '',
+      language: song.language || '',
+      releaseDate: song.releaseDate?.getTime() || 0,
+      playCount: song.playCount,
+      status: song.status,
+      audioUrl: song.audioUrl320 || song.audioUrl128 || '',
+      coverUrl: song.coverUrl || '',
+      canvasUrl: song.canvasUrl || '',
+      artistId: song.artistId
+    };
+
+    await meilisearch.index('songs').addDocuments([doc]);
+  },
 };

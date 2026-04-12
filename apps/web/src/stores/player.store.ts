@@ -101,7 +101,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         set({ isPlaying: true, duration: sound.duration() });
         progressInterval = setInterval(() => {
           get().updateProgress();
-        }, 1000);
+        }, 200);
       },
       onpause: () => {
         set({ isPlaying: false });

@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 import { SupabaseUtil } from '../../shared/utils/supabase.util';
 import { NotificationService } from '../notification/notification.service';
 import { PlayerService } from '../player/player.service';
+import { SearchService } from '../search/search.service';
 
 export const SongService = {
   // 1. Tạo bài hát với URL trực tiếp (Demo mode - không cần Supabase upload)
@@ -140,6 +141,11 @@ export const SongService = {
         canvasUrl: canvasUrl,
       }
     });
+    
+    // Tự động đồng bộ lên Meilisearch (nếu được duyệt)
+    if (song.status === 'APPROVED') {
+      await SearchService.syncOneSong(song.id).catch(err => console.error('Lỗi sync search:', err));
+    }
 
     return { songId: song.id, title: song.title, status: 'PENDING' };
   },
@@ -176,6 +182,12 @@ export const SongService = {
         albumId: data.albumId !== undefined ? (data.albumId || null) : song.albumId,
       }
     });
+
+    // Cập nhật lại Meilisearch ngay lập tức
+    if (updated.status === 'APPROVED') {
+       await SearchService.syncOneSong(updated.id).catch(err => console.error('Lỗi sync search:', err));
+    }
+
     return updated;
   },
 
