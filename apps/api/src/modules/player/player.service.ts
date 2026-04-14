@@ -46,14 +46,21 @@ export const PlayerService = {
         deviceType: 'web',
       });
 
-      // c. Cập nhật RecentlyPlayed (giữ tối đa 50 phần tử FIFO)
+      // c. Cập nhật RecentlyPlayed (giữ tối đa 50 phần tử FIFO không trùng lặp)
+      // Bước 1: Kéo bài hát ra khỏi mảng nếu đã tồn tại trước đó để tránh duplicate
+      await RecentlyPlayed.updateOne(
+        { userId },
+        { $pull: { items: { songId } } }
+      );
+
+      // Bước 2: Push lại vào cuối mảng (sẽ thành mới nhất)
       await RecentlyPlayed.findOneAndUpdate(
         { userId },
         { 
           $push: { 
             items: { 
               $each: [{ songId, playedAt: new Date() }], 
-              $slice: -50, // Giữ 50 bản thu mới nhất
+              $slice: -50, 
               $sort: { playedAt: 1 } 
             } 
           },
@@ -84,21 +91,43 @@ export const PlayerService = {
 
     const songs = await prisma.song.findMany({
       where: { id: { in: songIds } },
-      select: { id: true, title: true, coverUrl: true, artist: { select: { stageName: true } } }
+      select: {
+        id: true,
+        title: true,
+        coverUrl: true,
+        duration: true,
+        audioUrl128: true,
+        audioUrl320: true,
+        canvasUrl: true,
+        artistId: true,
+        artist: { select: { stageName: true } }
+      }
     });
     
     const songMap = new Map(songs.map(s => [s.id, s]));
 
-    return history.map(h => ({
-      id: h._id?.toString(),
-      userId: h.userId,
-      songId: h.songId,
-      playedAt: h.playedAt,
-      durationPlayed: h.durationPlayed,
-      completed: h.completed,
-      deviceType: h.deviceType,
-      songData: songMap.get(h.songId) || null
-    }));
+    return history.map(h => {
+      const song = songMap.get(h.songId);
+      return {
+        id: h._id?.toString(),
+        userId: h.userId,
+        songId: h.songId,
+        playedAt: h.playedAt,
+        durationPlayed: h.durationPlayed,
+        completed: h.completed,
+        deviceType: h.deviceType,
+        // Flatten song data for easier usage
+        ...(song ? {
+          title: song.title,
+          coverUrl: song.coverUrl,
+          duration: song.duration,
+          artistId: song.artistId,
+          artistName: song.artist.stageName,
+          audioUrl: song.audioUrl320 || song.audioUrl128 || '',
+          canvasUrl: song.canvasUrl,
+        } : {})
+      };
+    });
   },
 
   // 4. Recently Played API
@@ -112,12 +141,30 @@ export const PlayerService = {
 
     const songs = await prisma.song.findMany({
       where: { id: { in: uniqueIds } },
-      select: { id: true, title: true, coverUrl: true, artist: { select: { stageName: true } } }
+      select: {
+        id: true,
+        title: true,
+        coverUrl: true,
+        duration: true,
+        audioUrl128: true,
+        audioUrl320: true,
+        canvasUrl: true,
+        artistId: true,
+        artist: { select: { stageName: true } }
+      }
     });
-    
+
     const songMap = new Map(songs.map(s => [s.id, s]));
 
-    return uniqueIds.map(id => songMap.get(id)).filter(Boolean);
+    return uniqueIds.map(id => {
+      const song = songMap.get(id);
+      if (!song) return null;
+      return {
+        ...song,
+        artistName: song.artist.stageName,
+        audioUrl: song.audioUrl320 || song.audioUrl128 || '',
+      };
+    }).filter(Boolean);
   },
 
   // 5. Kiểm tra quyền Skip của Free User

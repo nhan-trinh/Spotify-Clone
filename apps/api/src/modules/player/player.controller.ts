@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PlayerService } from './player.service';
+import { DiscoveryService } from '../discovery/discovery.service';
 import { sendSuccess } from '../../shared/utils/response';
 import { catchAsync } from '../../shared/utils/catch-async';
 
@@ -39,5 +40,11 @@ export const playerController = {
     const user = req.user!;
     const result = await PlayerService.checkSkipLimit(user.id, user.role);
     sendSuccess(res, result);
+  }),
+ 
+  getRadio: catchAsync(async (req: Request, res: Response) => {
+    const { songId } = req.params;
+    const result = await DiscoveryService.getRadioSongs(songId);
+    sendSuccess(res, result, 'Danh sách Radio tương tự');
   })
 };

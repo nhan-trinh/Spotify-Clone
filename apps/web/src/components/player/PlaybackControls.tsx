@@ -101,6 +101,7 @@ export const PlaybackControls = () => {
 
       </div>
 
+
       {/* Thanh Progress */}
       <div className="flex items-center w-full gap-2 text-xs text-[#a7a7a7]">
         <span className="min-w-[40px] text-right">{formatTime(localProgress)}</span>

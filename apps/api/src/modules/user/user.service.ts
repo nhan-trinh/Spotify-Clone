@@ -118,6 +118,8 @@ export const UserService = {
         duration: true,
         artistId: true,
         canvasUrl: true,
+        audioUrl128: true,
+        audioUrl320: true,
         artist: { select: { stageName: true } }
       }
     });
@@ -129,6 +131,7 @@ export const UserService = {
       if (!song) return null;
       return {
         ...song,
+        audioUrl: song.audioUrl320 || song.audioUrl128 || '',
         canvasUrl: (song as any).canvasUrl,
         playedAt: item.playedAt,
         artistName: song.artist.stageName,

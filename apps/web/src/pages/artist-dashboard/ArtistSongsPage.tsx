@@ -12,6 +12,30 @@ const UploadModal = ({ albums, onClose, onSuccess }: { albums: any[], onClose: (
   const [canvasFile, setCanvasFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const formatDuration = (seconds: string) => {
+    const s = parseInt(seconds);
+    if (isNaN(s)) return '';
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `(${mins}:${secs.toString().padStart(2, '0')})`;
+  };
+
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      setAudioFile(file);
+      // UX Fix: Tự động trích xuất metadata thời lượng
+      const audio = new Audio();
+      const objectUrl = URL.createObjectURL(file);
+      audio.src = objectUrl;
+      audio.onloadedmetadata = () => {
+        const seconds = Math.round(audio.duration);
+        setForm(p => ({ ...p, duration: seconds.toString() }));
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !audioFile) {
@@ -62,7 +86,7 @@ const UploadModal = ({ albums, onClose, onSuccess }: { albums: any[], onClose: (
               type="file"
               accept="audio/*"
               className="w-full bg-[#3e3e3e] rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-[#1DB954]"
-              onChange={e => setAudioFile(e.target.files?.[0] || null)}
+              onChange={handleAudioChange}
             />
           </div>
           <div>
@@ -85,11 +109,13 @@ const UploadModal = ({ albums, onClose, onSuccess }: { albums: any[], onClose: (
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[#b3b3b3] mb-1 block">Thời lượng (giây)</label>
+              <label className="text-xs text-[#b3b3b3] mb-1 block">
+                Thời lượng (giây) <span className="text-[#1DB954] ml-1">{formatDuration(form.duration)}</span>
+              </label>
               <input
                 type="number" min="0"
                 className="w-full bg-[#3e3e3e] rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-1 focus:ring-[#1DB954]"
-                placeholder="Ví dụ: 240"
+                placeholder="Tự động tính khi chọn file..."
                 value={form.duration}
                 onChange={e => setForm(p => ({ ...p, duration: e.target.value }))}
               />

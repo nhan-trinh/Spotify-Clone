@@ -1,19 +1,35 @@
 import { prisma } from '../../shared/config/database';
 import { redis } from '../../shared/config/redis';
+import { DiscoveryService } from '../discovery/discovery.service';
 
 export const HomeService = {
-  getFeed: async () => {
-    // 1. Made For You: Playlist public ngẫu nhiên
-    const madeForYou = await prisma.playlist.findMany({
-      where: { isPublic: true },
-      take: 4,
-      include: {
-        songs: {
-          take: 5,
-          include: { song: { include: { artist: true } } }
+  getFeed: async (userId?: string) => {
+    // 1. Made For You: Tích hợp Thuật Toán Discover Weekly nếu có User
+    let madeForYou: any[] = [];
+    if (userId) {
+      try {
+        const discoverWeekly = await DiscoveryService.getOrCreateDiscoverWeeklyPlaylist(userId);
+        if (discoverWeekly) {
+          madeForYou = [discoverWeekly];
         }
+      } catch (e) {
+        console.error('Lỗi khi tạo Discover Weekly:', e);
       }
-    });
+    }
+
+    // Nếu không có user hoặc lỗi, dự phòng load playlist public ngẫu nhiên
+    if (madeForYou.length === 0) {
+      madeForYou = await prisma.playlist.findMany({
+        where: { isPublic: true },
+        take: 4,
+        include: {
+          songs: {
+            take: 5,
+            include: { song: { include: { artist: true } } }
+          }
+        }
+      });
+    }
 
     // 2. Trending: Playlist hệ thống
     const trending = await prisma.playlist.findMany({

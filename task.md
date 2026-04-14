@@ -63,9 +63,12 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
 - [x] **Phase 13: Lời bài hát đồng bộ (Synced Lyrics)**
   - Hiển thị Lyrics tĩnh hoặc Lyrics đồng bộ chạy theo nhạc (Chỉ dành cho tài khoản Premium).
 
-- [ ] **Phase 14: Thuật toán Gợi ý Nhạc (Discover Weekly)**
-  - Phân tích `PlayHistory` của người dùng (bằng MongoDB) để sinh ra Playlist "Khám phá hàng tuần".
-  - Đề xuất tự động (Auto-play) bài hát cùng thể loại khi User nghe hết Queue hiện tại.
+- [x] **Phase 14: Thuật toán Gợi ý Nhạc (Discover Weekly)** ✅
+  - [x] Tinh chỉnh Recently Played: Sửa lỗi History, xóa duplicate trên MongoDB ($pull và $push).
+  - [x] Phân tích `PlayHistory` của người dùng (bằng MongoDB) để sinh ra Playlist "Khám phá hàng tuần".
+  - [x] **Pivoted**: Đã gỡ bỏ tính năng Auto-play Radio (để đảm bảo độ ổn định tuyệt đối).
+  - [x] **Bug fix**: Sửa lỗi không phát được nhạc từ Historical list trên Profile (thiếu Mapping AudioUrl).
+
 
 - [ ] **Phase 15: Gói Đăng Ký Premium (VNPAY)**
   - Quản lý các gói Free, Individual, Duo, Family, Student.

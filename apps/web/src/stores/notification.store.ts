@@ -18,7 +18,7 @@ interface NotificationStore {
   unreadCount: number;
   loading: boolean;
   isInitialized: boolean;
-  
+
   fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -37,10 +37,10 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set({ loading: true });
     try {
       const res: any = await api.get('/notifications');
-      set({ 
-        notifications: res.data.notifications, 
+      set({
+        notifications: res.data.notifications,
         unreadCount: res.data.unreadCount,
-        loading: false 
+        loading: false
       });
     } catch (error) {
       set({ loading: false });
@@ -79,8 +79,8 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       set((state) => ({
         notifications: state.notifications.filter((n) => n._id !== id),
         // Nếu xóa thông báo chưa đọc thì giảm count
-        unreadCount: state.notifications.find(n => n._id === id)?.isRead 
-          ? state.unreadCount 
+        unreadCount: state.notifications.find(n => n._id === id)?.isRead
+          ? state.unreadCount
           : Math.max(0, state.unreadCount - 1),
       }));
     } catch (error) {
@@ -93,7 +93,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       notifications: [n, ...state.notifications].slice(0, 50),
       unreadCount: state.unreadCount + 1,
     }));
-    
+
     // Phát âm thanh hoặc rung nếu cần
     // Hiển thị Toast
     toast(n.title, {
@@ -108,13 +108,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   initialize: () => {
     // Luôn cố gắng connect socket trước
     socketService.connect();
-    
+
     // Đảm bảo chỉ đăng ký listener một lần duy nhất
     if (get().isInitialized) return;
-    
+
     const socket = socketService.getSocket();
     if (socket) {
-      console.log('🔔 Đang đăng ký listener thông báo...');
       socket.on('new_notification', (n: Notification) => {
         console.log('📩 Nhận thông báo mới realtime:', n);
         get().addNotification(n);

@@ -19,11 +19,11 @@ class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('📡 Socket connected:', this.socket?.id);
+      // Ẩn log theo yêu cầu
     });
 
     this.socket.on('disconnect', () => {
-      console.log('🔌 Socket disconnected');
+      // Ẩn log theo yêu cầu
     });
 
     this.socket.on('connect_error', (err) => {

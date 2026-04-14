@@ -17,3 +17,6 @@ playerRouter.post('/queue', playerController.updateQueue);
 
 // Skip Control (Dành cho Web Player tự kiểm soát luồng)
 playerRouter.get('/check-skip', playerController.checkSkipLimit);
+
+// Radio / Auto-play
+playerRouter.get('/radio/:songId', playerController.getRadio);

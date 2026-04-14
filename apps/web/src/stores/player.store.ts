@@ -27,6 +27,7 @@ interface PlayerState {
   currentContextId: string | null;
   _howl: Howl | null;
   hasRecordedPlay: boolean;
+  isProcessingNext: boolean;
   
   setQueueAndPlay: (queue: Track[], startIndex?: number, contextId?: string) => void;
   playTrack: (index: number) => void;
@@ -58,6 +59,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentContextId: null,
   _howl: null,
   hasRecordedPlay: false,
+  isProcessingNext: false,
 
   updateProgress: () => {
     const { _howl, isPlaying, currentTrack, hasRecordedPlay } = get();
@@ -118,8 +120,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         }
       },
       onloaderror: () => {
-        console.error('Lỗi load audio');
+        const errorTrackId = track.id;
+        console.error('Lỗi load audio, tự động chuyển bài sau 1.5s...');
         set({ isPlaying: false });
+        // Chỉ tự động chuyển bài nếu sau 1.5s User vẫn đang ở đúng bài lỗi đó
+        setTimeout(() => {
+          if (get().currentTrack?.id === errorTrackId) {
+            get().nextTrack();
+          }
+        }, 1500);
       },
       onplayerror: () => {
         sound.once('unlock', function() {
@@ -179,17 +188,30 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  nextTrack: () => {
-    const { currentIndex, queue, playTrack, repeatMode } = get();
-    if (currentIndex < queue.length - 1) {
-      playTrack(currentIndex + 1);
-    } else {
-      if (repeatMode === 'all') {
+  nextTrack: async () => {
+    const state = get();
+    if (state.isProcessingNext) return;
+
+    set({ isProcessingNext: true });
+
+    try {
+      const { currentIndex, queue, playTrack, repeatMode } = get();
+      
+      if (currentIndex < queue.length - 1) {
+        playTrack(currentIndex + 1);
+      } else if (repeatMode === 'all' && queue.length > 0) {
         playTrack(0);
       } else {
+        // Hết queue -> Dừng nhạc (Không gọi Radio nữa)
         get().pause();
         set({ progress: 0 });
       }
+    } catch (error) {
+      console.error('Lỗi khi chuyển bài:', error);
+      get().pause();
+      set({ progress: 0 });
+    } finally {
+      set({ isProcessingNext: false });
     }
   },
 

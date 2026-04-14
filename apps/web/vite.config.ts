@@ -12,6 +12,7 @@ export default defineConfig({
         enabled: true, // Cho phép Service Worker chạy cả ở môi trường Dev để sếp dễ test
       },
       workbox: {
+        disableDevLogs: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
