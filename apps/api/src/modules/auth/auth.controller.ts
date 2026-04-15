@@ -6,7 +6,9 @@ import { env } from '../../shared/config/env';
 
 // Helper: tạo cookie options dựa trên BACKEND_URL (https = production)
 // Đây là cách đáng tin cậy hơn so với kiểm tra NODE_ENV
-const isHttps = env.BACKEND_URL.startsWith('https://');
+// isHttps = true khi BACKEND_URL là https (production Render)
+// HOẶC khi NODE_ENV=production — để đảm bảo luôn đúng dù BACKEND_URL chưa được set
+const isHttps = env.BACKEND_URL.startsWith('https://') || env.NODE_ENV === 'production';
 
 const getCookieOptions = (maxAgeDays = 30) => ({
   httpOnly: true,
