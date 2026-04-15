@@ -14,6 +14,7 @@ export const initMeiliSearch = async () => {
     await meilisearch.index('songs').updateSortableAttributes(['playCount', 'releaseDate']);
     
     await meilisearch.index('artists').updateFilterableAttributes(['isVerified']);
+    await meilisearch.index('albums').updateSortableAttributes(['releaseDate']);
     
     console.log('✅ Meilisearch Indexes configured');
   } catch (err) {

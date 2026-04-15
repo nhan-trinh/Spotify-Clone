@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
+import { queryClient } from '../lib/query-client';
 
 interface Playlist {
   id: string;
@@ -94,6 +95,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       if (wasLiked) { await api.delete(`/songs/${songId}/like`); }
       else { await api.post(`/songs/${songId}/like`); }
       // Sau khi API thành công, trigger re-fetch cho library lists
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       set({ libraryVersion: process.env.NODE_ENV !== 'test' ? get().libraryVersion + 1 : libraryVersion + 1 });
     } catch {
       set({ likedSongIds }); // revert optimistic
@@ -181,6 +183,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       const res = await api.post('/playlists', { title, isPublic: false }) as any;
       const newPlaylist = res.data;
       set(state => ({ playlists: [newPlaylist, ...state.playlists] }));
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       toast.success(`Đã tạo playlist "${title}"! 🎵`);
       return newPlaylist;
     } catch (err: any) {
@@ -225,6 +228,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       set(state => ({
         playlists: state.playlists.map(p => p.id === playlistId ? { ...p, ...updated } : p)
       }));
+      queryClient.invalidateQueries({ queryKey: ['playlist', playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       toast.success('Đã cập nhật playlist');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Không thể cập nhật playlist');

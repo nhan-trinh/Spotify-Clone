@@ -38,6 +38,9 @@ export const SearchService = {
       isVerified: a.isVerified,
     }));
     await meilisearch.index('artists').addDocuments(artistDocs, { primaryKey: 'id' });
+    await meilisearch.index('artists').updateFilterableAttributes(['isVerified']);
+
+    await meilisearch.index('albums').updateSortableAttributes(['releaseDate']);
 
     // c. Đồng bộ Albums
     const albums = await prisma.album.findMany({
@@ -48,6 +51,7 @@ export const SearchService = {
       id: a.id,
       title: a.title,
       artistName: a.artist.stageName,
+      coverUrl: a.coverUrl || '',
       releaseDate: a.releaseDate?.getTime() || 0,
     }));
     await meilisearch.index('albums').addDocuments(albumDocs, { primaryKey: 'id' });
@@ -56,24 +60,69 @@ export const SearchService = {
   },
 
   // 2. Mock Tìm kiếm hợp nhất -> Đã chuyển sang MEILISEARCH REAL
-  globalSearch: async (query: string, _type?: string) => {
+  globalSearch: async (query: string, _type?: string, userId?: string) => {
     if (!query) return { songs: [], artists: [], albums: [] };
 
     const q = query.toLowerCase();
 
     if (q === 'new-releases') {
-      const songs = await meilisearch.index('songs').search('', { sort: ['releaseDate:desc'], limit: 50 });
-      return { songs: songs.hits, artists: [], albums: [] };
+      const songs = await prisma.song.findMany({
+        where: { status: 'APPROVED' },
+        take: 50,
+        orderBy: { createdAt: 'desc' },
+        include: { artist: { select: { stageName: true } } }
+      });
+      const mapped = songs.map(s => ({
+        ...s,
+        artistName: s.artist.stageName
+      }));
+      return { songs: mapped, artists: [], albums: [] };
     }
 
     if (q === 'top-songs') {
-      const songs = await meilisearch.index('songs').search('', { sort: ['playCount:desc'], limit: 50 });
-      return { songs: songs.hits, artists: [], albums: [] };
+      const songs = await prisma.song.findMany({
+        where: { status: 'APPROVED' },
+        take: 50,
+        orderBy: { playCount: 'desc' },
+        include: { artist: { select: { stageName: true } } }
+      });
+      const mapped = songs.map(s => ({
+        ...s,
+        artistName: s.artist.stageName
+      }));
+      return { songs: mapped, artists: [], albums: [] };
     }
 
     if (q === 'new-albums') {
-      const albums = await meilisearch.index('albums').search('', { sort: ['releaseDate:desc'], limit: 50 });
-      return { songs: [], artists: [], albums: albums.hits };
+      const albums = await prisma.album.findMany({
+        where: { status: 'PUBLISHED' },
+        take: 50,
+        orderBy: { createdAt: 'desc' },
+        include: { artist: { select: { stageName: true } } }
+      });
+      const mapped = albums.map(a => ({
+        ...a,
+        artistName: a.artist.stageName
+      }));
+      return { songs: [], artists: [], albums: mapped };
+    }
+
+    if (q === 'trending') {
+      const topSongs = await SearchService.getTopCharts();
+      const mappedSongs = topSongs.map((s: any) => ({
+        ...s,
+        artistName: s.artist?.stageName || ''
+      }));
+      return { songs: mappedSongs, artists: [], albums: [] };
+    }
+
+    if (q === 'made-for-you' && userId) {
+      const suggestedSongs = await SearchService.discoverWeekly(userId);
+      const mappedSongs = suggestedSongs.map((s: any) => ({
+        ...s,
+        artistName: s.artist?.stageName || ''
+      }));
+      return { songs: mappedSongs, artists: [], albums: [] };
     }
 
     const [songsRes, artistsRes, albumsRes] = await Promise.all([
@@ -105,10 +154,29 @@ export const SearchService = {
       };
     }).filter(Boolean);
 
-    return { 
-      songs: sortedSongs, 
+    // Làm giàu dữ liệu Albums
+    const albumIds = albumsRes.hits.map(h => h.id);
+    const fullAlbums = await prisma.album.findMany({
+      where: { id: { in: albumIds }, status: 'PUBLISHED' },
+      include: { artist: { select: { id: true, stageName: true } } }
+    });
+
+    const sortedAlbums = albumIds.map(id => {
+      const a = fullAlbums.find(fa => fa.id === id);
+      if (!a) return null;
+      return {
+        id: a.id,
+        title: a.title,
+        artistName: a.artist.stageName,
+        artistId: a.artist.id,
+        coverUrl: a.coverUrl,
+      };
+    }).filter(Boolean);
+
+    return {
+      songs: sortedSongs,
       artists: artistsRes.hits,
-      albums: albumsRes.hits 
+      albums: sortedAlbums
     };
   },
 
@@ -131,16 +199,16 @@ export const SearchService = {
   discoverWeekly: async (_userId: string) => {
     // Thuật toán đề xuất đơn giản: Random top 30 bài hát 
     // TODO: Connect listening_history mongodb ở Phase 4
-    
+
     // Fallback: lay 30 bai mix random
     const count = await prisma.song.count({ where: { status: 'APPROVED' } });
     const skip = Math.max(0, Math.floor(Math.random() * count) - 30);
-    
+
     return await prisma.song.findMany({
-       where: { status: 'APPROVED' },
-       take: 30,
-       skip,
-       include: { artist: { select: { stageName: true } } }
+      where: { status: 'APPROVED' },
+      take: 30,
+      skip,
+      include: { artist: { select: { stageName: true } } }
     });
   },
   // 4. Đồng bộ lẻ 1 bài hát
@@ -151,8 +219,8 @@ export const SearchService = {
     });
 
     if (!song || song.status !== 'APPROVED') {
-       await meilisearch.index('songs').deleteDocument(songId);
-       return;
+      await meilisearch.index('songs').deleteDocument(songId);
+      return;
     }
 
     const doc = {

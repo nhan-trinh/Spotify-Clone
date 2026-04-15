@@ -9,10 +9,12 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { socketService } from '../../lib/socket';
 import { Toaster } from 'sonner';
+import { useUIStore } from '../../stores/ui.store';
 
 export const MainLayout = () => {
   const { isAuthenticated } = useAuthStore();
   const { initialize, fetchNotifications } = useNotificationStore();
+  const { isSidebarVisible } = useUIStore();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,8 +40,10 @@ export const MainLayout = () => {
       <Toaster richColors position="top-right" theme="dark" />
       <GlobalBanner />
       {/* Top Section: Sidebar + Main Content */}
-      <div className="flex flex-1 overflow-hidden p-2 gap-2 pb-0">
-        <Sidebar className="w-[300px] shrink-0" />
+      <div className="flex flex-1 overflow-hidden p-2 gap-2 pb-0 relative">
+        <div className={`transition-all duration-300 ease-in-out h-full overflow-hidden ${isSidebarVisible ? 'w-[300px] opacity-100' : 'w-0 opacity-0'}`}>
+           <Sidebar className="w-[300px] shrink-0 h-full" />
+        </div>
 
         <main className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-[#121212] isolate">
           {/* Topbar float over content */}

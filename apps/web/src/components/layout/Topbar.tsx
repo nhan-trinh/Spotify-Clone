@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, User, Bell, LogOut, ShieldAlert, Mic2, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, Bell, LogOut, ShieldAlert, Mic2, Settings, Menu } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
+import { useUIStore } from '../../stores/ui.store';
 import { cn } from '../../lib/utils';
 import { SearchInput } from '../search/SearchInput';
 import { NotificationPopover } from '../notification/NotificationPopover';
@@ -11,6 +12,7 @@ export const Topbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
+  const { toggleSidebar } = useUIStore();
   const [showMenu, setShowMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -50,7 +52,14 @@ export const Topbar = () => {
       "sticky top-0 z-40 flex h-16 items-center justify-between flex-shrink-0 px-4 transition-colors duration-300",
       isScrolled ? "bg-black/80 backdrop-blur-md" : "bg-transparent"
     )}>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
+        <button 
+          onClick={toggleSidebar}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#B3B3B3] hover:text-white hover:bg-black transition-all mr-2"
+          title="Ẩn/Hiện Menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <button 
           onClick={() => navigate(-1)}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black"

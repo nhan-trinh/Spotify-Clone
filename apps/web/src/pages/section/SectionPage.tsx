@@ -10,6 +10,11 @@ export const SectionPage = () => {
     queryKey: ['section', id],
     queryFn: async () => {
       const res = await api.get(`/search?q=${id}`) as any;
+      // Tránh việc mảng rỗng [] (truthy) đè lên mảng có dữ liệu
+      if (id === 'new-albums') return res.data.albums || [];
+      if (id === 'new-releases' || id === 'top-songs' || id === 'trending' || id === 'made-for-you') {
+        return res.data.songs || [];
+      }
       return res.data.songs || res.data.playlists || res.data.albums || [];
     },
     enabled: !!id,

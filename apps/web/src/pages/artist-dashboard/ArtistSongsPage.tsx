@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Plus, Trash2, Edit2, Music2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { queryClient } from '../../lib/query-client';
 
 const UploadModal = ({ albums, onClose, onSuccess }: { albums: any[], onClose: () => void, onSuccess: () => void }) => {
   const [form, setForm] = useState({
@@ -58,6 +59,7 @@ const UploadModal = ({ albums, onClose, onSuccess }: { albums: any[], onClose: (
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('Bài hát đã được tải lên thư viện! 🎵');
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       onSuccess();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Có lỗi xảy ra');
@@ -189,6 +191,7 @@ const EditModal = ({ song, albums, onClose, onSuccess }: { song: any, albums: an
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('Đã cập nhật bài hát');
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       onSuccess();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Có lỗi xảy ra');
@@ -286,6 +289,7 @@ export const ArtistSongsPage = () => {
     try {
       await api.delete(`/songs/${id}`);
       toast.success('Đã xoá bài hát');
+      queryClient.invalidateQueries({ queryKey: ['homeFeed'] });
       fetchData();
     } catch (err: any) {
       toast.error('Có lỗi khi xoá bài hát');

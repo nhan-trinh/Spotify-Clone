@@ -12,7 +12,8 @@ export const searchController = {
   globalSearch: catchAsync(async (req: Request, res: Response) => {
     const q = req.query.q as string;
     const type = req.query.type as string; // Optional
-    const result = await SearchService.globalSearch(q, type);
+    const userId = req.user?.id;
+    const result = await SearchService.globalSearch(q, type, userId);
     sendSuccess(res, result, 'Kết quả tìm kiếm');
   }),
 
