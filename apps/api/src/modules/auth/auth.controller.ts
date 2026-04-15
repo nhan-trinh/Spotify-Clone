@@ -2,6 +2,19 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { sendSuccess } from '../../shared/utils/response';
 import { catchAsync } from '../../shared/utils/catch-async';
+import { env } from '../../shared/config/env';
+
+// Helper: tạo cookie options dựa trên BACKEND_URL (https = production)
+// Đây là cách đáng tin cậy hơn so với kiểm tra NODE_ENV
+const isHttps = env.BACKEND_URL.startsWith('https://');
+
+const getCookieOptions = (maxAgeDays = 30) => ({
+  httpOnly: true,
+  secure: isHttps,
+  sameSite: (isHttps ? 'none' : 'lax') as 'none' | 'lax',
+  maxAge: maxAgeDays * 24 * 60 * 60 * 1000,
+  path: '/',
+});
 
 export const authController = {
   register: catchAsync(async (req: Request, res: Response) => {
@@ -10,59 +23,41 @@ export const authController = {
   }),
 
   login: catchAsync(async (req: Request, res: Response) => {
-    const { env } = require('../../shared/config/env');
     const result = await AuthService.login(req.body);
     if (result.refreshToken) {
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 ngày
-      });
+      res.cookie('refreshToken', result.refreshToken, getCookieOptions(30));
       delete (result as any).refreshToken;
     }
     sendSuccess(res, result, 'Đăng nhập thành công');
   }),
 
   verifyEmail: catchAsync(async (req: Request, res: Response) => {
-    const { env } = require('../../shared/config/env');
     const { email, otp } = req.body;
     const result = await AuthService.verifyEmail(email, otp);
     if (result.refreshToken) {
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie('refreshToken', result.refreshToken, getCookieOptions(30));
       delete (result as any).refreshToken;
     }
     sendSuccess(res, result, 'Xác thực email thành công');
   }),
 
   logout: catchAsync(async (req: Request, res: Response) => {
-    const { env } = require('../../shared/config/env');
     const user = req.user as { id: string; jti: string; exp: number };
     const result = await AuthService.logout(user.id, user.jti, user.exp);
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: isHttps,
+      sameSite: isHttps ? 'none' : 'lax',
+      path: '/',
     });
     sendSuccess(res, result, 'Đăng xuất thành công');
   }),
 
   refresh: catchAsync(async (req: Request, res: Response) => {
-    const { env } = require('../../shared/config/env');
     const refreshToken = req.cookies.refreshToken;
     const result = await AuthService.refresh(refreshToken);
     if (result.refreshToken) {
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie('refreshToken', result.refreshToken, getCookieOptions(30));
       delete (result as any).refreshToken;
     }
     sendSuccess(res, result, 'Làm mới token thành công');
@@ -146,13 +141,8 @@ export const authController = {
     const appTokens = TokenUtil.generateTokens(user.id, user.role);
     await redis.set(`refresh_token:${user.id}`, appTokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
 
-    // Set cookie cho Refresh Token
-    res.cookie('refreshToken', appTokens.refreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // Set cookie cho Refresh Token (dùng getCookieOptions để đồng nhất với các endpoint khác)
+    res.cookie('refreshToken', appTokens.refreshToken, getCookieOptions(7));
 
     const redirectUrl = new URL(`${env.FRONTEND_URL}/auth/callback`);
     redirectUrl.searchParams.set('accessToken', appTokens.accessToken);
