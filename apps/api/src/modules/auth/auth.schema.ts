@@ -38,10 +38,9 @@ export const resendOtpSchema = z.object({
   }),
 });
 
+// refreshSchema giờ không cần refreshToken trong body vì được đọc từ HttpOnly Cookie
 export const refreshSchema = z.object({
-  body: z.object({
-    refreshToken: z.string().min(1, 'Refresh Token là bắt buộc'),
-  }),
+  body: z.object({}).optional(),
 });
 
 // Google OAuth Login payload (if handled by BE via explicit body)

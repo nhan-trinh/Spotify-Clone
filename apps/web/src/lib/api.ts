@@ -40,7 +40,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Tránh vòng lặp nêú login hoặc refresh bị lỗi 401
-    if (['/auth/login', '/auth/refresh-token'].includes(originalRequest.url)) {
+    if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }
 

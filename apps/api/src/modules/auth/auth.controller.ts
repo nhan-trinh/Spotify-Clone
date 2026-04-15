@@ -10,12 +10,13 @@ export const authController = {
   }),
 
   login: catchAsync(async (req: Request, res: Response) => {
+    const { env } = require('../../shared/config/env');
     const result = await AuthService.login(req.body);
     if (result.refreshToken) {
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: env.NODE_ENV === 'production',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 ngày
       });
       delete (result as any).refreshToken;
@@ -24,13 +25,14 @@ export const authController = {
   }),
 
   verifyEmail: catchAsync(async (req: Request, res: Response) => {
+    const { env } = require('../../shared/config/env');
     const { email, otp } = req.body;
     const result = await AuthService.verifyEmail(email, otp);
     if (result.refreshToken) {
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: env.NODE_ENV === 'production',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       delete (result as any).refreshToken;
@@ -39,20 +41,26 @@ export const authController = {
   }),
 
   logout: catchAsync(async (req: Request, res: Response) => {
+    const { env } = require('../../shared/config/env');
     const user = req.user as { id: string; jti: string; exp: number };
     const result = await AuthService.logout(user.id, user.jti, user.exp);
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
     sendSuccess(res, result, 'Đăng xuất thành công');
   }),
 
   refresh: catchAsync(async (req: Request, res: Response) => {
+    const { env } = require('../../shared/config/env');
     const refreshToken = req.cookies.refreshToken;
     const result = await AuthService.refresh(refreshToken);
     if (result.refreshToken) {
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: env.NODE_ENV === 'production',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       delete (result as any).refreshToken;

@@ -34,7 +34,7 @@ import { SectionPage } from './pages/section/SectionPage';
 import { useLibraryStore } from './stores/library.store';
 import { useAuthStore } from './stores/auth.store';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from './lib/api';
 
 // Màn hình full không có Sidebar (cho Login/Register)
 
@@ -46,17 +46,22 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
+      // Dọn dẹp dữ liệu cũ không bảo mật (One-time cleanup)
+      if (localStorage.getItem('refreshToken')) {
+        localStorage.removeItem('refreshToken');
+      }
+
       if (isAuthenticated && !accessToken) {
         try {
-          const res = await axios.post(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'}/auth/refresh`,
-            {},
-            { withCredentials: true }
-          );
-          if (res.data?.success) {
-            setTokens(res.data.data.accessToken);
+          // Sử dụng api.post từ lib/api.ts (tự động trả về res.data)
+          const res = await api.post('/auth/refresh', {}) as any;
+          if (res.success && res.data?.accessToken) {
+            setTokens(res.data.accessToken);
+          } else {
+            logout();
           }
-        } catch (err) {
+        } catch (err: any) {
+          // Refresh thất bại vì bất kỳ lý do → logout để buộc đăng nhập lại
           logout();
         }
       }
