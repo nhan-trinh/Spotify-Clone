@@ -21,13 +21,27 @@ export const NowPlayingSidebar = () => {
     setBgColor('#121212');
     setArtist(null);
 
-    if (currentTrack.coverUrl) {
+    if (currentTrack.coverUrl && currentTrack.coverUrl.length > 5 && !currentTrack.coverUrl.includes('null')) {
       const fac = new FastAverageColor();
-      const imgUrl = `${currentTrack.coverUrl}${currentTrack.coverUrl.includes('?') ? '&' : '?'}cb=${Date.now()}`;
-      fac.getColorAsync(imgUrl, { crossOrigin: 'anonymous' })
-        .then(color => setBgColor(color.hex))
-        .catch(() => setBgColor('#1a1a1a'))
-        .finally(() => fac.destroy());
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = `${currentTrack.coverUrl}${currentTrack.coverUrl.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+      
+      img.onload = () => {
+        try {
+          const color = fac.getColor(img);
+          setBgColor(color.hex);
+        } catch (err) {
+          setBgColor('#1a1a1a');
+        } finally {
+          fac.destroy();
+        }
+      };
+
+      img.onerror = () => {
+        setBgColor('#1a1a1a');
+        fac.destroy();
+      };
     }
 
     if (currentTrack.artistId) {
@@ -50,6 +64,7 @@ export const NowPlayingSidebar = () => {
           {/* Layer 1: Canvas Video lót toàn bộ */}
           <CanvasPlayer
             url={currentTrack.canvasUrl}
+            poster={currentTrack.coverUrl}
             isPlaying={isPlaying}
             className="absolute inset-0 w-full h-full"
           />

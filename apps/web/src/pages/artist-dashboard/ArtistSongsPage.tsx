@@ -315,10 +315,16 @@ export const ArtistSongsPage = () => {
     const map: Record<string, string> = {
       APPROVED: 'bg-[#1DB954]/20 text-[#1DB954]',
       PENDING: 'bg-yellow-500/20 text-yellow-400',
+      PROCESSING: 'bg-blue-500/20 text-blue-400 animate-pulse',
       REJECTED: 'bg-red-500/20 text-red-400',
     };
-    const label: Record<string, string> = { APPROVED: 'Đã duyệt', PENDING: 'Chờ duyệt', REJECTED: 'Từ chối' };
-    return <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${map[status] || 'bg-white/10 text-white'}`}>{label[status] || status}</span>;
+    const label: Record<string, string> = { 
+      APPROVED: 'Đã duyệt', 
+      PENDING: 'Chờ duyệt', 
+      PROCESSING: '⚙️ Đang xử lý...',
+      REJECTED: 'Từ chối' 
+    };
+    return <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${map[status] || 'bg-white/10 text-white'}`}>{label[status] || status}</span>;
   };
 
   return (

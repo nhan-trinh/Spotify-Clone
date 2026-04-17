@@ -46,7 +46,7 @@ export const PlaylistPage = () => {
       coverUrl: playlist.coverUrl || '',
     });
 
-    if (playlist.coverUrl) {
+    if (playlist.coverUrl && playlist.coverUrl.length > 5) {
       const fac = new FastAverageColor();
       const img = new Image();
       img.crossOrigin = 'Anonymous';

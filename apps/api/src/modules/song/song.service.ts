@@ -4,6 +4,7 @@ import { SupabaseUtil } from '../../shared/utils/supabase.util';
 import { NotificationService } from '../notification/notification.service';
 import { PlayerService } from '../player/player.service';
 import { SearchService } from '../search/search.service';
+import { QueueService } from '../../shared/services/queue.service';
 
 export const SongService = {
   // 1. Tạo bài hát với URL trực tiếp (Demo mode - không cần Supabase upload)
@@ -84,10 +85,22 @@ export const SongService = {
       throw new AppError('Bài hát không tồn tại', 404, ErrorCodes.NOT_FOUND);
     }
 
-    // TODO: Emit message Queue gửi sang worker FFmpeg
-    // Tạm thời coi như upload thành công và chờ duyệt
+    // Kích hoạt Queue gửi sang worker FFmpeg
+    if (song.audioUrl320) {
+      await QueueService.addAudioJob({
+        songId: song.id,
+        originalUrl: song.audioUrl320,
+        artistId: artist.id,
+        type: 'AUDIO'
+      });
+      
+      await prisma.song.update({
+        where: { id: songId },
+        data: { status: 'PROCESSING' }
+      });
+    }
     
-    return { message: 'Đã ghi nhận tệp âm thanh, bài hát đang chờ được xử lý và kiểm duyệt' };
+    return { message: 'Đã ghi nhận tệp âm thanh, đang tiến hành xử lý kỹ thuật...' };
   },
 
   // 2.5: Upload trực tiếp file mp3 qua backend (thay vì FE upload s3 trực tiếp để cho dễ debug Phase 6)
@@ -114,40 +127,56 @@ export const SongService = {
         language: data.language || null,
         duration: data.duration ? parseInt(data.duration) : 0,
         artistId: artist.id,
-        // Tạo chưa có audio
-        status: 'PENDING', // Phase 7 = chờ Moderation duyệt
+        status: 'PROCESSING', // Phase 10: Đang xử lý
       },
     });
 
-    const audioExt = files.audio[0].mimetype.split('/')[1] || 'mp3';
+    const audioExt = files.audio?.[0].mimetype.split('/')[1] || 'mp3';
     const aPath = `raw/${artist.id}/${song.id}.${audioExt}`;
-    // upload audio
-    const publicAudioUrl = await SupabaseUtil.uploadBuffer('audio', aPath, files.audio[0].buffer, files.audio[0].mimetype);
+    // upload audio gốc
+    const rawAudioUrl = await SupabaseUtil.uploadBuffer('audio', aPath, files.audio[0].buffer, files.audio[0].mimetype);
 
     // Xử lý Canvas nếu có
-    let canvasUrl = null;
+    let rawCanvasUrl = null;
     if (files.canvas?.[0]) {
       const cExt = files.canvas[0].mimetype.split('/')[1] || 'mp4';
-      const canvasPath = `canvases/${artist.id}/${song.id}.${cExt}`;
-      canvasUrl = await SupabaseUtil.uploadBuffer('videos', canvasPath, files.canvas[0].buffer, files.canvas[0].mimetype);
+      const canvasPath = `canvases/raw/${artist.id}/${song.id}.${cExt}`;
+      rawCanvasUrl = await SupabaseUtil.uploadBuffer('videos', canvasPath, files.canvas[0].buffer, files.canvas[0].mimetype);
     }
 
-    // Update song with public URL
+    // Update song with raw URLs
     await prisma.song.update({
       where: { id: song.id },
       data: {
-        audioUrl320: publicAudioUrl,
-        audioUrl128: publicAudioUrl,
-        canvasUrl: canvasUrl,
+        audioUrl320: rawAudioUrl,
+        audioUrl128: rawAudioUrl,
+        canvasUrl: rawCanvasUrl,
       }
     });
-    
+
+    // 🚀 ĐẨY VÀO HÀNG ĐỢI XỬ LÝ FFmpeg
+    await QueueService.addAudioJob({
+      songId: song.id,
+      originalUrl: rawAudioUrl,
+      artistId: artist.id,
+      type: 'AUDIO'
+    });
+
+    if (rawCanvasUrl) {
+      await QueueService.addVideoJob({
+        songId: song.id,
+        originalUrl: rawCanvasUrl,
+        artistId: artist.id,
+        type: 'VIDEO'
+      });
+    }
+
     // Tự động đồng bộ lên Meilisearch (nếu được duyệt)
     if (song.status === 'APPROVED') {
       await SearchService.syncOneSong(song.id).catch(err => console.error('Lỗi sync search:', err));
     }
 
-    return { songId: song.id, title: song.title, status: 'PENDING' };
+    return { songId: song.id, title: song.title, status: 'PROCESSING' };
   },
 
   // 2.6: Cập nhật bài hát

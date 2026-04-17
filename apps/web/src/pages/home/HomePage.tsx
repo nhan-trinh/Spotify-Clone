@@ -23,11 +23,12 @@ export const HomePage = () => {
     if (!feedData) return;
     
     // Phát hiện màu từ ảnh đầu tiên
-    if (feedData?.recentlyPlayed?.[0]?.coverUrl) {
+    const firstUrl = feedData?.recentlyPlayed?.[0]?.coverUrl;
+    if (firstUrl && firstUrl.length > 5) {
       const fac = new FastAverageColor();
       const img = new Image();
       img.crossOrigin = 'Anonymous'; // Bắt buộc cho CORS
-      img.src = feedData.recentlyPlayed[0].coverUrl + (feedData.recentlyPlayed[0].coverUrl.includes('?') ? '&' : '?') + 'corsbuster=' + Date.now();
+      img.src = firstUrl + (firstUrl.includes('?') ? '&' : '?') + 'corsbuster=' + Date.now();
       img.onload = () => {
         try {
           const color = fac.getColor(img);

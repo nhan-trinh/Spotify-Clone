@@ -9,6 +9,7 @@ import { redis } from './shared/config/redis';
 import './shared/config/cloudinary'; // Initialize Cloudinary
 import { initMeiliSearch } from './shared/config/meilisearch';
 import { initSocketServer } from './shared/socket/socket.server';
+import './workers/media.worker'; // Bật Media Worker xử lý hàng đợi
 
 const startServer = async (): Promise<void> => {
   // Kết nối databases

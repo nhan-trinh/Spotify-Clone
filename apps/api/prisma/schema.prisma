@@ -26,6 +26,7 @@ enum Role {
 
 enum SongStatus {
   PENDING // Chờ moderator duyệt
+  PROCESSING // Đang xử lý FFmpeg (Phase 10)
   APPROVED // Đã duyệt, public
   REJECTED // Bị từ chối
   ARCHIVED // Đã ẩn

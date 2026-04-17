@@ -6,9 +6,10 @@ interface CanvasPlayerProps {
   isPlaying?: boolean;
   onDimensionsReady?: (width: number, height: number) => void;
   className?: string;
+  poster?: string;
 }
 
-export const CanvasPlayer = ({ url, isPlaying = true, onDimensionsReady, className }: CanvasPlayerProps) => {
+export const CanvasPlayer = ({ url, isPlaying = true, onDimensionsReady, className, poster }: CanvasPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -35,6 +36,8 @@ export const CanvasPlayer = ({ url, isPlaying = true, onDimensionsReady, classNa
       <video
         ref={videoRef}
         src={url}
+        poster={poster}
+        preload="auto"
         loop
         muted
         playsInline
@@ -45,14 +48,11 @@ export const CanvasPlayer = ({ url, isPlaying = true, onDimensionsReady, classNa
             onDimensionsReady(video.videoWidth, video.videoHeight);
           }
         }}
-        className={cn(
-          "w-full h-full object-cover transition-opacity duration-700",
-          isLoaded ? "opacity-100" : "opacity-0"
-        )}
+        className="w-full h-full object-cover"
       />
       
-      {/* Loading Overlay */}
-      {!isLoaded && (
+      {/* Loading Overlay (Chỉ hiện nếu thực sự không có poster) */}
+      {!isLoaded && !poster && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/5 animate-pulse">
            <div className="w-8 h-8 border-2 border-[#1DB954] border-t-transparent rounded-full animate-spin" />
         </div>
