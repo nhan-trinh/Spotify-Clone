@@ -20,13 +20,13 @@ export const mediaWorker = new Worker('media-processing', async (job: Job<MediaJ
       // 2. Xử lý Audio (320k + 128k)
       const urls = await MediaProcessor.processAudio(localPath, artistId, songId);
 
-      // 3. Cập nhật URL đã xử lý và đánh dấu hoàn thành (chờ duyệt nếu cần)
+      // 3. Cập nhật URL đã xử lý và chuyển sang trạng thái Chờ duyệt (PENDING)
       await prisma.song.update({
         where: { id: songId },
         data: {
           audioUrl128: urls.url128,
           audioUrl320: urls.url320,
-          status: 'APPROVED', // Hoặc giữ PENDING nếu muốn admin duyệt tiếp (có thể cấu hình)
+          status: 'PENDING', // Chuyển sang PENDING để Admin duyệt bài
         }
       });
       console.log(`[Worker] ✅ Đã xử lý xong Audio cho ${songId}`);

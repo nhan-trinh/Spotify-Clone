@@ -36,13 +36,26 @@ export const SearchService = {
       stageName: a.stageName,
       bio: a.bio || '',
       isVerified: a.isVerified,
+      avatarUrl: a.avatarUrl || '', // Thêm ảnh để hiển thị ở Search
     }));
     await meilisearch.index('artists').addDocuments(artistDocs, { primaryKey: 'id' });
     await meilisearch.index('artists').updateFilterableAttributes(['isVerified']);
 
+    // c. Đồng bộ Users (Dành cho việc tìm bạn bè)
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, avatarUrl: true, role: true }
+    });
+    const userDocs = users.map(u => ({
+      id: u.id,
+      name: u.name,
+      avatarUrl: u.avatarUrl || '',
+      role: u.role
+    }));
+    await meilisearch.index('users').addDocuments(userDocs, { primaryKey: 'id' });
+
     await meilisearch.index('albums').updateSortableAttributes(['releaseDate']);
 
-    // c. Đồng bộ Albums
+    // d. Đồng bộ Albums
     const albums = await prisma.album.findMany({
       where: { status: 'PUBLISHED' },
       include: { artist: { select: { stageName: true } } }
@@ -125,10 +138,11 @@ export const SearchService = {
       return { songs: mappedSongs, artists: [], albums: [] };
     }
 
-    const [songsRes, artistsRes, albumsRes] = await Promise.all([
+    const [songsRes, artistsRes, albumsRes, usersRes] = await Promise.all([
       meilisearch.index('songs').search(q, { limit: 20 }),
       meilisearch.index('artists').search(q, { limit: 10 }),
       meilisearch.index('albums').search(q, { limit: 10 }),
+      meilisearch.index('users').search(q, { limit: 10 }),
     ]);
 
     // Làm giàu dữ liệu Songs từ Database để đảm bảo URL luôn mới nhất và đầy đủ
@@ -173,10 +187,51 @@ export const SearchService = {
       };
     }).filter(Boolean);
 
+    // Làm giàu dữ liệu Artists (để đảm bảo avatarUrl luôn mới)
+    const artistIds = artistsRes.hits.map(h => h.id);
+    const fullArtists = await prisma.artist.findMany({
+      where: { id: { in: artistIds } },
+      select: { id: true, stageName: true, avatarUrl: true, isVerified: true }
+    });
+
+    const sortedArtists = artistIds.map(id => {
+      const a = fullArtists.find(fa => fa.id === id);
+      if (!a) return null;
+      return a;
+    }).filter(Boolean);
+
+    // Lọc Users: Loại bỏ những người có role ARTIST vì họ đã xuất hiện ở mục Artists rồi
+    const filteredUsers = usersRes.hits.filter(u => u.role !== 'ARTIST');
+
+    // Xác định Top Result (Ưu tiên Artist khớp nhất, sau đó đến bài hát)
+    let topResult: any = null;
+    if (sortedArtists.length > 0 && sortedArtists[0]) {
+      topResult = { ...sortedArtists[0], type: 'artist' };
+    } else if (sortedSongs.length > 0) {
+      topResult = { ...sortedSongs[0], type: 'song' };
+    }
+
+    // Tìm kiếm Playlists liên quan đến Artist được tìm thấy
+    let relatedPlaylists: any[] = [];
+    if (sortedArtists.length > 0 && sortedArtists[0]) {
+      const artistId = (sortedArtists[0] as any).id;
+      relatedPlaylists = await prisma.playlist.findMany({
+        where: {
+          isPublic: true,
+          songs: { some: { song: { artistId } } }
+        },
+        select: { id: true, title: true, coverUrl: true, description: true },
+        take: 10
+      });
+    }
+
     return {
+      topResult,
       songs: sortedSongs,
-      artists: artistsRes.hits,
-      albums: sortedAlbums
+      artists: sortedArtists,
+      albums: sortedAlbums,
+      users: filteredUsers,
+      playlists: relatedPlaylists
     };
   },
 

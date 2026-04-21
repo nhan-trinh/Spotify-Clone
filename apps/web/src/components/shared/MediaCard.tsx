@@ -14,7 +14,7 @@ interface MediaCardProps {
   coverUrl: string;
   isCircle?: boolean;
   songs?: any[];
-  type?: 'playlist' | 'album' | 'artist' | 'song';
+  type?: 'playlist' | 'album' | 'artist' | 'song' | 'profile';
   isPublic?: boolean;
   ownerId?: string;
 }
@@ -54,6 +54,8 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
       navigate(`/artist/${id}`);
     } else if (type === 'album') {
       navigate(`/album/${id}`);
+    } else if (type === 'profile') {
+      navigate(`/profile/${id}`);
     } else {
       navigate(`/playlist/${id}`);
     }
@@ -88,8 +90,8 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
           onClick={handlePlayClick}
           className={cn(
             "absolute bottom-2 right-2 w-12 h-12 flex items-center justify-center rounded-full bg-[#1db954] text-black shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300 z-10",
-            // Nếu Spotify: Show nút khi hover VÀ kéo từ dưới lên (translate-y)
-            (isHovered || isThisPlaying) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+            // Chỉ hiện nút khi có nhạc và đang hover hoặc đang phát
+            ((isHovered || isThisPlaying) && songs.length > 0) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           )}
         >
           {isThisPlaying ? <Pause size={24} className="fill-current" /> : <Play size={24} className="fill-current ml-1" />}

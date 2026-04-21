@@ -16,6 +16,9 @@ export const initMeiliSearch = async () => {
     await meilisearch.index('artists').updateFilterableAttributes(['isVerified']);
     await meilisearch.index('albums').updateSortableAttributes(['releaseDate']);
     
+    // Index cho Người dùng (Phase 16)
+    await meilisearch.index('users').updateFilterableAttributes(['role']);
+    
     console.log('✅ Meilisearch Indexes configured');
   } catch (err) {
     console.error('❌ Lỗi cấu hình Meilisearch:', err);
