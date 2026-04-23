@@ -99,7 +99,7 @@ export const AuthService = {
     }
 
     await redis.del(`${OTP_PREFIX}${email}`);
-    const tokens = TokenUtil.generateTokens(user.id, user.role);
+    const tokens = TokenUtil.generateTokens(user.id, user.role, user.name);
     await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 30 * 24 * 60 * 60);
 
     return {
@@ -156,7 +156,7 @@ export const AuthService = {
       return { requiresTwoFactor: true, tempToken };
     }
 
-    const tokens = TokenUtil.generateTokens(user.id, user.role);
+    const tokens = TokenUtil.generateTokens(user.id, user.role, user.name);
     await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 30 * 24 * 60 * 60);
 
     return {
@@ -196,7 +196,7 @@ export const AuthService = {
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || user.isBanned) throw new AppError('Blocked', 403, ErrorCodes.UNAUTHORIZED);
 
-    const tokens = TokenUtil.generateTokens(user.id, user.role);
+    const tokens = TokenUtil.generateTokens(user.id, user.role, user.name);
     await redis.set(`${REFRESH_PREFIX}${user.id}`, tokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
 
     return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };

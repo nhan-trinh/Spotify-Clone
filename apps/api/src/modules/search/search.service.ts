@@ -87,7 +87,8 @@ export const SearchService = {
       });
       const mapped = songs.map(s => ({
         ...s,
-        artistName: s.artist.stageName
+        artistName: s.artist.stageName,
+        audioUrl: s.audioUrl320 || s.audioUrl128
       }));
       return { songs: mapped, artists: [], albums: [] };
     }
@@ -101,7 +102,8 @@ export const SearchService = {
       });
       const mapped = songs.map(s => ({
         ...s,
-        artistName: s.artist.stageName
+        artistName: s.artist.stageName,
+        audioUrl: s.audioUrl320 || s.audioUrl128
       }));
       return { songs: mapped, artists: [], albums: [] };
     }
@@ -124,7 +126,8 @@ export const SearchService = {
       const topSongs = await SearchService.getTopCharts();
       const mappedSongs = topSongs.map((s: any) => ({
         ...s,
-        artistName: s.artist?.stageName || ''
+        artistName: s.artist?.stageName || '',
+        audioUrl: s.audioUrl320 || s.audioUrl128
       }));
       return { songs: mappedSongs, artists: [], albums: [] };
     }
@@ -133,7 +136,8 @@ export const SearchService = {
       const suggestedSongs = await SearchService.discoverWeekly(userId);
       const mappedSongs = suggestedSongs.map((s: any) => ({
         ...s,
-        artistName: s.artist?.stageName || ''
+        artistName: s.artist?.stageName || '',
+        audioUrl: s.audioUrl320 || s.audioUrl128
       }));
       return { songs: mappedSongs, artists: [], albums: [] };
     }

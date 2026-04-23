@@ -140,7 +140,7 @@ export const authController = {
       return res.redirect(`${env.FRONTEND_URL}/login?error=Account_Banned`);
     }
 
-    const appTokens = TokenUtil.generateTokens(user.id, user.role);
+    const appTokens = TokenUtil.generateTokens(user.id, user.role, user.name);
     await redis.set(`refresh_token:${user.id}`, appTokens.refreshToken, 'EX', 7 * 24 * 60 * 60);
 
     // Set cookie cho Refresh Token (dùng getCookieOptions để đồng nhất với các endpoint khác)

@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto';
 export interface AccessTokenPayload {
   sub: string;
   role: string;
+  name: string;
   jti?: string;
   iat?: number;
   exp?: number;
@@ -18,12 +19,12 @@ export interface RefreshTokenPayload {
 }
 
 export const TokenUtil = {
-  generateTokens: (userId: string, role: string) => {
+  generateTokens: (userId: string, role: string, name: string) => {
     const accessJti = randomBytes(16).toString('hex');
     const refreshJti = randomBytes(16).toString('hex');
 
     const accessToken = jwt.sign(
-      { sub: userId, role, jti: accessJti },
+      { sub: userId, role, name, jti: accessJti },
       env.JWT_ACCESS_SECRET,
       { expiresIn: env.JWT_ACCESS_EXPIRES_IN as any }
     );
