@@ -4,7 +4,7 @@ import { prisma } from '../../shared/config/database';
 import { AppError, ErrorCodes } from '../../shared/utils/app-error';
 import { createPaymentUrl, verifyVNPaySignature, formatVNPayDate } from './vnpay.helper';
 import { env } from '../../shared/config/env';
-import { SubscriptionPlan } from '../../generated/prisma';
+import { SubscriptionPlan } from '@prisma/client';
 
 // Bảng giá (VND × 100 vì VNPAY nhân thêm 100)
 const PLAN_PRICES: Record<string, number> = {
