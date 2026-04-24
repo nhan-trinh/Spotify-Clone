@@ -4,6 +4,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -39,6 +40,11 @@ enum AlbumStatus {
   PUBLISHED
   ARCHIVED
   BANNED // Bị gỡ bỏ do vi phạm
+}
+
+enum CollaboratorStatus {
+  ACTIVE
+  KICKED
 }
 
 enum SubscriptionPlan {
@@ -126,6 +132,8 @@ model User {
   auditLogs          AuditLog[]       @relation("Actor")
   payments           Payment[]
   invoices           Invoice[]
+  addedSongs         PlaylistSong[]
+  collaboratedPlaylists PlaylistCollaborator[]
 
   // Social (Phase 16)
   following UserFollow[] @relation("Following")
@@ -260,7 +268,8 @@ model PlaylistSong {
   playlist   Playlist @relation(fields: [playlistId], references: [id])
   songId     String
   song       Song     @relation(fields: [songId], references: [id])
-  addedBy    String
+  addedBy      String?
+  addedByUser  User?    @relation(fields: [addedBy], references: [id])
   position   Int
   addedAt    DateTime @default(now())
 
@@ -268,11 +277,16 @@ model PlaylistSong {
 }
 
 model PlaylistCollaborator {
-  id         String   @id @default(uuid())
+  id         String             @id @default(uuid())
   playlistId String
-  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  playlist   Playlist           @relation(fields: [playlistId], references: [id])
   userId     String
-  addedAt    DateTime @default(now())
+  user       User               @relation(fields: [userId], references: [id])
+  status     CollaboratorStatus @default(ACTIVE) // ACTIVE | KICKED
+  addedAt    DateTime           @default(now())
+  kickedAt   DateTime?
+
+  @@unique([playlistId, userId]) // Tránh duplicate invite
 }
 
 // =============================================

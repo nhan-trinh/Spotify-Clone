@@ -2,11 +2,11 @@ import { Router } from 'express';
 import { playlistController } from './playlist.controller';
 import { authMiddleware, optionalAuthMiddleware } from '../../shared/middleware/auth.middleware';
 import { validateRequest } from '../../shared/middleware/validate.middleware';
-import { 
-  createPlaylistSchema, 
-  updatePlaylistSchema, 
-  addSongSchema, 
-  reorderSongsSchema 
+import {
+  createPlaylistSchema,
+  updatePlaylistSchema,
+  addSongSchema,
+  reorderSongsSchema
 } from './playlist.schema';
 import { uploadImage } from '../../shared/middleware/upload.middleware';
 export const playlistRouter = Router();
@@ -33,3 +33,8 @@ playlistRouter.patch('/:id/songs/reorder', validateRequest(reorderSongsSchema), 
 // Follow / Unfollow playlist
 playlistRouter.post('/:id/follow', playlistController.follow);
 playlistRouter.delete('/:id/follow', playlistController.unfollow);
+
+// Collaborative Playlist Management
+playlistRouter.post('/:id/collaborative/toggle', playlistController.toggleCollaborative);
+playlistRouter.post('/:id/collaborative/invite', playlistController.inviteCollaborator);
+playlistRouter.delete('/:id/collaborative/kick/:userId', playlistController.kickCollaborator);

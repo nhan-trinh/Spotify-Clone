@@ -1,28 +1,212 @@
-logs:
-Topbar.tsx:108 Uncaught ReferenceError: Users is not defined
-    at Topbar (Topbar.tsx:108:16)
+[INFO] 17:07:20 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+✅ Redis đã kết nối
+✅ MongoDB đã kết nối
+[MailUtil] ✅ SMTP Gmail sẵn sàng gửi mail
+✅ PostgreSQL đã kết nối
+✅ Meilisearch Indexes configured
+🔌 Socket.IO initialized
+🚀 Server đang chạy tại http://localhost:3001
+📋 Health check: http://localhost:3001/health
+🌍 Môi trường: development
+📡 Socket connected: [7IIha8TKyoUe2ORpAAAB] - User: Nhanne
+📡 Socket connected: [vsHTFJ89EHFGIMa_AAAD] - User: Nhanne
+📡 Socket connected: [hINBBQOT2WAvAs7mAAAF] - User: Nhanne
+📡 Socket connected: [GY8Mx6mk5I7DfFS-AAAH] - User: Nhanne
+📡 Socket connected: [3yAXoUnUACv5Sg5RAAAJ] - User: Nhanne
+📡 Socket connected: [thxjgVArB8hi_l0CAAAL] - User: Nhanne
+📡 Socket connected: [xfGVbWGFOgn-x5TkAAAN] - User: Nhanne
+📡 Socket connected: [b0lWFSapEj-J9u16AAAP] - User: Nhanne
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+🔌 Socket disconnected: [xfGVbWGFOgn-x5TkAAAN]
+🔌 Socket disconnected: [GY8Mx6mk5I7DfFS-AAAH]
+🔌 Socket disconnected: [7IIha8TKyoUe2ORpAAAB]
+🔌 Socket disconnected: [3yAXoUnUACv5Sg5RAAAJ]
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."passwordHash", "public"."User"."name", "public"."User"."dateOfBirth", "public"."User"."gender", "public"."User"."avatarUrl", "public"."User"."role"::text, "public"."User"."isEmailVerified", "public"."User"."isBanned", "public"."User"."banReason", "public"."User"."loginAttempts", "public"."User"."lockedUntil", "public"."User"."twoFactorEnabled", "public"."User"."twoFactorSecret", "public"."User"."googleId", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."passwordHash", "public"."User"."name", "public"."User"."dateOfBirth", "public"."User"."gender", "public"."User"."avatarUrl", "public"."User"."role"::text, "public"."User"."isEmailVerified", "public"."User"."isBanned", "public"."User"."banReason", "public"."User"."loginAttempts", "public"."User"."lockedUntil", "public"."User"."twoFactorEnabled", "public"."User"."twoFactorSecret", "public"."User"."googleId", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+POST /api/v1/auth/refresh 200 1327.308 ms - 373
+POST /api/v1/auth/refresh 200 1357.227 ms - 373
+📡 Socket connected: [VYP1B2I7zy87fIAXAAAT] - User: Nhanne
+📡 Socket connected: [1bwKN9UsRrsyVInSAAAU] - User: Nhanne
+📡 Socket connected: [x19SMyLshMKYm2DxAAAV] - User: Nhanne
+📡 Socket connected: [Bv-utsA41WsPbiuIAAAX] - User: Nhanne
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+📡 User Nhanne joined 2 friend activity rooms
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+GET /api/v1/notifications 304 425.019 ms - -
+prisma:query SELECT "public"."LikedSong"."id", "public"."LikedSong"."userId", "public"."LikedSong"."songId", "public"."LikedSong"."likedAt" FROM "public"."LikedSong" WHERE "public"."LikedSong"."userId" = $1 ORDER BY "public"."LikedSong"."likedAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE ("public"."Playlist"."ownerId" = $1 OR ("public"."Playlist"."id") IN (SELECT "t1"."playlistId" FROM "public"."PlaylistCollaborator" AS "t1" WHERE ("t1"."userId" = $2 AND "t1"."playlistId" IS NOT NULL)) OR ("public"."Playlist"."id") IN (SELECT "t2"."playlistId" FROM "public"."PlaylistFollower" AS "t2" WHERE ("t2"."userId" = $3 AND "t2"."playlistId" IS NOT NULL))) ORDER BY "public"."Playlist"."updatedAt" DESC OFFSET $4
+GET /api/v1/playlists 304 527.803 ms - -
+GET /api/v1/home/settings 304 529.979 ms - -
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE ("public"."Playlist"."ownerId" = $1 AND "public"."Playlist"."title" = $2) LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."User"."id", "public"."User"."name", "public"."User"."avatarUrl", "public"."User"."role"::text FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."PlaylistSong"."id", "public"."PlaylistSong"."playlistId", "public"."PlaylistSong"."songId", "public"."PlaylistSong"."addedBy", "public"."PlaylistSong"."position", "public"."PlaylistSong"."addedAt" FROM "public"."PlaylistSong" WHERE "public"."PlaylistSong"."playlistId" IN ($1) ORDER BY "public"."PlaylistSong"."position" ASC OFFSET $2
+prisma:error 
+Invalid `prisma.playlist.findFirst()` invocation in
+E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:42
 
-Topbar.tsx:108 Uncaught ReferenceError: Users is not defined
-    at Topbar (Topbar.tsx:108:16)
-react-dom.development.js:18704 The above error occurred in the <Topbar> component:
+  81
+  82 // Interface chính để Controller có thể gọi
+  83 getOrCreateDiscoverWeeklyPlaylist: async (userId: string) => {
+→ 84   let playlist = await prisma.playlist.findFirst(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+Lỗi khi tạo Discover Weekly: PrismaClientKnownRequestError: 
+Invalid `prisma.playlist.findFirst()` invocation in
+E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:42
 
-    at Topbar (http://localhost:5173/src/components/layout/Topbar.tsx:29:20)
-    at div
-    at div
-    at main
-    at div
-    at div
-    at MainLayout (http://localhost:5173/src/components/layout/MainLayout.tsx:33:31)
-    at ProtectedRoute (http://localhost:5173/src/components/auth/ProtectedRoute.tsx:20:34)
-    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=bdbdc539:4131:5)
-    at Routes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=bdbdc539:4601:5)
-    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=bdbdc539:4544:15)
-    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=bdbdc539:5290:5)
-    at App (http://localhost:5173/src/App.tsx:55:63)
-    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/chunk-7QAH2OQY.js?v=bdbdc539:3194:3)
+  81
+  82 // Interface chính để Controller có thể gọi
+  83 getOrCreateDiscoverWeeklyPlaylist: async (userId: string) => {
+→ 84   let playlist = await prisma.playlist.findFirst(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+    at $n.handleRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at l (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at Object.getOrCreateDiscoverWeeklyPlaylist (E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:20)
+    at Object.getFeed (E:\SuperProject\apps\api\src\modules\home\home.service.ts:11:32)
+    at E:\SuperProject\apps\api\src\modules\home\home.controller.ts:8:18 {
+  code: 'P2022',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'Playlist', column: 'PlaylistSong.addedBy' }
+}
+prisma:query SELECT "public"."FollowedArtist"."id", "public"."FollowedArtist"."userId", "public"."FollowedArtist"."artistId", "public"."FollowedArtist"."followedAt" FROM "public"."FollowedArtist" WHERE "public"."FollowedArtist"."userId" = $1 ORDER BY "public"."FollowedArtist"."followedAt" DESC LIMIT $2 OFFSET $3
+GET /api/v1/notifications 304 408.451 ms - -
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE "public"."Playlist"."isPublic" = $1 ORDER BY "public"."Playlist"."id" ASC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."FollowedAlbum"."id", "public"."FollowedAlbum"."userId", "public"."FollowedAlbum"."albumId", "public"."FollowedAlbum"."followedAt" FROM "public"."FollowedAlbum" WHERE "public"."FollowedAlbum"."userId" = $1 ORDER BY "public"."FollowedAlbum"."followedAt" DESC LIMIT $2 OFFSET $3 
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE ("public"."Playlist"."ownerId" = $1 OR ("public"."Playlist"."id") IN (SELECT "t1"."playlistId" FROM "public"."PlaylistCollaborator" AS "t1" WHERE ("t1"."userId" = $2 AND "t1"."playlistId" IS NOT NULL)) OR ("public"."Playlist"."id") IN (SELECT "t2"."playlistId" FROM "public"."PlaylistFollower" AS "t2" WHERE ("t2"."userId" = $3 AND "t2"."playlistId" IS NOT NULL))) ORDER BY "public"."Playlist"."updatedAt" DESC OFFSET $4
+GET /api/v1/playlists 304 510.747 ms - -
+GET /api/v1/home/settings 304 530.325 ms - -
+prisma:query SELECT "public"."PlaylistSong"."id", "public"."PlaylistSong"."playlistId", "public"."PlaylistSong"."songId", "public"."PlaylistSong"."addedBy", "public"."PlaylistSong"."position", "public"."PlaylistSong"."addedAt" FROM "public"."PlaylistSong" WHERE "public"."PlaylistSong"."playlistId" IN ($1,$2,$3,$4) ORDER BY "public"."PlaylistSong"."id" ASC OFFSET $5
+prisma:error
+Invalid `prisma.playlist.findMany()` invocation in
+E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:42
 
-Consider adding an error boundary to your tree to customize error handling behavior.
-Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+  19
+  20 // Nếu không có user hoặc lỗi, dự phòng load playlist public ngẫu nhiên
+  21 if (madeForYou.length === 0) {
+→ 22   madeForYou = await prisma.playlist.findMany(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+❌ Lỗi không xác định: PrismaClientKnownRequestError:
+Invalid `prisma.playlist.findMany()` invocation in
+E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:42
 
-react-dom.development.js:26962 Uncaught ReferenceError: Users is not defined
-    at Topbar (Topbar.tsx:108:16)
+  19
+  20 // Nếu không có user hoặc lỗi, dự phòng load playlist public ngẫu nhiên
+  21 if (madeForYou.length === 0) {
+→ 22   madeForYou = await prisma.playlist.findMany(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+    at $n.handleRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at l (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at Object.getFeed (E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:20)
+    at E:\SuperProject\apps\api\src\modules\home\home.controller.ts:8:18 {
+  code: 'P2022',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'Playlist', column: 'PlaylistSong.addedBy' }
+}
+GET /api/v1/home/feed 500 1064.521 ms - 93
+prisma:query SELECT "public"."Song"."id", "public"."Song"."title", "public"."Song"."artistId" FROM "public"."Song" WHERE ("public"."Song"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PlaylistFollower"."userId", "public"."PlaylistFollower"."playlistId", "public"."PlaylistFollower"."followedAt" FROM "public"."PlaylistFollower" WHERE "public"."PlaylistFollower"."userId" = $1 ORDER BY "public"."PlaylistFollower"."followedAt" DESC LIMIT $2 OFFSET $3
+GET /api/v1/users/library 304 1274.573 ms - -
+prisma:query SELECT "public"."Artist"."id", "public"."Artist"."stageName" FROM "public"."Artist" WHERE "public"."Artist"."id" IN ($1) OFFSET $2
+GET /api/v1/users/following/activity 304 1451.888 ms - -
+prisma:query SELECT "public"."LikedSong"."id", "public"."LikedSong"."userId", "public"."LikedSong"."songId", "public"."LikedSong"."likedAt" FROM "public"."LikedSong" WHERE "public"."LikedSong"."userId" = $1 ORDER BY "public"."LikedSong"."likedAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."UserFollow"."followerId", "public"."UserFollow"."followingId" FROM "public"."UserFollow" WHERE "public"."UserFollow"."followerId" = $1 OFFSET $2
+prisma:query SELECT "public"."FollowedArtist"."id", "public"."FollowedArtist"."userId", "public"."FollowedArtist"."artistId", "public"."FollowedArtist"."followedAt" FROM "public"."FollowedArtist" WHERE "public"."FollowedArtist"."userId" = $1 ORDER BY "public"."FollowedArtist"."followedAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."User"."id", "public"."User"."name", "public"."User"."avatarUrl", "public"."User"."role"::text FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."FollowedAlbum"."id", "public"."FollowedAlbum"."userId", "public"."FollowedAlbum"."albumId", "public"."FollowedAlbum"."followedAt" FROM "public"."FollowedAlbum" WHERE "public"."FollowedAlbum"."userId" = $1 ORDER BY "public"."FollowedAlbum"."followedAt" DESC LIMIT $2 OFFSET $3 
+prisma:query SELECT "public"."PlaylistFollower"."userId", "public"."PlaylistFollower"."playlistId", "public"."PlaylistFollower"."followedAt" FROM "public"."PlaylistFollower" WHERE "public"."PlaylistFollower"."userId" = $1 ORDER BY "public"."PlaylistFollower"."followedAt" DESC LIMIT $2 OFFSET $3
+GET /api/v1/users/library 304 1337.182 ms - -
+prisma:query SELECT "public"."Song"."id", "public"."Song"."title", "public"."Song"."artistId" FROM "public"."Song" WHERE ("public"."Song"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Artist"."id", "public"."Artist"."stageName" FROM "public"."Artist" WHERE "public"."Artist"."id" IN ($1) OFFSET $2
+GET /api/v1/users/following/activity 304 1424.673 ms - -
+prisma:query SELECT "public"."LikedSong"."id", "public"."LikedSong"."userId", "public"."LikedSong"."songId", "public"."LikedSong"."likedAt" FROM "public"."LikedSong" WHERE "public"."LikedSong"."userId" = $1 ORDER BY "public"."LikedSong"."likedAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."FollowedArtist"."id", "public"."FollowedArtist"."userId", "public"."FollowedArtist"."artistId", "public"."FollowedArtist"."followedAt" FROM "public"."FollowedArtist" WHERE "public"."FollowedArtist"."userId" = $1 ORDER BY "public"."FollowedArtist"."followedAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."FollowedAlbum"."id", "public"."FollowedAlbum"."userId", "public"."FollowedAlbum"."albumId", "public"."FollowedAlbum"."followedAt" FROM "public"."FollowedAlbum" WHERE "public"."FollowedAlbum"."userId" = $1 ORDER BY "public"."FollowedAlbum"."followedAt" DESC LIMIT $2 OFFSET $3 
+prisma:query SELECT "public"."PlaylistFollower"."userId", "public"."PlaylistFollower"."playlistId", "public"."PlaylistFollower"."followedAt" FROM "public"."PlaylistFollower" WHERE "public"."PlaylistFollower"."userId" = $1 ORDER BY "public"."PlaylistFollower"."followedAt" DESC LIMIT $2 OFFSET $3
+GET /api/v1/users/library 304 814.137 ms - -
+prisma:query SELECT 1
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE ("public"."Playlist"."ownerId" = $1 AND "public"."Playlist"."title" = $2) LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."PlaylistSong"."id", "public"."PlaylistSong"."playlistId", "public"."PlaylistSong"."songId", "public"."PlaylistSong"."addedBy", "public"."PlaylistSong"."position", "public"."PlaylistSong"."addedAt" FROM "public"."PlaylistSong" WHERE "public"."PlaylistSong"."playlistId" IN ($1) ORDER BY "public"."PlaylistSong"."position" ASC OFFSET $2
+prisma:error 
+Invalid `prisma.playlist.findFirst()` invocation in
+E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:42
+
+  81
+  82 // Interface chính để Controller có thể gọi
+  83 getOrCreateDiscoverWeeklyPlaylist: async (userId: string) => {
+→ 84   let playlist = await prisma.playlist.findFirst(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+Lỗi khi tạo Discover Weekly: PrismaClientKnownRequestError:
+Invalid `prisma.playlist.findFirst()` invocation in
+E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:42
+
+  81
+  82 // Interface chính để Controller có thể gọi
+  83 getOrCreateDiscoverWeeklyPlaylist: async (userId: string) => {
+→ 84   let playlist = await prisma.playlist.findFirst(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+    at $n.handleRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at l (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at Object.getOrCreateDiscoverWeeklyPlaylist (E:\SuperProject\apps\api\src\modules\discovery\discovery.service.ts:84:20)
+    at Object.getFeed (E:\SuperProject\apps\api\src\modules\home\home.service.ts:11:32)
+    at E:\SuperProject\apps\api\src\modules\home\home.controller.ts:8:18 {
+  code: 'P2022',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'Playlist', column: 'PlaylistSong.addedBy' }
+}
+prisma:query SELECT "public"."Playlist"."id", "public"."Playlist"."title", "public"."Playlist"."description", "public"."Playlist"."coverUrl", "public"."Playlist"."ownerId", "public"."Playlist"."isPublic", "public"."Playlist"."isSystem", "public"."Playlist"."isFeatured", "public"."Playlist"."isPinned", "public"."Playlist"."isCollaborative", "public"."Playlist"."createdAt", "public"."Playlist"."updatedAt" FROM "public"."Playlist" WHERE "public"."Playlist"."isPublic" = $1 ORDER BY "public"."Playlist"."id" ASC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PlaylistSong"."id", "public"."PlaylistSong"."playlistId", "public"."PlaylistSong"."songId", "public"."PlaylistSong"."addedBy", "public"."PlaylistSong"."position", "public"."PlaylistSong"."addedAt" FROM "public"."PlaylistSong" WHERE "public"."PlaylistSong"."playlistId" IN ($1,$2,$3,$4) ORDER BY "public"."PlaylistSong"."id" ASC OFFSET $5
+prisma:error 
+Invalid `prisma.playlist.findMany()` invocation in
+E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:42
+
+  19
+  20 // Nếu không có user hoặc lỗi, dự phòng load playlist public ngẫu nhiên
+  21 if (madeForYou.length === 0) {
+→ 22   madeForYou = await prisma.playlist.findMany(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+❌ Lỗi không xác định: PrismaClientKnownRequestError:
+Invalid `prisma.playlist.findMany()` invocation in
+E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:42
+
+  19
+  20 // Nếu không có user hoặc lỗi, dự phòng load playlist public ngẫu nhiên
+  21 if (madeForYou.length === 0) {
+→ 22   madeForYou = await prisma.playlist.findMany(
+The column `PlaylistSong.addedBy` does not exist in the current database.
+    at $n.handleRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:7315)
+    at $n.handleAndLogRequestError (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at l (E:\SuperProject\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at Object.getFeed (E:\SuperProject\apps\api\src\modules\home\home.service.ts:22:20)
+    at E:\SuperProject\apps\api\src\modules\home\home.controller.ts:8:18 {
+  code: 'P2022',
+  clientVersion: '5.22.0',
+  meta: { modelName: 'Playlist', column: 'PlaylistSong.addedBy' }
+}
+GET /api/v1/home/feed 500 1209.217 ms - 93

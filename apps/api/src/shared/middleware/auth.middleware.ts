@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { AppError, ErrorCodes } from '../utils/app-error';
-import { Role } from '@prisma/client';
+import { Role } from '../../generated/prisma';
 
 // Mở rộng Express Request để thêm user
 declare global {

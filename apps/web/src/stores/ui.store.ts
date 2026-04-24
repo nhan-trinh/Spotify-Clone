@@ -18,7 +18,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       isNowPlayingVisible: false,
       isSidebarVisible: true,
-      isFriendActivityVisible: true, // Mặc định hiện (Phase 16)
+      isFriendActivityVisible: false, // Mặc định ẩn (Phase 16)
       toggleNowPlaying: () => set((state) => ({ isNowPlayingVisible: !state.isNowPlayingVisible })),
       setNowPlayingVisible: (visible) => set({ isNowPlayingVisible: visible }),
       toggleSidebar: () => set((state) => ({ isSidebarVisible: !state.isSidebarVisible })),

@@ -14,6 +14,7 @@ export const updatePlaylistSchema = z.object({
     description: z.string().max(500).optional(),
     coverUrl: z.string().url().optional(),
     isPublic: z.boolean().optional(),
+    isCollaborative: z.boolean().optional(),
   }),
 });
 

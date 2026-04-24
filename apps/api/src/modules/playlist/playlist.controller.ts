@@ -52,7 +52,7 @@ export const playlistController = {
 
   removeSong: catchAsync(async (req: Request, res: Response) => {
     const user = req.user!;
-    const result = await PlaylistService.removeSong(req.params.id, user.id, req.params.songId);
+    const result = await PlaylistService.removeSong(req.params.id, user.id, req.params.songId, user.role);
     sendSuccess(res, result, 'Đã gỡ bài hát');
   }),
 
@@ -89,5 +89,24 @@ export const playlistController = {
       });
     } catch { /* Ignore */ }
     sendSuccess(res, {}, 'Đã xóa playlist khỏi thư viện');
+  }),
+
+  toggleCollaborative: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const result = await PlaylistService.toggleCollaborative(req.params.id, user.id);
+    sendSuccess(res, result, 'Đã cập nhật trạng thái cộng tác');
+  }),
+
+  inviteCollaborator: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const { userId } = req.body;
+    const result = await PlaylistService.inviteCollaborator(req.params.id, user.id, userId);
+    sendSuccess(res, result, 'Đã mời cộng tác viên');
+  }),
+
+  kickCollaborator: catchAsync(async (req: Request, res: Response) => {
+    const user = req.user!;
+    const result = await PlaylistService.kickCollaborator(req.params.id, user.id, req.params.userId);
+    sendSuccess(res, result, 'Đã gỡ cộng tác viên');
   }),
 };

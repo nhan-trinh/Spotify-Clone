@@ -7,19 +7,22 @@ import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { useAuthStore } from '../../stores/auth.store';
 import { FastAverageColor } from 'fast-average-color';
-import { Play, Pause, Heart, MoreHorizontal, Clock, Edit2, Camera, X, Loader2 } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Clock, Edit2, Camera, X, Loader2, UserPlus } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 import { PlaylistContextMenu, usePlaylistContextMenu } from '../../components/shared/PlaylistContextMenu';
+import { CollaboratorModal } from '../../components/playlist/CollaboratorModal';
+import { toast } from 'sonner';
 
 export const PlaylistPage = () => {
   const { id } = useParams();
   const [dominantColor, setDominantColor] = useState('#121212');
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ title: '', description: '', coverUrl: '' });
+  const [editForm, setEditForm] = useState({ title: '', description: '', coverUrl: '', isCollaborative: false });
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [showCollaborators, setShowCollaborators] = useState(false);
 
   const { user } = useAuthStore();
   const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
@@ -44,6 +47,7 @@ export const PlaylistPage = () => {
       title: playlist.title || '',
       description: playlist.description || '',
       coverUrl: playlist.coverUrl || '',
+      isCollaborative: playlist.isCollaborative || false,
     });
 
     if (playlist.coverUrl && playlist.coverUrl.length > 5) {
@@ -135,8 +139,10 @@ export const PlaylistPage = () => {
       // Xóa cache để Reload data mới nhất
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
       setIsEditing(false);
-    } catch (e) {
+      toast.success('Đã cập nhật playlist thành công');
+    } catch (e: any) {
       console.error('Failed to update playlist:', e);
+      toast.error(e?.response?.data?.message || 'Có lỗi khi cập nhật playlist');
     } finally {
       setSaving(false);
     }
@@ -180,7 +186,7 @@ export const PlaylistPage = () => {
   return (
     <div className="flex-1 w-full min-h-full overflow-y-auto relative isolate text-white">
       {/* Dynamic Header Gradient Background */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none transition-colors duration-1000 ease-in-out -z-10 h-[400px]"
         style={{
           background: `linear-gradient(to bottom, ${dominantColor} 0%, #121212 100%)`
@@ -189,22 +195,22 @@ export const PlaylistPage = () => {
 
       {/* Header Info */}
       <div className="flex items-end gap-6 px-6 pt-24 pb-6 w-full max-w-screen-2xl mx-auto">
-        <div 
+        <div
           className={cn(
             "relative group flex-shrink-0 shadow-[0_8px_40px_rgba(0,0,0,0.5)]",
             isOwner && "cursor-pointer"
           )}
           onClick={() => isOwner && setIsEditing(true)}
         >
-          <img 
-            src={playlist.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'} 
-            alt={playlist.title} 
-            className="w-[232px] h-[232px] object-cover" 
+          <img
+            src={playlist.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'}
+            alt={playlist.title}
+            className="w-[232px] h-[232px] object-cover"
           />
           {isOwner && (
             <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-               <Edit2 size={48} className="text-white mb-2" />
-               <span className="text-white text-sm font-bold">Chọn ảnh</span>
+              <Edit2 size={48} className="text-white mb-2" />
+              <span className="text-white text-sm font-bold">Chọn ảnh</span>
             </div>
           )}
         </div>
@@ -217,9 +223,14 @@ export const PlaylistPage = () => {
             )}>
               {playlist.isPublic ? "Công khai" : "Riêng tư"}
             </span>
+            {playlist.isCollaborative && (
+              <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                Collaborative
+              </span>
+            )}
           </div>
           <div className="relative group/title">
-            <h1 
+            <h1
               className={cn(
                 "text-5xl md:text-7xl font-bold tracking-tighter mb-2 line-clamp-2",
                 isOwner && "cursor-pointer"
@@ -239,14 +250,14 @@ export const PlaylistPage = () => {
       </div>
 
       {/* Background layer 2 (dark gradient fading down) */}
-      <div 
+      <div
         className="absolute inset-x-0 w-full top-[340px] bottom-0 pointer-events-none -z-10"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, #121212 250px)' }}
       ></div>
 
       {/* Actions */}
       <div className="px-6 py-6 flex items-center gap-6 w-full max-w-screen-2xl mx-auto relative z-10">
-        <button 
+        <button
           onClick={handleMainPlay}
           className="w-14 h-14 flex items-center justify-center rounded-full bg-[#1db954] text-black shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300"
         >
@@ -254,40 +265,58 @@ export const PlaylistPage = () => {
         </button>
         <button
           onClick={() => id && toggleFollowPlaylist(id, playlist.title)}
-          className={`transition-colors ${
-            playlistFollowed ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
-          }`}
+          className={`transition-colors ${playlistFollowed ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+            }`}
           title={playlistFollowed ? 'Xóa khỏi thư viện' : 'Lưu vào thư viện'}
         >
           <Heart size={32} className={playlistFollowed ? 'fill-[#1db954]' : ''} />
         </button>
-        <button 
+        <button
           onClick={(e) => openPlaylistMenu(e, { ...playlist, ownerId: playlist.ownerId })}
           className="text-[#b3b3b3] hover:text-white transition-colors"
         >
           <MoreHorizontal size={32} />
         </button>
+        {isOwner && playlist.isCollaborative && (
+          <button
+            onClick={() => setShowCollaborators(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:border-white transition-all text-sm font-bold ml-auto"
+          >
+            <UserPlus size={20} />
+            Mời người khác
+          </button>
+        )}
       </div>
 
       {/* Tracks Table */}
       <div className="px-6 pb-28 w-full max-w-screen-2xl mx-auto relative z-10">
-        <div className="grid grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)] gap-4 px-4 py-2 border-b border-[#ffffff1a] text-[#b3b3b3] text-sm font-medium">
+        <div className={cn(
+          "grid gap-4 px-4 py-2 border-b border-[#ffffff1a] text-[#b3b3b3] text-sm font-medium",
+          playlist.isCollaborative 
+            ? "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1.5fr)_minmax(120px,1fr)]" 
+            : "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)]"
+        )}>
           <div className="text-center">#</div>
           <div>Tiêu đề</div>
           <div className="hidden md:block">Lượt nghe</div>
+          {playlist.isCollaborative && <div className="hidden lg:block">Người thêm</div>}
           <div className="flex justify-end pr-8"><Clock size={16} /></div>
         </div>
 
         <div className="mt-4 flex flex-col gap-1">
           {playlist.songs.map((item: any, index: number) => {
             const track = item.song;
-            // Thay vì dùng currentIndex, dùng song.id để đảm bảo logic khi bị shuffle
             const isRowPlaying = currentContextId === id && currentTrack?.id === track.id;
 
             return (
-              <div 
-                key={item.songId} 
-                className="grid grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)] gap-4 px-4 py-2 rounded-md hover:bg-white/10 group cursor-pointer text-[#b3b3b3] items-center"
+              <div
+                key={item.songId}
+                className={cn(
+                  "grid gap-4 px-4 py-2 rounded-md hover:bg-white/10 group cursor-pointer text-[#b3b3b3] items-center",
+                  playlist.isCollaborative 
+                    ? "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1.5fr)_minmax(120px,1fr)]" 
+                    : "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)]"
+                )}
                 onDoubleClick={() => handleTrackPlay(index)}
                 onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist.stageName })}
               >
@@ -306,7 +335,7 @@ export const PlaylistPage = () => {
                   </div>
                   <div className="hidden group-hover:flex items-center justify-center w-full text-white">
                     <button onClick={(e) => { e.stopPropagation(); handleTrackPlay(index); }}>
-                       {isRowPlaying && isPlaying ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-1" />}
+                      {isRowPlaying && isPlaying ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-1" />}
                     </button>
                   </div>
                 </div>
@@ -325,12 +354,22 @@ export const PlaylistPage = () => {
                   {track.playCount.toLocaleString()}
                 </div>
 
+                {playlist.isCollaborative && (
+                  <div className="hidden lg:flex items-center gap-2 overflow-hidden">
+                    {item.addedByUser && (
+                      <>
+                        <img src={item.addedByUser.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt={item.addedByUser.name} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                        <span className="text-xs truncate hover:underline cursor-pointer">{item.addedByUser.name}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-end items-center gap-4 pr-4 text-sm">
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleLike(track.id, track.title); }}
-                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${
-                      isLiked(track.id) ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
-                    }`}
+                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(track.id) ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+                      }`}
                   >
                     <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
                   </button>
@@ -362,10 +401,10 @@ export const PlaylistPage = () => {
             <form onSubmit={handleUpdatePlaylist} className="p-6 space-y-4">
               <div className="flex gap-4">
                 <div className="relative group w-48 h-48 bg-[#333] shadow-lg flex-shrink-0">
-                  <img 
-                    src={editForm.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'} 
-                    className="w-full h-full object-cover" 
-                    alt="" 
+                  <img
+                    src={editForm.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'}
+                    className="w-full h-full object-cover"
+                    alt=""
                   />
                   <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     {uploadingCover ? <Loader2 className="animate-spin text-white" /> : <Camera size={48} className="text-white" />}
@@ -373,11 +412,11 @@ export const PlaylistPage = () => {
                     <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} />
                   </label>
                 </div>
-                
+
                 <div className="flex-1 space-y-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#b3b3b3]">Tên</label>
-                    <input 
+                    <input
                       className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-white/20"
                       value={editForm.title}
                       onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))}
@@ -387,19 +426,40 @@ export const PlaylistPage = () => {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#b3b3b3]">Mô tả</label>
-                    <textarea 
+                    <textarea
                       className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm h-28 focus:outline-none focus:ring-1 focus:ring-white/20 resize-none"
                       value={editForm.description}
                       onChange={e => setEditForm((p: any) => ({ ...p, description: e.target.value }))}
                       placeholder="Thêm mô tả tùy chọn"
                     />
                   </div>
+                  {isOwner && !playlist.isSystem && (
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/10">
+                      <div>
+                        <p className="text-sm font-bold">Chế độ cộng tác</p>
+                        <p className="text-xs text-[#b3b3b3]">Cho phép người khác thêm/xóa bài hát.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditForm((p: any) => ({ ...p, isCollaborative: !p.isCollaborative }))}
+                        className={cn(
+                          "w-12 h-6 rounded-full relative transition-colors duration-200",
+                          editForm.isCollaborative ? "bg-[#1db954]" : "bg-[#727272]"
+                        )}
+                      >
+                        <div className={cn(
+                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200",
+                          editForm.isCollaborative ? "left-7" : "left-1"
+                        )} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="flex justify-end pt-2">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={saving}
                   className="bg-white text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform disabled:opacity-50"
                 >
@@ -415,7 +475,7 @@ export const PlaylistPage = () => {
       )}
 
       {trackMenu && (
-        <SongContextMenu 
+        <SongContextMenu
           song={trackMenu.song}
           position={trackMenu.position}
           onClose={closeTrackMenu}
@@ -427,11 +487,21 @@ export const PlaylistPage = () => {
         />
       )}
       {playlistMenu && (
-        <PlaylistContextMenu 
+        <PlaylistContextMenu
           playlist={playlistMenu.playlist}
           position={playlistMenu.position}
           onClose={closePlaylistMenu}
           onRename={() => setIsEditing(true)}
+        />
+      )}
+
+      {showCollaborators && (
+        <CollaboratorModal
+          playlistId={id!}
+          collaborators={playlist.collaborators}
+          ownerId={playlist.ownerId}
+          currentUserId={user?.id || ''}
+          onClose={() => setShowCollaborators(false)}
         />
       )}
     </div>

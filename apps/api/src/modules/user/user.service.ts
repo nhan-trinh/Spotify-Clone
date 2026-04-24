@@ -289,8 +289,18 @@ export const UserService = {
   followUser: async (followerId: string, followingId: string) => {
     if (followerId === followingId) throw new AppError('Bạn không thể theo dõi chính mình', 400, ErrorCodes.VALIDATION_ERROR);
 
-    const targetUser = await prisma.user.findUnique({ where: { id: followingId } });
+    const [follower, targetUser] = await Promise.all([
+      prisma.user.findUnique({ where: { id: followerId }, select: { role: true, name: true } }),
+      prisma.user.findUnique({ where: { id: followingId }, select: { role: true, name: true } })
+    ]);
+
     if (!targetUser) throw new AppError('Người dùng không tồn tại', 404, ErrorCodes.NOT_FOUND);
+    if (!follower) throw new AppError('Người thực hiện không tồn tại', 404, ErrorCodes.NOT_FOUND);
+
+    // Chặn Nghệ sĩ follow User thường để giữ "cương vị" (Requirement Phase 16)
+    if (follower.role === 'ARTIST' && (targetUser.role === 'USER_FREE' || targetUser.role === 'USER_PREMIUM')) {
+      throw new AppError('Nghệ sĩ không thể theo dõi người dùng thông thường để giữ vững cương vị nghệ sĩ.', 403, ErrorCodes.FORBIDDEN);
+    }
 
     // Kiểm tra xem đã follow chưa để tránh spam notify
     const existing = await (prisma as any).userFollow.findUnique({

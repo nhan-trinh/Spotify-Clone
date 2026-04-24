@@ -115,17 +115,23 @@ export const ProfilePage = () => {
               </div>
 
               {!isOwnProfile && (
-                <button
-                  onClick={profile.isFollowing ? handleUnfollow : handleFollow}
-                  className={cn(
-                    "px-8 py-2 rounded-full font-bold text-sm transition-all active:scale-95 border uppercase tracking-wider",
-                    profile.isFollowing
-                      ? "bg-transparent text-white border-white/40 hover:border-white"
-                      : "bg-[#1DB954] text-black border-[#1DB954] hover:bg-[#1ed760] hover:scale-105"
-                  )}
-                >
-                  {profile.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                </button>
+                currentUser?.role === 'ARTIST' && (profile.role === 'USER_FREE' || profile.role === 'USER_PREMIUM') ? (
+                  <span className="text-xs text-[#B3B3B3] italic border border-white/10 px-3 py-1 rounded-full">
+                    Nghệ sĩ
+                  </span>
+                ) : (
+                  <button
+                    onClick={profile.isFollowing ? handleUnfollow : handleFollow}
+                    className={cn(
+                      "px-8 py-2 rounded-full font-bold text-sm transition-all active:scale-95 border uppercase tracking-wider",
+                      profile.isFollowing
+                        ? "bg-transparent text-white border-white/40 hover:border-white"
+                        : "bg-[#1DB954] text-black border-[#1DB954] hover:bg-[#1ed760] hover:scale-105"
+                    )}
+                  >
+                    {profile.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                  </button>
+                )
               )}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../generated/prisma';
 
 // Singleton Prisma Client
 // Tránh tạo nhiều connection trong development (hot reload)
