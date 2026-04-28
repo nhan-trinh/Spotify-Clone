@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Howl } from 'howler';
 import { api } from '../lib/api';
 import { socketService } from '../lib/socket';
@@ -16,29 +17,42 @@ export interface Track {
 
 interface PlayerState {
   currentTrack: Track | null;
-  currentIndex: number;
-  queue: Track[];
+  
+  // Advanced Queue System
+  manualQueue: Track[];   // User-added songs (Play Next / Add to Queue)
+  contextQueue: Track[];  // Songs from current Album/Playlist
+  contextIndex: number;   // Current position in context queue
+  
   isPlaying: boolean;
   volume: number;
   progress: number;
   duration: number;
   isShuffle: boolean;
   repeatMode: 'off' | 'all' | 'one';
-  originalQueue: Track[];
+  
+  originalContextQueue: Track[]; // For un-shuffling
   currentContextId: string | null;
   _howl: Howl | null;
   hasRecordedPlay: boolean;
   isProcessingNext: boolean;
+  initPlayer: () => void;
+
+  // Actions
+  setContextAndPlay: (tracks: Track[], startIndex?: number, contextId?: string) => void;
+  addToManualQueue: (track: Track, atFront?: boolean) => void;
+  removeFromManualQueue: (index: number) => void;
+  clearManualQueue: () => void;
+  moveManualQueueTrack: (fromIndex: number, toIndex: number) => void;
   
-  setQueueAndPlay: (queue: Track[], startIndex?: number, contextId?: string) => void;
-  playTrack: (index: number) => void;
+  playTrack: (track: Track, isFromManual?: boolean) => void;
+  nextTrack: () => void;
+  prevTrack: () => void;
+  
   pause: () => void;
   resume: () => void;
   togglePlay: () => void;
   setVolume: (v: number) => void;
   seek: (time: number) => void;
-  nextTrack: () => void;
-  prevTrack: () => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   updateProgress: () => void;
@@ -46,17 +60,20 @@ interface PlayerState {
 
 let progressInterval: any;
 
-export const usePlayerStore = create<PlayerState>((set, get) => ({
+export const usePlayerStore = create<PlayerState>()(
+  persist(
+    (set, get) => ({
   currentTrack: null,
-  currentIndex: -1,
-  queue: [],
+  manualQueue: [],
+  contextQueue: [],
+  contextIndex: -1,
   isPlaying: false,
   volume: 0.5,
   progress: 0,
   duration: 0,
   isShuffle: false,
   repeatMode: 'off',
-  originalQueue: [],
+  originalContextQueue: [],
   currentContextId: null,
   _howl: null,
   hasRecordedPlay: false,
@@ -67,8 +84,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (_howl && isPlaying) {
       const currentProgress = _howl.seek() as number;
       set({ progress: currentProgress });
-
-      // Ghi nhận lượt nghe nếu phát hơn 10 giây
       if (currentProgress > 10 && !hasRecordedPlay && currentTrack) {
         set({ hasRecordedPlay: true });
         api.post(`/songs/${currentTrack.id}/play`).catch(() => {});
@@ -76,72 +91,77 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  setQueueAndPlay: (queue, startIndex = 0, contextId) => {
-    set({ queue, originalQueue: [...queue], isShuffle: false, currentContextId: contextId || null });
-    if (queue.length > 0) {
-      get().playTrack(startIndex);
+  setContextAndPlay: (tracks, startIndex = 0, contextId) => {
+    set({ 
+      contextQueue: tracks, 
+      originalContextQueue: [...tracks], 
+      isShuffle: false, 
+      currentContextId: contextId || null,
+      contextIndex: startIndex
+    });
+    if (tracks.length > 0) {
+      get().playTrack(tracks[startIndex]);
     }
   },
 
-  playTrack: (index) => {
-    const { queue, _howl, volume } = get();
-    if (index < 0 || index >= queue.length) return;
+  addToManualQueue: (track, atFront = false) => {
+    const { manualQueue } = get();
+    // Tránh trùng lặp bài đang trong manual queue nếu sếp muốn (tùy sếp, Spotify cho phép trùng)
+    const newQueue = atFront ? [track, ...manualQueue] : [...manualQueue, track];
+    set({ manualQueue: newQueue });
+  },
 
-    if (_howl) {
-      _howl.unload(); // Dừng bài cũ
-    }
-    if (progressInterval) {
-      clearInterval(progressInterval);
-    }
+  removeFromManualQueue: (index) => {
+    const { manualQueue } = get();
+    const newQueue = [...manualQueue];
+    newQueue.splice(index, 1);
+    set({ manualQueue: newQueue });
+  },
 
-    const track = queue[index];
+  clearManualQueue: () => set({ manualQueue: [] }),
+
+  moveManualQueueTrack: (fromIndex, toIndex) => {
+    const { manualQueue } = get();
+    const newQueue = [...manualQueue];
+    const [moved] = newQueue.splice(fromIndex, 1);
+    newQueue.splice(toIndex, 0, moved);
+    set({ manualQueue: newQueue });
+  },
+
+  playTrack: (track) => {
+    const { _howl, volume } = get();
+    if (_howl) _howl.unload();
+    if (progressInterval) clearInterval(progressInterval);
 
     const sound = new Howl({
       src: [track.audioUrl],
-      html5: true, // Bắt buộc html5 để load streaming, không phải chờ tải xong
+      html5: true,
       volume,
       onplay: () => {
         set({ isPlaying: true, duration: sound.duration() });
-        progressInterval = setInterval(() => {
-          get().updateProgress();
-        }, 200);
+        progressInterval = setInterval(() => get().updateProgress(), 200);
       },
-      onpause: () => {
-        set({ isPlaying: false });
-      },
+      onpause: () => set({ isPlaying: false }),
       onend: () => {
-        const { repeatMode, nextTrack, _howl } = get();
+        const { repeatMode, _howl } = get();
         if (repeatMode === 'one' && _howl) {
           _howl.seek(0);
           _howl.play();
         } else {
           set({ isPlaying: false });
           clearInterval(progressInterval);
-          nextTrack();
+          get().nextTrack();
         }
       },
       onloaderror: () => {
-        const errorTrackId = track.id;
-        console.error('Lỗi load audio, tự động chuyển bài sau 1.5s...');
-        set({ isPlaying: false });
-        // Chỉ tự động chuyển bài nếu sau 1.5s User vẫn đang ở đúng bài lỗi đó
-        setTimeout(() => {
-          if (get().currentTrack?.id === errorTrackId) {
-            get().nextTrack();
-          }
-        }, 1500);
-      },
-      onplayerror: () => {
-        sound.once('unlock', function() {
-          sound.play();
-        });
+        console.error('Lỗi load audio, chuyển bài...');
+        setTimeout(() => get().nextTrack(), 1500);
       }
     });
 
     set({
       _howl: sound,
       currentTrack: track,
-      currentIndex: index,
       progress: 0,
       duration: track.duration || 0,
       hasRecordedPlay: false,
@@ -149,7 +169,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     sound.play();
 
-    // SOCIAL: Thông báo cho server để broadcast tới bạn bè
     socketService.emit('player:play', {
       songId: track.id,
       title: track.title,
@@ -159,11 +178,89 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
+  initPlayer: () => {
+    const { currentTrack, volume, progress, _howl } = get();
+    if (!currentTrack || _howl) return;
+
+    const sound = new Howl({
+      src: [currentTrack.audioUrl],
+      html5: true,
+      volume,
+      onplay: () => {
+        set({ isPlaying: true, duration: sound.duration() });
+        progressInterval = setInterval(() => get().updateProgress(), 200);
+      },
+      onpause: () => set({ isPlaying: false }),
+      onend: () => {
+        const { repeatMode, _howl } = get();
+        if (repeatMode === 'one' && _howl) {
+          _howl.seek(0);
+          _howl.play();
+        } else {
+          set({ isPlaying: false });
+          clearInterval(progressInterval);
+          get().nextTrack();
+        }
+      },
+    });
+
+    sound.seek(progress);
+    set({ _howl: sound, duration: currentTrack.duration || 0 });
+  },
+
+  nextTrack: () => {
+    const { manualQueue, contextQueue, contextIndex, repeatMode, isProcessingNext } = get();
+    if (isProcessingNext) return;
+    set({ isProcessingNext: true });
+
+    try {
+      // 1. Ưu tiên Manual Queue
+      if (manualQueue.length > 0) {
+        const nextFromManual = manualQueue[0];
+        const remainingManual = manualQueue.slice(1);
+        set({ manualQueue: remainingManual });
+        get().playTrack(nextFromManual, true);
+        return;
+      }
+
+      // 2. Chuyển sang Context Queue
+      if (contextIndex < contextQueue.length - 1) {
+        const nextIndex = contextIndex + 1;
+        set({ contextIndex: nextIndex });
+        get().playTrack(contextQueue[nextIndex]);
+      } else if (repeatMode === 'all' && contextQueue.length > 0) {
+        set({ contextIndex: 0 });
+        get().playTrack(contextQueue[0]);
+      } else {
+        get().pause();
+        set({ progress: 0 });
+      }
+    } finally {
+      set({ isProcessingNext: false });
+    }
+  },
+
+  prevTrack: () => {
+    const { contextIndex, progress, contextQueue, repeatMode, seek } = get();
+    if (progress > 3) {
+      seek(0);
+    } else if (contextIndex > 0) {
+      const nextIndex = contextIndex - 1;
+      set({ contextIndex: nextIndex });
+      get().playTrack(contextQueue[nextIndex]);
+    } else if (repeatMode === 'all' && contextQueue.length > 0) {
+      const nextIndex = contextQueue.length - 1;
+      set({ contextIndex: nextIndex });
+      get().playTrack(contextQueue[nextIndex]);
+    } else {
+      seek(0);
+    }
+  },
+
   pause: () => {
     const { _howl, progress } = get();
     if (_howl) {
       _howl.pause();
-      // SOCIAL: Thông báo tạm dừng
       socketService.emit('player:pause', { position: progress });
     }
   },
@@ -172,7 +269,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { _howl, currentTrack, progress } = get();
     if (_howl && currentTrack) {
       _howl.play();
-      // SOCIAL: Thông báo phát lại
       socketService.emit('player:play', {
         songId: currentTrack.id,
         title: currentTrack.title,
@@ -183,20 +279,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  togglePlay: () => {
-    const { isPlaying, resume, pause } = get();
-    if (isPlaying) {
-      pause();
-    } else {
-      resume();
-    }
-  },
+  togglePlay: () => get().isPlaying ? get().pause() : get().resume(),
 
   setVolume: (v) => {
     const { _howl } = get();
-    if (_howl) {
-      _howl.volume(v);
-    }
+    if (_howl) _howl.volume(v);
     set({ volume: v });
   },
 
@@ -208,70 +295,42 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  nextTrack: async () => {
-    const state = get();
-    if (state.isProcessingNext) return;
-
-    set({ isProcessingNext: true });
-
-    try {
-      const { currentIndex, queue, playTrack, repeatMode } = get();
-      
-      if (currentIndex < queue.length - 1) {
-        playTrack(currentIndex + 1);
-      } else if (repeatMode === 'all' && queue.length > 0) {
-        playTrack(0);
-      } else {
-        // Hết queue -> Dừng nhạc (Không gọi Radio nữa)
-        get().pause();
-        set({ progress: 0 });
-      }
-    } catch (error) {
-      console.error('Lỗi khi chuyển bài:', error);
-      get().pause();
-      set({ progress: 0 });
-    } finally {
-      set({ isProcessingNext: false });
-    }
-  },
-
-  prevTrack: () => {
-    const { currentIndex, progress, playTrack, seek, queue, repeatMode } = get();
-    if (progress > 3) {
-      seek(0);
-    } else if (currentIndex > 0) {
-      playTrack(currentIndex - 1);
-    } else if (repeatMode === 'all') {
-      playTrack(queue.length - 1);
-    } else {
-      seek(0);
-    }
-  },
-
   toggleShuffle: () => {
-    const { isShuffle, originalQueue, currentTrack, queue } = get();
+    const { isShuffle, originalContextQueue, currentTrack, contextQueue } = get();
     if (isShuffle) {
-      // Turn OFF shuffle
-      // Revert to originalQueue, find where the current song is
-      const newIndex = currentTrack ? originalQueue.findIndex(t => t.id === currentTrack.id) : 0;
-      set({ isShuffle: false, queue: originalQueue, currentIndex: newIndex });
+      const newIndex = currentTrack ? originalContextQueue.findIndex(t => t.id === currentTrack.id) : 0;
+      set({ isShuffle: false, contextQueue: originalContextQueue, contextIndex: newIndex });
     } else {
-      // Turn ON shuffle
-      const shuffled = [...queue].sort(() => Math.random() - 0.5);
-      // Giữ bài hiện tại lên đầu tiên của list shuffle
+      const shuffled = [...contextQueue].sort(() => Math.random() - 0.5);
       if (currentTrack) {
         const filtered = shuffled.filter(t => t.id !== currentTrack.id);
         const newQueue = [currentTrack, ...filtered];
-        set({ isShuffle: true, queue: newQueue, currentIndex: 0 });
+        set({ isShuffle: true, contextQueue: newQueue, contextIndex: 0 });
       } else {
-        set({ isShuffle: true, queue: shuffled });
+        set({ isShuffle: true, contextQueue: shuffled, contextIndex: 0 });
       }
     }
   },
 
-  toggleRepeat: () => {
-    const { repeatMode } = get();
-    const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
-    set({ repeatMode: nextMode });
-  },
-}));
+    toggleRepeat: () => {
+      const { repeatMode } = get();
+      const nextMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+      set({ repeatMode: nextMode });
+    },
+  }),
+  {
+    name: 'ringbeat-player-storage',
+    partialize: (state) => ({
+      currentTrack: state.currentTrack,
+      manualQueue: state.manualQueue,
+      contextQueue: state.contextQueue,
+      contextIndex: state.contextIndex,
+      volume: state.volume,
+      progress: state.progress,
+      isShuffle: state.isShuffle,
+      repeatMode: state.repeatMode,
+      originalContextQueue: state.originalContextQueue,
+      currentContextId: state.currentContextId,
+    }),
+  }
+));

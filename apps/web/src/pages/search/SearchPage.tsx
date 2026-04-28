@@ -25,7 +25,7 @@ export const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q');
   const [activeTab, setActiveTab] = useState('all');
-  const { setQueueAndPlay } = usePlayerStore();
+  const { setContextAndPlay } = usePlayerStore();
 
   const { data: results, isLoading: loading } = useQuery({
     queryKey: ['search', query],
@@ -110,7 +110,7 @@ export const SearchPage = () => {
                   {topSongs.map((song: any) => (
                     <div 
                       key={song.id}
-                      onClick={() => setQueueAndPlay([song], 0, song.id)}
+                      onClick={() => setContextAndPlay([song], 0, song.id)}
                       className="group flex items-center gap-4 p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       <div className="relative w-10 h-10">

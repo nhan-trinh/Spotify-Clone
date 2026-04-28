@@ -52,7 +52,7 @@ export const AlbumPage = () => {
     enabled: !!id,
   });
 
-  const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingAlbum, toggleFollowAlbum } = useLibraryStore();
   const albumFollowed = id ? isFollowingAlbum(id) : false;
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
@@ -101,7 +101,7 @@ export const AlbumPage = () => {
     if (currentContextId === id) {
       togglePlay();
     } else {
-      setQueueAndPlay(trackList, 0, id);
+      setContextAndPlay(trackList, 0, id);
     }
   };
 
@@ -109,7 +109,7 @@ export const AlbumPage = () => {
     if (currentContextId === id && currentTrack?.id === trackList[index].id) {
       togglePlay();
     } else {
-      setQueueAndPlay(trackList, index, id);
+      setContextAndPlay(trackList, index, id);
     }
   };
 

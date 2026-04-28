@@ -3,6 +3,7 @@ import { Sidebar } from '../layout/Sidebar';
 import { Topbar } from '../layout/Topbar';
 import { PlayerBar } from '../player/PlayerBar';
 import { NowPlayingSidebar } from '../player/NowPlayingSidebar';
+import { QueueSidebar } from '../player/QueueSidebar';
 import { FriendActivitySidebar } from './FriendActivitySidebar';
 import { Outlet } from 'react-router-dom';
 import { GlobalBanner } from './GlobalBanner';
@@ -10,25 +11,29 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { socketService } from '../../lib/socket';
 import { Toaster } from 'sonner';
+import { cn } from '../../lib/utils';
 import { useUIStore } from '../../stores/ui.store';
 import { useFriendStore } from '../../stores/friend.store';
 import { ReportModal } from '../shared/ReportModal';
+import { usePlayerStore } from '@/stores/player.store';
 
 export const MainLayout = () => {
   const { isAuthenticated } = useAuthStore();
   const { initialize: initNotifications, fetchNotifications } = useNotificationStore();
   const { initialize: initFriendActivity } = useFriendStore();
-  const { isSidebarVisible } = useUIStore();
+  const { currentTrack } = usePlayerStore();
+  const { isSidebarVisible, isNowPlayingVisible, isQueueVisible, isFriendActivityVisible } = useUIStore();
+  const isRightSidebarVisible = (isNowPlayingVisible && !!currentTrack) || isQueueVisible || isFriendActivityVisible;
 
   useEffect(() => {
     if (isAuthenticated) {
       // 1. Kết nối Socket
       socketService.connect();
-      
+
       // 2. Khởi tạo store (listeners)
       initNotifications();
       initFriendActivity();
-      
+
       // 3. Lấy dữ liệu ban đầu
       fetchNotifications();
     } else {
@@ -46,9 +51,12 @@ export const MainLayout = () => {
       <GlobalBanner />
       <ReportModal />
       {/* Top Section: Sidebar + Main Content */}
-      <div className="flex flex-1 overflow-hidden p-2 gap-2 pb-0 relative">
-        <div className={`transition-all duration-300 ease-in-out h-full overflow-hidden ${isSidebarVisible ? 'w-[300px] opacity-100' : 'w-0 opacity-0'}`}>
-           <Sidebar className="w-[300px] shrink-0 h-full" />
+      <div className="flex flex-1 overflow-hidden px-2 pt-2 gap-0 pb-0 relative">
+        <div className={cn(
+          "transition-all duration-300 ease-in-out h-full overflow-hidden",
+          isSidebarVisible ? "w-[300px] opacity-100 mr-2" : "w-0 opacity-0 mr-0"
+        )}>
+          <Sidebar className="w-[300px] shrink-0 h-full" />
         </div>
 
         <main className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-[#121212] isolate">
@@ -64,8 +72,21 @@ export const MainLayout = () => {
           </div>
         </main>
 
-        <NowPlayingSidebar />
-        <FriendActivitySidebar />
+        {/* Right Sidebar Slot */}
+        <div className={cn(
+          "hidden lg:flex flex-col relative transition-all duration-300 ease-in-out overflow-hidden shrink-0",
+          isRightSidebarVisible ? "w-[340px] opacity-100 ml-2" : "w-0 opacity-0 pointer-events-none ml-0"
+        )}>
+          <div className={cn("absolute inset-0 z-10", !isNowPlayingVisible && "pointer-events-none")}>
+            <NowPlayingSidebar />
+          </div>
+          <div className={cn("absolute inset-0 z-20", !isQueueVisible && "pointer-events-none")}>
+            <QueueSidebar />
+          </div>
+          <div className={cn("absolute inset-0 z-30", !isFriendActivityVisible && "pointer-events-none")}>
+            <FriendActivitySidebar />
+          </div>
+        </div>
       </div>
 
       {/* Bottom Section: Player Bar */}

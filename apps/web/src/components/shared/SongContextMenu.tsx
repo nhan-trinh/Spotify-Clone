@@ -3,6 +3,7 @@ import { Heart, ListPlus, Plus, Trash2, PlayCircle, AlertTriangle, Link as LinkI
 import { useLibraryStore } from '../../stores/library.store';
 import { useAuthStore } from '../../stores/auth.store';
 import { useUIStore } from '../../stores/ui.store';
+import { usePlayerStore, Track } from '../../stores/player.store';
 import { toast } from 'sonner';
 
 interface Song {
@@ -35,6 +36,7 @@ export const SongContextMenu = ({
   const [showPlaylistSubmenu, setShowPlaylistSubmenu] = useState(false);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [newPlaylistTitle, setNewPlaylistTitle] = useState('');
+  const { addToManualQueue } = usePlayerStore();
   const menuRef = useRef<HTMLDivElement>(null);
   const liked = isLiked(song.id);
 
@@ -88,6 +90,26 @@ export const SongContextMenu = ({
       {onPlay && (
         <MenuItem icon={<PlayCircle size={15} />} label="Phát ngay" onClick={() => { onPlay(); onClose(); }} />
       )}
+
+      {/* Queue Options */}
+      <MenuItem 
+        icon={<ListPlus size={15} />} 
+        label="Phát tiếp theo" 
+        onClick={() => {
+          addToManualQueue(song as Track, true);
+          toast.success('Đã thêm vào phát tiếp theo');
+          onClose();
+        }} 
+      />
+      <MenuItem 
+        icon={<ListPlus size={15} />} 
+        label="Thêm vào danh sách chờ" 
+        onClick={() => {
+          addToManualQueue(song as Track, false);
+          toast.success('Đã thêm vào danh sách chờ');
+          onClose();
+        }} 
+      />
 
       {/* Like */}
       {isAuthenticated && (

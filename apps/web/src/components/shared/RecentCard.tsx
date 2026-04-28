@@ -13,7 +13,7 @@ interface RecentCardProps {
 }
 
 export const RecentCard = ({ id, title, coverUrl, songs = [], isSong = false }: RecentCardProps) => {
-  const { setQueueAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -26,14 +26,14 @@ export const RecentCard = ({ id, title, coverUrl, songs = [], isSong = false }: 
     if (currentContextId === id) {
       togglePlay();
     } else {
-      setQueueAndPlay(songs, 0, id);
+      setContextAndPlay(songs, 0, id);
     }
   };
 
   const handleCardClick = () => {
     if (isSong) {
       if (songs.length > 0) {
-        setQueueAndPlay(songs, 0, id);
+        setContextAndPlay(songs, 0, id);
       }
     } else {
       navigate(`/playlist/${id}`);

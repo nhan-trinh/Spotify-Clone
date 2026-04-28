@@ -37,7 +37,7 @@ const formatDuration = (seconds: number) => {
 
 export const LibraryPage = () => {
   const [activeTab, setActiveTab] = useState<'songs' | 'artists' | 'albums'>('songs');
-  const { setQueueAndPlay, currentTrack, isPlaying, togglePlay, currentContextId } = usePlayerStore();
+  const { setContextAndPlay, currentTrack, isPlaying, togglePlay, currentContextId } = usePlayerStore();
   const { isLiked, toggleLike, libraryVersion } = useLibraryStore();
   const { menu, openMenu, closeMenu } = useContextMenu();
 
@@ -68,7 +68,7 @@ export const LibraryPage = () => {
     if (currentContextId === LIBRARY_CONTEXT_ID) {
       togglePlay();
     } else {
-      setQueueAndPlay(tracks, 0, LIBRARY_CONTEXT_ID);
+      setContextAndPlay(tracks, 0, LIBRARY_CONTEXT_ID);
     }
   };
 
@@ -87,7 +87,7 @@ export const LibraryPage = () => {
     if (currentContextId === LIBRARY_CONTEXT_ID && currentTrack?.id === tracks[index].id) {
       togglePlay();
     } else {
-      setQueueAndPlay(tracks, index, LIBRARY_CONTEXT_ID);
+      setContextAndPlay(tracks, index, LIBRARY_CONTEXT_ID);
     }
   };
 

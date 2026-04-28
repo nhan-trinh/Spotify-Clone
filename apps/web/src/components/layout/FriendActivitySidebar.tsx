@@ -19,10 +19,13 @@ export const FriendActivitySidebar = () => {
   const { isFriendActivityVisible, setFriendActivityVisible } = useUIStore();
   const { activities, isLoading } = useFriendStore();
 
-  if (!isFriendActivityVisible) return null;
+  // if (!isFriendActivityVisible) return null;
 
   return (
-    <aside className="w-[300px] flex-shrink-0 bg-black flex flex-col h-full border-l border-white/5 animate-in fade-in slide-in-from-right duration-300">
+    <aside className={cn(
+      "w-full h-full flex-shrink-0 bg-black flex flex-col border-l border-white/5 transition-all duration-500 ease-[cubic-bezier(0.3,0,0,1)]",
+      isFriendActivityVisible ? "translate-y-0 opacity-100" : "translate-y-[20%] opacity-0 pointer-events-none"
+    )}>
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-white/5">
         <h2 className="text-sm font-bold text-white flex items-center gap-2">

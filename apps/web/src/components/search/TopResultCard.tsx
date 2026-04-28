@@ -21,7 +21,7 @@ interface TopResultCardProps {
 
 export const TopResultCard = ({ result }: TopResultCardProps) => {
   const navigate = useNavigate();
-  const { setQueueAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   
   const title = result.title || result.stageName || 'Unknown';
   const imageUrl = result.coverUrl || result.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3?auto=format&fit=crop&q=80&w=400&h=400';
@@ -43,7 +43,7 @@ export const TopResultCard = ({ result }: TopResultCardProps) => {
         audioUrl: result.audioUrl!,
         duration: result.duration!
       };
-      setQueueAndPlay([songData], 0, result.id);
+      setContextAndPlay([songData], 0, result.id);
     } else if (currentContextId === result.id) {
       togglePlay();
     }

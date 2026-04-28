@@ -15,7 +15,7 @@ export const TrackPage = () => {
   const [dominantColor, setDominantColor] = useState('#121212');
   const [parsedLyrics, setParsedLyrics] = useState<SyncedLyricLine[]>([]);
 
-  const { setQueueAndPlay, currentTrack, isPlaying, togglePlay, progress } = usePlayerStore();
+  const { setContextAndPlay, currentTrack, isPlaying, togglePlay, progress } = usePlayerStore();
   const { isLiked, toggleLike } = useLibraryStore();
 
   const activeLyricRef = useRef<HTMLParagraphElement>(null);
@@ -105,7 +105,7 @@ export const TrackPage = () => {
         canvasUrl: song.canvasUrl,
         duration: song.duration
       };
-      setQueueAndPlay([track], 0, `track:${song.id}`);
+      setContextAndPlay([track], 0, `track:${song.id}`);
     }
   };
 

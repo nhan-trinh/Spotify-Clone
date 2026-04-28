@@ -20,7 +20,7 @@ interface MediaCardProps {
 }
 
 export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic, ownerId }: MediaCardProps) => {
-  const { setQueueAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const { updatePlaylist } = useLibraryStore();
@@ -41,14 +41,14 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
     if (currentContextId === id) {
       togglePlay();
     } else {
-      setQueueAndPlay(songs, 0, id);
+      setContextAndPlay(songs, 0, id);
     }
   };
 
   const handleCardClick = () => {
     if (type === 'song') {
       if (songs && songs.length > 0) {
-        setQueueAndPlay(songs, 0, id);
+        setContextAndPlay(songs, 0, id);
       }
     } else if (type === 'artist') {
       navigate(`/artist/${id}`);

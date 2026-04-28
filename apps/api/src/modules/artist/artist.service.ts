@@ -22,6 +22,9 @@ export const ArtistService = {
           where: { status: 'PUBLISHED' },
           select: { id: true, title: true, coverUrl: true, releaseDate: true }
         },
+        _count: {
+          select: { followedBy: true }
+        }
       },
     });
 
@@ -47,7 +50,11 @@ export const ArtistService = {
       }
     }));
 
-    return { ...artist, followersCount: 125000, songs: formattedSongs };
+    return { 
+      ...artist, 
+      followersCount: artist._count.followedBy, 
+      songs: formattedSongs 
+    };
   },
 
   setupProfile: async (userId: string, data: any) => {

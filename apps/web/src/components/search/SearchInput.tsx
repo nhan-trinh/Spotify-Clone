@@ -11,7 +11,7 @@ export const SearchInput = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { setQueueAndPlay } = usePlayerStore();
+  const { setContextAndPlay } = usePlayerStore();
 
   const isSearchPage = location.pathname === '/search';
 
@@ -142,7 +142,7 @@ export const SearchInput = () => {
           {suggestions.songs?.map((song: any) => (
             <div key={`song-${song.id}`} onMouseDown={(e) => {
               e.preventDefault();
-              setQueueAndPlay([{
+              setContextAndPlay([{
                 id: song.id,
                 title: song.title,
                 artistName: song.artistName,

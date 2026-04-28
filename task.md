@@ -89,3 +89,31 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
   - Thống kê biểu đồ doanh thu, tỷ lệ Retention, Tăng trưởng.
   - System Audit Logs (Ghi lại thao tác của Admin/Mod vào MongoDB).
   - Bật/Tắt Feature Flags hoặc chế độ bảo trì (Maintenance Mode).
+
+---
+
+## 💎 Cải thiện & Nâng cấp (Roadmap V2)
+
+- [x] **Phase 19: Core UX & Technical Integrity**
+  - [x] Fix Data Integrity: Hiển thị đúng số Followers thực tế từ DB.
+  - [x] Advanced Queue System: Hàng đợi nhạc đầy đủ (Manual/Auto Queue, Drag & Drop).
+
+- [ ] **Phase 20: Cá nhân hóa Homepage**
+  - [ ] Tracking Logic: Ghi lại lịch sử tương tác (View Profile, Open Playlist/Album).
+  - [ ] Recently Visited & Listen Again: Hiển thị mục tương tác gần đây trên Home.
+  - [ ] Daily Mix & Discovery: Thuật toán gợi ý bài hát dựa trên sở thích.
+
+- [ ] **Phase 21: Trải nghiệm Nghe nhạc & Lyrics chuyên sâu**
+  - [ ] LyricsPage & Karaoke: Trang lời bài hát riêng, chế độ Fullscreen Karaoke.
+  - [ ] Fullscreen Mode: Chế độ nghe nhạc toàn màn hình (phím tắt F, Escape).
+  - [ ] Keyboard Shortcuts: Phím tắt điều khiển nhạc toàn cục.
+
+- [ ] **Phase 22: Điều hướng & Tìm kiếm Thông minh**
+  - [ ] Smart Search: Tích hợp Recent Search và Autocomplete (gợi ý khi đang gõ).
+  - [ ] Resizer Layout: Kéo thả resize Sidebar và lưu kích thước.
+  - [ ] Library Upgrade: Menu chuột phải LeftBar, ghim (Pin) playlist.
+
+- [ ] **Phase 23: Settings & Hệ thống Tài khoản**
+  - [ ] Account Management: Thay avatar, đổi mật khẩu, liên kết Google.
+  - [ ] UI Customization: Dark/Light mode và chọn Màu nhấn (Accent Color).
+  - [ ] Audio Settings: Chọn chất lượng âm thanh, Crossfade & Normalize.

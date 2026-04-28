@@ -51,11 +51,14 @@ export const NowPlayingSidebar = () => {
     }
   }, [currentTrack?.id, currentTrack?.artistId]);
 
-  if (!isNowPlayingVisible || !currentTrack) return null;
+  if (!currentTrack) return null;
 
   return (
     <aside
-      className="w-[340px] flex-shrink-0 rounded-lg overflow-hidden relative group/sidebar flex flex-col"
+      className={cn(
+        "w-full h-full flex-shrink-0 rounded-lg overflow-hidden relative group/sidebar flex flex-col transition-all duration-500 ease-[cubic-bezier(0.3,0,0,1)]",
+        isNowPlayingVisible ? "translate-y-0 opacity-100" : "translate-y-[20%] opacity-0 pointer-events-none"
+      )}
       style={{ background: bgColor }}
     >
       {/* ══ CASE 1: CÓ CANVAS VIDEO (Beautiful UI) ══ */}

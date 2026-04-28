@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { useUIStore } from '../../stores/ui.store';
@@ -10,9 +10,10 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { cn } from '../../lib/utils';
 
 export const PlayerBar = () => {
-  const { currentTrack } = usePlayerStore();
+  const { currentTrack, initPlayer } = usePlayerStore();
   const { isLiked, toggleLike } = useLibraryStore();
-  const { isNowPlayingVisible, toggleNowPlaying, setNowPlayingVisible } = useUIStore();
+  const { isNowPlayingVisible, toggleNowPlaying, setNowPlayingVisible, isQueueVisible, toggleQueue } = useUIStore();
+  const navigate = useNavigate();
 
   // Tự động mở Sidebar khi phát nhạc mới
   useEffect(() => {
@@ -20,6 +21,11 @@ export const PlayerBar = () => {
       setNowPlayingVisible(true);
     }
   }, [currentTrack?.id, setNowPlayingVisible]);
+  
+  // Khởi tạo player khi reload (nếu đã có track trong storage)
+  useEffect(() => {
+    initPlayer();
+  }, [initPlayer]);
 
   return (
     <div className="h-[90px] border-[#282828] flex items-center justify-between px-4 fixed bottom-0 w-full z-50">
@@ -77,24 +83,55 @@ export const PlayerBar = () => {
             </Tooltip.Portal>
           </Tooltip.Root>
 
-          {[
-            { icon: Mic2, label: 'Lời bài hát' },
-            { icon: ListMusic, label: 'Danh sách chờ' },
-            { icon: PictureInPicture2, label: 'Trình phát thu nhỏ' }
-          ].map((item, idx) => (
-            <Tooltip.Root key={idx}>
-              <Tooltip.Trigger asChild>
-                <button className="hover:text-white transition-colors" disabled={!currentTrack}>
-                  <item.icon size={16} />
-                </button>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                  {item.label}
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          ))}
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button 
+                onClick={() => { if (currentTrack) navigate(`/track/${currentTrack.id}`) }}
+                className="hover:text-white transition-colors" 
+                disabled={!currentTrack}
+              >
+                <Mic2 size={16} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
+                Lời bài hát
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button 
+                onClick={toggleQueue}
+                className={cn(
+                  "hover:text-white transition-colors",
+                  isQueueVisible ? "text-[#1DB954]" : "text-[#b3b3b3]"
+                )}
+                disabled={!currentTrack}
+              >
+                <ListMusic size={16} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
+                Danh sách chờ
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <button className="hover:text-white transition-colors" disabled={!currentTrack}>
+                <PictureInPicture2 size={16} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
+                Trình phát thu nhỏ
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
         </Tooltip.Provider>
 
         <VolumeControl />

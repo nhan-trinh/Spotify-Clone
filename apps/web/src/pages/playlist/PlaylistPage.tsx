@@ -25,7 +25,7 @@ export const PlaylistPage = () => {
   const [showCollaborators, setShowCollaborators] = useState(false);
 
   const { user } = useAuthStore();
-  const { setQueueAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingPlaylist, toggleFollowPlaylist, removeSongFromPlaylist } = useLibraryStore();
   const playlistFollowed = id ? isFollowingPlaylist(id) : false;
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
@@ -118,7 +118,7 @@ export const PlaylistPage = () => {
     if (currentContextId === id) {
       togglePlay();
     } else {
-      setQueueAndPlay(trackList, 0, id);
+      setContextAndPlay(trackList, 0, id);
     }
   };
 
@@ -127,7 +127,7 @@ export const PlaylistPage = () => {
     if (currentContextId === id && currentTrack?.id === trackList[index].id) {
       togglePlay();
     } else {
-      setQueueAndPlay(trackList, index, id);
+      setContextAndPlay(trackList, index, id);
     }
   };
 

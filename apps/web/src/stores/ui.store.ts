@@ -6,8 +6,11 @@ interface UIState {
   isSidebarVisible: boolean;
   isFriendActivityVisible: boolean;
   reportTarget: { id: string; type: 'SONG' | 'PLAYLIST' | 'USER'; title: string } | null;
+  isQueueVisible: boolean;
   toggleNowPlaying: () => void;
   setNowPlayingVisible: (visible: boolean) => void;
+  toggleQueue: () => void;
+  setQueueVisible: (visible: boolean) => void;
   toggleSidebar: () => void;
   setSidebarVisible: (visible: boolean) => void;
   toggleFriendActivity: () => void;
@@ -21,13 +24,34 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       isNowPlayingVisible: false,
       isSidebarVisible: true,
-      isFriendActivityVisible: false, // Mặc định ẩn (Phase 16)
+      isFriendActivityVisible: false,
+      isQueueVisible: false,
       reportTarget: null,
-      toggleNowPlaying: () => set((state) => ({ isNowPlayingVisible: !state.isNowPlayingVisible })),
-      setNowPlayingVisible: (visible) => set({ isNowPlayingVisible: visible }),
+      toggleNowPlaying: () => set((state) => ({ 
+        isNowPlayingVisible: !state.isNowPlayingVisible,
+        isQueueVisible: false,
+        isFriendActivityVisible: false
+      })),
+      setNowPlayingVisible: (visible) => set({ 
+        isNowPlayingVisible: visible,
+        isQueueVisible: visible ? false : undefined 
+      }),
+      toggleQueue: () => set((state) => ({ 
+        isQueueVisible: !state.isQueueVisible,
+        isNowPlayingVisible: false,
+        isFriendActivityVisible: false
+      })),
+      setQueueVisible: (visible) => set({ 
+        isQueueVisible: visible,
+        isNowPlayingVisible: visible ? false : undefined
+      }),
       toggleSidebar: () => set((state) => ({ isSidebarVisible: !state.isSidebarVisible })),
       setSidebarVisible: (visible) => set({ isSidebarVisible: visible }),
-      toggleFriendActivity: () => set((state) => ({ isFriendActivityVisible: !state.isFriendActivityVisible })),
+      toggleFriendActivity: () => set((state) => ({ 
+        isFriendActivityVisible: !state.isFriendActivityVisible,
+        isNowPlayingVisible: false,
+        isQueueVisible: false
+      })),
       setFriendActivityVisible: (visible) => set({ isFriendActivityVisible: visible }),
       openReportModal: (id, type, title) => set({ reportTarget: { id, type, title } }),
       closeReportModal: () => set({ reportTarget: null }),
