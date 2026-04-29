@@ -9,11 +9,10 @@ interface RecentCardProps {
   title: string;
   coverUrl: string;
   songs?: any[];
-  isSong?: boolean;
   type?: 'artist' | 'album' | 'playlist' | 'song';
 }
 
-export const RecentCard = ({ id, title, coverUrl, songs = [], isSong = false, type = 'playlist' }: RecentCardProps) => {
+export const RecentCard = ({ id, title, coverUrl, songs = [], type = 'playlist' }: RecentCardProps) => {
   const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
