@@ -26,13 +26,13 @@ export const DiscoveryService = {
     }).lean();
 
     if (history.length === 0) {
-      // Nếu user hoàn toàn mới -> Gợi ý theo Top Songs mặc định lấy từ DB
-      return await prisma.song.findMany({
+      const songs = await prisma.song.findMany({
         where: { status: 'APPROVED' },
         orderBy: { playCount: 'desc' },
         take: 20,
         include: { artist: { select: { id: true, stageName: true } } }
       });
+      return songs.map(mapSong);
     }
 
     // 2. Gom nhóm Artist và Genre ưu thích
@@ -88,7 +88,7 @@ export const DiscoveryService = {
       recommendations.push(...fillUps);
     }
 
-    return recommendations;
+    return recommendations.map(mapSong);
   },
 
   // Interface chính để Controller có thể gọi
@@ -211,7 +211,7 @@ export const DiscoveryService = {
       recommendations.push(...artistSongs);
     }
 
-    return recommendations;
+    return recommendations.map(mapSong);
   },
 
   // 4. Daily Mix (Mix giữa quen + mới, thay đổi hàng ngày)

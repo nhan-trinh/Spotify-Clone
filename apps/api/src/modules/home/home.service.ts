@@ -98,6 +98,7 @@ export const HomeService = {
       audioUrl: s.audioUrl320 || s.audioUrl128,
       canvasUrl: s.canvasUrl,
       duration: s.duration,
+      hasLyrics: !!s.lyrics,
     });
 
     const mapAlbum = (a: any) => ({

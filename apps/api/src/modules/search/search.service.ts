@@ -88,7 +88,8 @@ export const SearchService = {
       const mapped = songs.map(s => ({
         ...s,
         artistName: s.artist.stageName,
-        audioUrl: s.audioUrl320 || s.audioUrl128
+        audioUrl: s.audioUrl320 || s.audioUrl128,
+        hasLyrics: !!s.lyrics
       }));
       return { songs: mapped, artists: [], albums: [] };
     }
@@ -103,7 +104,8 @@ export const SearchService = {
       const mapped = songs.map(s => ({
         ...s,
         artistName: s.artist.stageName,
-        audioUrl: s.audioUrl320 || s.audioUrl128
+        audioUrl: s.audioUrl320 || s.audioUrl128,
+        hasLyrics: !!s.lyrics
       }));
       return { songs: mapped, artists: [], albums: [] };
     }
@@ -127,7 +129,8 @@ export const SearchService = {
       const mappedSongs = topSongs.map((s: any) => ({
         ...s,
         artistName: s.artist?.stageName || '',
-        audioUrl: s.audioUrl320 || s.audioUrl128
+        audioUrl: s.audioUrl320 || s.audioUrl128,
+        hasLyrics: !!s.lyrics
       }));
       return { songs: mappedSongs, artists: [], albums: [] };
     }
@@ -137,7 +140,8 @@ export const SearchService = {
       const mappedSongs = suggestedSongs.map((s: any) => ({
         ...s,
         artistName: s.artist?.stageName || '',
-        audioUrl: s.audioUrl320 || s.audioUrl128
+        audioUrl: s.audioUrl320 || s.audioUrl128,
+        hasLyrics: !!s.lyrics
       }));
       return { songs: mappedSongs, artists: [], albums: [] };
     }
@@ -168,7 +172,8 @@ export const SearchService = {
         coverUrl: s.coverUrl,
         audioUrl: s.audioUrl320 || s.audioUrl128,
         canvasUrl: s.canvasUrl,
-        duration: s.duration
+        duration: s.duration,
+        hasLyrics: !!s.lyrics
       };
     }).filter(Boolean);
 

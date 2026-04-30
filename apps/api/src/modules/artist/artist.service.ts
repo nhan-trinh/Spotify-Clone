@@ -46,7 +46,9 @@ export const ArtistService = {
         audioUrl128: song.audioUrl128,
         canvasUrl: song.canvasUrl,
         artistId: song.artistId,
-        artist: song.artist
+        artist: song.artist,
+        hasLyrics: !!song.lyrics,
+        lyrics: song.lyrics // Trả về luôn để đồng nhất
       }
     }));
 
