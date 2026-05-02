@@ -5,12 +5,12 @@ import { useLibraryStore } from '../../stores/library.store';
 import { useUIStore } from '../../stores/ui.store';
 import { PlaybackControls } from './PlaybackControls';
 import { VolumeControl } from './VolumeControl';
-import { Heart, Mic2, ListMusic, PictureInPicture2, Maximize2, PlaySquare } from 'lucide-react';
+import { Heart, Mic2, ListMusic, Maximize2, PlaySquare } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { cn } from '../../lib/utils';
 
 export const PlayerBar = () => {
-  const { currentTrack, initPlayer } = usePlayerStore();
+  const { currentTrack, isPlaying, initPlayer } = usePlayerStore();
   const { isLiked, toggleLike } = useLibraryStore();
   const { isNowPlayingVisible, toggleNowPlaying, setNowPlayingVisible, isQueueVisible, toggleQueue, isFullscreen, toggleFullscreen } = useUIStore();
 
@@ -27,141 +27,99 @@ export const PlayerBar = () => {
   }, [initPlayer]);
 
   return (
-    <div className="h-[90px] border-[#282828] flex items-center justify-between px-4 fixed bottom-0 w-full z-50">
-
-      {/* 1. Track Info (Bên trái) */}
-      <div className="flex w-[30%] min-w-[180px] items-center gap-3">
+    <div className="w-full h-full flex items-center justify-between bg-black">
+      
+      {/* 1. Track Info (Bên trái) - Editorial Style */}
+      <div className="flex w-[30%] min-w-[250px] items-center gap-6 group">
         {currentTrack && (
           <>
-            <Link to={`/track/${currentTrack.id}`} className="hover:opacity-80 transition-opacity flex-shrink-0">
-              <img src={currentTrack.coverUrl} alt="Cover" className="w-14 h-14 rounded shadow-lg" />
-            </Link>
-            <div className="flex flex-col min-w-0">
-              <Link to={`/track/${currentTrack.id}`} className="text-white text-sm font-medium hover:underline cursor-pointer line-clamp-1">{currentTrack.title}</Link>
-              <Link to={`/artist/${currentTrack.artistId}`} className="text-[#b3b3b3] text-xs hover:underline cursor-pointer line-clamp-1">{currentTrack.artistName}</Link>
+            <div className="relative flex-shrink-0 overflow-hidden">
+              <Link to={`/track/${currentTrack.id}`} className="block relative transition-transform duration-500 group-hover:scale-105 shadow-[10px_10px_0px_rgba(29,185,84,0.1)]">
+                <img src={currentTrack.coverUrl} alt="Cover" className="w-14 h-14 grayscale group-hover:grayscale-0 transition-all duration-700" />
+                <div className="absolute inset-0 border border-white/10 group-hover:border-[#1DB954]/50 transition-colors" />
+              </Link>
             </div>
+            
+            <div className="flex flex-col min-w-0">
+              <Link 
+                to={`/track/${currentTrack.id}`} 
+                className="text-white text-[18px] font-black leading-none tracking-tighter uppercase hover:text-[#1DB954] transition-colors line-clamp-1"
+              >
+                {currentTrack.title}
+              </Link>
+              <Link 
+                to={`/artist/${currentTrack.artistId}`} 
+                className="text-[#666] text-[10px] font-bold uppercase tracking-[0.2em] mt-1 hover:text-white transition-colors line-clamp-1"
+              >
+                {currentTrack.artistName}
+              </Link>
+            </div>
+
             <button
               onClick={() => currentTrack && toggleLike(currentTrack.id, currentTrack.title)}
-              className={`flex-shrink-0 ml-1 transition-all ${
-                isLiked(currentTrack.id)
-                  ? 'text-[#1DB954] scale-110'
-                  : 'text-[#b3b3b3] hover:text-white'
-              }`}
+              className={cn(
+                "flex-shrink-0 ml-4 transition-all duration-300",
+                isLiked(currentTrack.id) ? "text-[#1DB954]" : "text-[#333] hover:text-white"
+              )}
             >
-              <Heart size={16} className={isLiked(currentTrack.id) ? 'fill-[#1DB954]' : ''} />
+              <Heart size={20} className={isLiked(currentTrack.id) ? 'fill-[#1DB954]' : ''} />
             </button>
           </>
         )}
       </div>
 
-      {/* 2. Playback Controls (Ở giữa) */}
-      <div className="flex w-[40%] max-w-[722px] flex-col items-center justify-center">
+      {/* 2. Playback Controls (Ở giữa) - Swiss Minimalism */}
+      <div className="flex-1 max-w-[600px] h-full flex flex-col justify-center border-x border-white/5 px-10">
         <PlaybackControls />
       </div>
 
-      {/* 3. Extra Controls (Bên phải) */}
-      <div className="flex w-[30%] min-w-[280px] items-center justify-end gap-3 text-[#b3b3b3]">
-        <Tooltip.Provider delayDuration={200}>
-          {/* Now Playing */}
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
+      {/* 3. Extra Controls (Bên phải) - Functionalism */}
+      <div className="flex w-[30%] min-w-[300px] items-center justify-end gap-2">
+        <div className="flex items-center">
+          <Tooltip.Provider delayDuration={200}>
+            {[
+              { icon: <PlaySquare size={18} />, active: isNowPlayingVisible, onClick: toggleNowPlaying, tooltip: "INFO" },
+              { icon: <ListMusic size={18} />, active: isQueueVisible, onClick: toggleQueue, tooltip: "QUEUE" },
+            ].map((item, idx) => (
               <button 
-                onClick={toggleNowPlaying}
+                key={idx}
+                onClick={item.onClick}
                 className={cn(
-                  "hover:text-white transition-all p-1",
-                  isNowPlayingVisible ? "text-[#1DB954]" : "text-[#b3b3b3]"
+                  "p-3 transition-all font-bold text-[10px] tracking-widest",
+                  item.active ? "text-[#1DB954] bg-[#1DB954]/5" : "text-[#444] hover:text-white"
                 )}
-                disabled={!currentTrack}
               >
-                <PlaySquare size={16} fill={isNowPlayingVisible ? "currentColor" : "none"} />
+                {item.icon}
               </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                Chế độ xem Đang phát
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-
-          {/* Lyrics - chỉ hiện khi bài hát có lời */}
-          {currentTrack?.hasLyrics && (
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                <Link 
-                  to={`/lyrics/${currentTrack.id}`}
-                  className={cn(
-                    "hover:text-white transition-colors",
-                    window.location.pathname === `/lyrics/${currentTrack.id}` ? "text-[#1db954]" : ""
-                  )}
-                >
-                  <Mic2 size={16} />
-                </Link>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                  Lời bài hát
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          )}
-
-          {/* Queue */}
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <button 
-                onClick={toggleQueue}
+            ))}
+            
+            {currentTrack?.hasLyrics && (
+              <Link 
+                to={`/lyrics/${currentTrack.id}`}
                 className={cn(
-                  "hover:text-white transition-colors",
-                  isQueueVisible ? "text-[#1DB954]" : "text-[#b3b3b3]"
+                  "p-3 transition-all",
+                  window.location.pathname === `/lyrics/${currentTrack.id}` ? "text-[#1db954]" : "text-[#444] hover:text-white"
                 )}
-                disabled={!currentTrack}
               >
-                <ListMusic size={16} />
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                Danh sách chờ
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
+                <Mic2 size={18} />
+              </Link>
+            )}
+          </Tooltip.Provider>
+        </div>
 
-          {/* PiP */}
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <button className="hover:text-white transition-colors" disabled={!currentTrack}>
-                <PictureInPicture2 size={16} />
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                Trình phát thu nhỏ
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        </Tooltip.Provider>
+        <div className="w-[1px] h-8 bg-white/5 mx-2" />
 
         <VolumeControl />
 
-        <Tooltip.Provider delayDuration={200}>
-          {/* Fullscreen */}
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <button 
-                className={cn("transition-colors", isFullscreen ? "text-[#1DB954]" : "hover:text-white")} 
-                disabled={!currentTrack}
-                onClick={toggleFullscreen}
-              >
-                <Maximize2 size={16} />
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content className="bg-[#282828] text-white text-[12px] px-2 py-[6px] shadow-xl rounded font-medium z-[100]" sideOffset={8}>
-                {isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
-        </Tooltip.Provider>
+        <button 
+          className={cn(
+            "p-3 transition-all",
+            isFullscreen ? "text-[#1DB954]" : "text-[#444] hover:text-white"
+          )} 
+          onClick={toggleFullscreen}
+        >
+          <Maximize2 size={18} />
+        </button>
       </div>
 
     </div>

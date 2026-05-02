@@ -1,147 +1,101 @@
 [{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/CTASection.tsx",
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
 	"owner": "typescript",
-	"code": "2307",
+	"code": "17008",
 	"severity": 8,
-	"message": "Cannot find module 'framer-motion' or its corresponding type declarations.",
+	"message": "JSX element 'motion.div' has no corresponding closing tag.",
 	"source": "ts",
-	"startLineNumber": 2,
-	"startColumn": 24,
-	"endLineNumber": 2,
-	"endColumn": 39,
-	"origin": "extHost1"
-}]
-
-[{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/FeaturesSection.tsx",
-	"owner": "typescript",
-	"code": "2307",
-	"severity": 8,
-	"message": "Cannot find module 'framer-motion' or its corresponding type declarations.",
-	"source": "ts",
-	"startLineNumber": 2,
-	"startColumn": 24,
-	"endLineNumber": 2,
-	"endColumn": 39,
+	"startLineNumber": 224,
+	"startColumn": 12,
+	"endLineNumber": 224,
+	"endColumn": 22,
 	"origin": "extHost1"
 },{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/FeaturesSection.tsx",
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
 	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'Link' is declared but its value is never read.",
+	"code": "1005",
+	"severity": 8,
+	"message": "')' expected.",
 	"source": "ts",
-	"startLineNumber": 1,
+	"startLineNumber": 254,
+	"startColumn": 7,
+	"endLineNumber": 254,
+	"endColumn": 8,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
+	"owner": "typescript",
+	"code": "1128",
+	"severity": 8,
+	"message": "Declaration or statement expected.",
+	"source": "ts",
+	"startLineNumber": 256,
+	"startColumn": 5,
+	"endLineNumber": 256,
+	"endColumn": 7,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Cannot find name 'div'.",
+	"source": "ts",
+	"startLineNumber": 256,
+	"startColumn": 7,
+	"endLineNumber": 256,
+	"endColumn": 10,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
+	"owner": "typescript",
+	"code": "1109",
+	"severity": 8,
+	"message": "Expression expected.",
+	"source": "ts",
+	"startLineNumber": 257,
+	"startColumn": 3,
+	"endLineNumber": 257,
+	"endColumn": 4,
+	"origin": "extHost1"
+},{
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
+	"owner": "typescript",
+	"code": "1128",
+	"severity": 8,
+	"message": "Declaration or statement expected.",
+	"source": "ts",
+	"startLineNumber": 258,
 	"startColumn": 1,
-	"endLineNumber": 1,
-	"endColumn": 41,
-	"tags": [
-		1
-	],
-	"origin": "extHost1"
-}]
-
-[{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/LandingNavbar.tsx",
-	"owner": "typescript",
-	"code": "2307",
-	"severity": 8,
-	"message": "Cannot find module 'framer-motion' or its corresponding type declarations.",
-	"source": "ts",
-	"startLineNumber": 2,
-	"startColumn": 24,
-	"endLineNumber": 2,
-	"endColumn": 39,
-	"origin": "extHost1"
-}]
-
-[{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/LandingPage.tsx",
-	"owner": "typescript",
-	"code": "2307",
-	"severity": 8,
-	"message": "Cannot find module 'framer-motion' or its corresponding type declarations.",
-	"source": "ts",
-	"startLineNumber": 3,
-	"startColumn": 24,
-	"endLineNumber": 3,
-	"endColumn": 39,
+	"endLineNumber": 258,
+	"endColumn": 2,
 	"origin": "extHost1"
 },{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/LandingPage.tsx",
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
 	"owner": "typescript",
 	"code": "6133",
 	"severity": 4,
-	"message": "'useRef' is declared but its value is never read.",
+	"message": "'useMemo' is declared but its value is never read.",
 	"source": "ts",
 	"startLineNumber": 1,
 	"startColumn": 31,
 	"endLineNumber": 1,
-	"endColumn": 37,
-	"tags": [
-		1
-	],
-	"origin": "extHost1"
-}]
-
-[{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/ConcertoModel.tsx",
-	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'state' is declared but its value is never read.",
-	"source": "ts",
-	"startLineNumber": 10,
-	"startColumn": 13,
-	"endLineNumber": 10,
-	"endColumn": 18,
-	"tags": [
-		1
-	],
-	"origin": "extHost1"
-}]
-
-[{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/Scene3D.tsx",
-	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'useRef' is declared but its value is never read.",
-	"source": "ts",
-	"startLineNumber": 1,
-	"startColumn": 20,
-	"endLineNumber": 1,
-	"endColumn": 26,
+	"endColumn": 38,
 	"tags": [
 		1
 	],
 	"origin": "extHost1"
 },{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/Scene3D.tsx",
+	"resource": "/e:/SuperProject/apps/web/src/pages/track/TrackPage.tsx",
 	"owner": "typescript",
 	"code": "6133",
 	"severity": 4,
-	"message": "'useState' is declared but its value is never read.",
+	"message": "'AnimatePresence' is declared but its value is never read.",
 	"source": "ts",
-	"startLineNumber": 1,
-	"startColumn": 28,
-	"endLineNumber": 1,
-	"endColumn": 36,
-	"tags": [
-		1
-	],
-	"origin": "extHost1"
-},{
-	"resource": "/e:/SuperProject/apps/web/src/pages/landing/components/Scene3D.tsx",
-	"owner": "typescript",
-	"code": "6133",
-	"severity": 4,
-	"message": "'useEffect' is declared but its value is never read.",
-	"source": "ts",
-	"startLineNumber": 1,
-	"startColumn": 38,
-	"endLineNumber": 1,
-	"endColumn": 47,
+	"startLineNumber": 4,
+	"startColumn": 18,
+	"endLineNumber": 4,
+	"endColumn": 33,
 	"tags": [
 		1
 	],

@@ -1,35 +1,45 @@
-import { Home, Search, Library, Plus, Heart, Music2, CheckCircle2, LayoutDashboard, ShieldCheck, Loader2 } from 'lucide-react';
+import { Home, Search, Library, Plus, Heart, Music2, CheckCircle2, LayoutDashboard, ShieldCheck, Loader2, Pin, PinOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useLibraryStore } from '../../stores/library.store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../stores/auth.store';
 import { PlaylistContextMenu, usePlaylistContextMenu } from '../shared/PlaylistContextMenu';
 import { RenamePlaylistModal } from '../shared/RenamePlaylistModal';
+import { LibraryContextMenu, SortMode } from './LibraryContextMenu';
+import { usePinnedItems, PinnedItem } from '../../hooks/usePinnedItems';
+
+// ── Placed outside component: stable reference, no recreation on each render ──
+const asPin = (p: { id: string; title: string; coverUrl?: string | null }): PinnedItem => ({
+  id: p.id, type: 'playlist', title: p.title, coverUrl: p.coverUrl,
+});
 
 export const Sidebar = ({ className }: { className?: string }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  const {
-    isHydrated, libraryVersion, playlists,
-    createPlaylist,
-  } = useLibraryStore();
+  const { isHydrated, libraryVersion, playlists, createPlaylist, fetchPlaylists } = useLibraryStore();
   const [likedSongs, setLikedSongs] = useState<any[]>([]);
   const [followedArtists, setFollowedArtists] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
+
+  // Context menu for playlist items
   const { menu, openPlaylistMenu, closePlaylistMenu } = usePlaylistContextMenu();
-  const [renameModal, setRenameModal] = useState<{ isOpen: boolean; playlist: any }>({
-    isOpen: false,
-    playlist: null,
-  });
+  const [renameModal, setRenameModal] = useState<{ isOpen: boolean; playlist: any }>({ isOpen: false, playlist: null });
+
+  // Library area context menu
+  const [libraryMenu, setLibraryMenu] = useState<{ x: number; y: number } | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
+
+  // Pinned items
+  const { pinnedItems, togglePin, isPinned } = usePinnedItems();
 
   const isArtist = user?.role === 'ARTIST';
   const isAdmin = user?.role === 'ADMIN';
 
-  // Fetch liked songs metadata để render trong sidebar
+  // Fetch sidebar data
   useEffect(() => {
     if (!isAuthenticated || !isHydrated) return;
     const fetchSidebarData = async () => {
@@ -40,18 +50,51 @@ export const Sidebar = ({ className }: { className?: string }) => {
       } catch { }
     };
     fetchSidebarData();
-  }, [isAuthenticated, isHydrated, libraryVersion]); // Chờ backend cập nhật xong mới re-fetch
+  }, [isAuthenticated, isHydrated, libraryVersion]);
 
-  const handleCreatePlaylist = async () => {
+  // ----- Sort playlists -----
+  const sortedPlaylists = useMemo(() => {
+    const list = [...playlists];
+    if (sortMode === 'name') {
+      return list.sort((a, b) => a.title.localeCompare(b.title, 'vi'));
+    }
+    if (sortMode === 'oldest') {
+      // API returns newest-first by default → reverse gives oldest-first
+      return list.reverse();
+    }
+    // 'recent' — keep API order (newest first)
+    return list;
+  }, [playlists, sortMode]);
+
+  // ----- Handlers -----
+  const handleCreatePlaylist = useCallback(async () => {
     setCreating(true);
     const playlist = await createPlaylist('Playlist mới');
     setCreating(false);
     if (playlist) navigate(`/playlist/${playlist.id}`);
-  };
+  }, [createPlaylist, navigate]);
 
-  const handleRenamePlaylist = (playlist: any) => {
+  const handleCreateFromLiked = useCallback(async () => {
+    const playlist = await createPlaylist('Bài hát đã thích của tôi');
+    if (!playlist) return;
+    // Use likedSongs already in state — avoids a redundant API call
+    try {
+      await Promise.all(likedSongs.map((s: any) =>
+        api.post(`/playlists/${playlist.id}/songs`, { songId: s.id }).catch(() => {})
+      ));
+      await fetchPlaylists();
+      navigate(`/playlist/${playlist.id}`);
+    } catch { }
+  }, [createPlaylist, fetchPlaylists, likedSongs, navigate]);
+
+  const handleRenamePlaylist = useCallback((playlist: any) => {
     setRenameModal({ isOpen: true, playlist });
-  };
+  }, []);
+
+  const openLibraryMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setLibraryMenu({ x: e.clientX, y: e.clientY });
+  }, []);
 
   const navItems = [
     { label: 'Trang chủ', path: '/', icon: Home },
@@ -59,6 +102,7 @@ export const Sidebar = ({ className }: { className?: string }) => {
   ];
 
   const hasItems = likedSongs.length > 0 || followedArtists.length > 0 || playlists.length > 0;
+
 
   return (
     <nav className={twMerge('flex flex-col gap-2 h-full', className)}>
@@ -108,15 +152,19 @@ export const Sidebar = ({ className }: { className?: string }) => {
       </div>
 
       {/* Library Box */}
-      <div className="bg-[#121212] rounded-lg flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 flex items-center justify-between text-[#B3B3B3] font-bold shadow-sm">
+      <div 
+        className="bg-[#121212] rounded-lg flex-1 flex flex-col overflow-hidden"
+        onContextMenu={isAuthenticated ? openLibraryMenu : undefined}
+      >
+        {/* Library Header */}
+        <div className="p-4 flex items-center justify-between text-[#B3B3B3] font-bold shadow-sm select-none">
           <Link to="/library" className="flex items-center gap-4 hover:text-white transition-colors duration-200">
             <Library className="h-6 w-6" />
             Thư viện
           </Link>
           {isAuthenticated && (
             <button
-              onClick={handleCreatePlaylist}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCreatePlaylist(); }}
               disabled={creating}
               title="Tạo playlist mới"
               className="hover:text-white transition-colors rounded-full p-1 hover:bg-[#282828] disabled:opacity-50"
@@ -142,7 +190,46 @@ export const Sidebar = ({ className }: { className?: string }) => {
             </>
           ) : (
             <div className="flex flex-col gap-1">
-              {/* Liked Songs card */}
+
+              {/* ── PINNED SECTION ── */}
+              {pinnedItems.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-2 py-1 text-[11px] font-semibold text-[#b3b3b3] uppercase tracking-wider flex items-center gap-1.5">
+                    <Pin size={10} className="fill-current" /> Đã ghim
+                  </p>
+                  {pinnedItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+                    >
+                      <Link to={`/playlist/${item.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-12 h-12 rounded bg-[#282828] flex items-center justify-center flex-shrink-0 shadow overflow-hidden">
+                          {item.coverUrl
+                            ? <img src={item.coverUrl} alt={item.title} className="w-full h-full object-cover" />
+                            : <Music2 className="w-5 h-5 text-[#b3b3b3]" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-white truncate">{item.title}</p>
+                          <p className="text-xs text-[#1db954] truncate flex items-center gap-1">
+                            <Pin size={10} className="fill-current" /> Đã ghim
+                          </p>
+                        </div>
+                      </Link>
+                      {/* Unpin button */}
+                      <button
+                        onClick={(e) => { e.preventDefault(); togglePin(item); }}
+                        title="Bỏ ghim"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-[#b3b3b3] hover:text-white transition-all"
+                      >
+                        <PinOff size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="my-1 mx-2 border-t border-white/5" />
+                </div>
+              )}
+
+              {/* ── LIKED SONGS ── */}
               {likedSongs.length > 0 && (
                 <Link
                   to="/library"
@@ -163,30 +250,50 @@ export const Sidebar = ({ className }: { className?: string }) => {
                 </Link>
               )}
 
-              {/* User playlists */}
-              {playlists.map((playlist) => (
-                <Link
+              {/* ── USER PLAYLISTS (sorted) ── */}
+              {sortedPlaylists.map((playlist) => (
+                <div
                   key={playlist.id}
-                  to={`/playlist/${playlist.id}`}
-                  onContextMenu={(e) => openPlaylistMenu(e, { ...playlist, ownerId: playlist.ownerId, isPublic: playlist.isPublic })}
-                  className={clsx(
-                    'flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer group',
-                    location.pathname === `/playlist/${playlist.id}` && 'bg-[#282828]'
-                  )}
+                  className="group relative"
+                  onContextMenu={(e) => {
+                    e.stopPropagation();
+                    openPlaylistMenu(e, { ...playlist, ownerId: playlist.ownerId, isPublic: playlist.isPublic });
+                  }}
                 >
-                  <div className="w-12 h-12 rounded bg-[#282828] flex items-center justify-center flex-shrink-0 shadow overflow-hidden">
-                    {playlist.coverUrl
-                      ? <img src={playlist.coverUrl} alt={playlist.title} className="w-full h-full object-cover" />
-                      : <Music2 className="w-5 h-5 text-[#b3b3b3]" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white truncate">{playlist.title}</p>
-                    <p className="text-xs text-[#B3B3B3] truncate">Danh sách phát</p>
-                  </div>
-                </Link>
+                  <Link
+                    to={`/playlist/${playlist.id}`}
+                    className={clsx(
+                      'flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer',
+                      location.pathname === `/playlist/${playlist.id}` && 'bg-[#282828]'
+                    )}
+                  >
+                    <div className="w-12 h-12 rounded bg-[#282828] flex items-center justify-center flex-shrink-0 shadow overflow-hidden">
+                      {playlist.coverUrl
+                        ? <img src={playlist.coverUrl} alt={playlist.title} className="w-full h-full object-cover" />
+                        : <Music2 className="w-5 h-5 text-[#b3b3b3]" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white truncate">{playlist.title}</p>
+                      <p className="text-xs text-[#B3B3B3] truncate flex items-center gap-1">
+                        Danh sách phát
+                        {isPinned(playlist.id) && <Pin size={10} className="fill-[#1db954] text-[#1db954]" />}
+                      </p>
+                    </div>
+                  </Link>
+                  {/* Pin button appears on hover */}
+                  <button
+                    onClick={(e) => { e.preventDefault(); togglePin(asPin(playlist)); }}
+                    title={isPinned(playlist.id) ? 'Bỏ ghim' : 'Ghim lên đầu'}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-[#b3b3b3] hover:text-white transition-all rounded"
+                  >
+                    {isPinned(playlist.id)
+                      ? <PinOff size={14} className="text-[#1db954]" />
+                      : <Pin size={14} />}
+                  </button>
+                </div>
               ))}
 
-              {/* Followed Artists */}
+              {/* ── FOLLOWED ARTISTS ── */}
               {followedArtists.map((artist: any) => (
                 <Link
                   key={artist.id}
@@ -211,9 +318,10 @@ export const Sidebar = ({ className }: { className?: string }) => {
           )}
         </div>
       </div>
-      
+
+      {/* Playlist item context menu */}
       {menu && (
-        <PlaylistContextMenu 
+        <PlaylistContextMenu
           playlist={menu.playlist}
           position={menu.position}
           onClose={closePlaylistMenu}
@@ -221,12 +329,25 @@ export const Sidebar = ({ className }: { className?: string }) => {
         />
       )}
 
+      {/* Rename modal */}
       {renameModal.isOpen && renameModal.playlist && (
-        <RenamePlaylistModal 
+        <RenamePlaylistModal
           isOpen={renameModal.isOpen}
           playlistId={renameModal.playlist.id}
           initialTitle={renameModal.playlist.title}
           onClose={() => setRenameModal({ isOpen: false, playlist: null })}
+        />
+      )}
+
+      {/* Library area context menu */}
+      {libraryMenu && (
+        <LibraryContextMenu
+          position={libraryMenu}
+          onClose={() => setLibraryMenu(null)}
+          onCreatePlaylist={handleCreatePlaylist}
+          onCreateFromLiked={handleCreateFromLiked}
+          onSort={setSortMode}
+          currentSort={sortMode}
         />
       )}
     </nav>

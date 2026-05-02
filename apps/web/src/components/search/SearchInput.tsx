@@ -1,8 +1,9 @@
-import { Search, X } from 'lucide-react';
+import { Search, X, Clock } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { usePlayerStore } from '../../stores/player.store';
+import { useRecentSearch } from '../../hooks/useRecentSearch';
+import { cn } from '../../lib/utils';
 
 export const SearchInput = () => {
   const [query, setQuery] = useState('');
@@ -11,7 +12,7 @@ export const SearchInput = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { setContextAndPlay } = usePlayerStore();
+  const { recentSearches, addItem, removeItem, clearAll } = useRecentSearch();
 
   const isSearchPage = location.pathname === '/search';
 
@@ -41,25 +42,34 @@ export const SearchInput = () => {
           setSuggestions(res.data);
           setShowPopup(true);
         } catch (error) {
-           console.error(error);
+          console.error(error);
         }
       } else {
         setSuggestions(null);
-        setShowPopup(false);
+        // Khi xóa hết query thì popup vẫn hiện nếu có recent search
+        if (inputRef.current === document.activeElement) {
+          setShowPopup(true);
+        }
       }
-    }, 300); // 300ms debounce cho popup
+    }, 300);
     return () => clearTimeout(handler);
   }, [query]);
 
-  // Hàm thực hiện tìm kiếm (cập nhật URL)
   const handleSearch = (searchTerm: string) => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) return;
+
     const searchParams = new URLSearchParams(location.search);
-    if (searchTerm.trim() !== '') {
-      searchParams.set('q', searchTerm.trim());
-    } else {
-      searchParams.delete('q');
-    }
+    searchParams.set('q', trimmed);
     navigate({ search: searchParams.toString() }, { replace: true });
+
+    // Add to recent search (type query)
+    addItem({
+      id: `query-${trimmed}`,
+      type: 'query',
+      title: trimmed,
+    });
+
     setShowPopup(false);
   };
 
@@ -69,13 +79,25 @@ export const SearchInput = () => {
     }
   };
 
+  const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, i) =>
+          part.toLowerCase() === highlight.toLowerCase() ? (
+            <span key={i} className="text-white font-bold">{part}</span>
+          ) : (
+            <span key={i} className="text-[#B3B3B3]">{part}</span>
+          )
+        )}
+      </span>
+    );
+  };
+
   if (!isSearchPage) {
     return null;
   }
-
-  const handleSuggestionClick = () => {
-    setShowPopup(false);
-  };
 
   return (
     <div className="relative group">
@@ -89,7 +111,7 @@ export const SearchInput = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => { if(query) setShowPopup(true) }}
+          onFocus={() => setShowPopup(true)}
           onBlur={() => setTimeout(() => setShowPopup(false), 200)}
         />
         {query && (
@@ -99,69 +121,125 @@ export const SearchInput = () => {
         )}
       </div>
 
-      {/* Suggestion Popup */}
-      {showPopup && suggestions && (suggestions.songs?.length > 0 || suggestions.artists?.length > 0) && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-[400px] bg-[#242424] rounded-xl shadow-[0_16px_24px_rgba(0,0,0,0.5)] z-50 p-2 border border-[#333] max-h-[500px] overflow-y-auto custom-scrollbar">
-          
-          {/* Gợi ý text từ bài hát (Autocomplete text) */}
-          {suggestions.songs?.slice(0, 3).map((song: any) => (
-            <div key={`text-${song.id}`} 
-                 onMouseDown={(e) => { 
-                   e.preventDefault(); // Ngăn chặn blur input ngay lập tức
-                   setQuery(song.title.toLowerCase()); 
-                   handleSearch(song.title.toLowerCase()); 
-                 }}
-                 className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer group/item">
-              <Search className="h-4 w-4 text-[#B3B3B3]" />
-              <span className="text-white text-[15px] font-bold group-hover/item:underline">{song.title.toLowerCase()}</span>
-            </div>
-          ))}
+      {/* Suggestion & Recent Search Popup */}
+      {showPopup && (
+        <div className="absolute top-[calc(100%+8px)] left-0 w-[420px] bg-[#282828] rounded-lg shadow-[0_16px_24px_rgba(0,0,0,0.5)] z-50 p-2 border border-[#333] max-h-[520px] overflow-y-auto custom-scrollbar">
 
-          {/* Ngăn cách */}
-          {(suggestions.artists?.length > 0 || suggestions.songs?.length > 0) && (
-             <div className="h-[1px] bg-[#333] my-2 mx-2"></div>
+          {/* --- CASE 1: EMPTY QUERY -> SHOW RECENT SEARCHES --- */}
+          {!query.trim() && (
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-white font-bold text-sm">Tìm kiếm gần đây</span>
+                {recentSearches.length > 0 && (
+                  <button onClick={(e) => { e.preventDefault(); clearAll(); }} className="text-[#B3B3B3] hover:text-white text-xs font-bold">Xóa tất cả</button>
+                )}
+              </div>
+              {recentSearches.length === 0 ? (
+                <div className="px-3 py-4 text-[#B3B3B3] text-sm italic">Bạn chưa tìm kiếm gì gần đây.</div>
+              ) : (
+                recentSearches.map((item) => (
+                  <div key={`${item.type}-${item.id}`} className="group flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer relative">
+                    <div className="flex-1 flex items-center gap-3 overflow-hidden"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (item.type === 'query') {
+                          setQuery(item.title);
+                          handleSearch(item.title);
+                        } else if (item.type === 'artist') {
+                          navigate(`/artist/${item.id}`);
+                          setShowPopup(false);
+                        } else if (item.type === 'song') {
+                          // Play song logic would go here if we had all the data, 
+                          // but for history we might just navigate or search
+                          setQuery(item.title);
+                          handleSearch(item.title);
+                        }
+                      }}>
+                      {item.type === 'query' ? (
+                        <Clock className="h-5 w-5 text-[#B3B3B3] shrink-0" />
+                      ) : (
+                        <img src={item.coverUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3'} className={cn("w-10 h-10 object-cover shrink-0", item.type === 'artist' ? 'rounded-full' : 'rounded')} alt="" />
+                      )}
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-white text-[15px] truncate">{item.title}</span>
+                        {item.subtitle && <span className="text-[#B3B3B3] text-[12px] truncate">{item.subtitle}</span>}
+                      </div>
+                    </div>
+                    <button
+                      onMouseDown={(e) => { e.preventDefault(); removeItem(item.id, item.type); }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-[#B3B3B3] hover:text-white transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           )}
 
-          {/* Gợi ý Nghệ Sĩ */}
-          {suggestions.artists?.slice(0, 2).map((artist: any) => (
-            <Link key={`artist-${artist.id}`} to={`/artist/${artist.id}`} 
+          {/* --- CASE 2: HAS QUERY -> SHOW AUTOCOMPLETE SUGGESTIONS --- */}
+          {query.trim() && suggestions && (
+            <div className="flex flex-col">
+              {/* Text Suggestions (Search terms) */}
+              {suggestions.songs?.slice(0, 3).map((song: any) => (
+                <div key={`text-${song.id}`}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    handleSuggestionClick();
+                    setQuery(song.title.toLowerCase());
+                    handleSearch(song.title.toLowerCase());
+                  }}
+                  className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer group/item">
+                  <Search className="h-4 w-4 text-[#B3B3B3]" />
+                  <span className="text-[15px] truncate">
+                    {highlightText(song.title.toLowerCase(), query.toLowerCase())}
+                  </span>
+                </div>
+              ))}
+
+              {(suggestions.artists?.length > 0 || suggestions.songs?.length > 0) && (
+                <div className="h-[1px] bg-[#333] my-2 mx-2"></div>
+              )}
+
+              {/* Artists Suggestions */}
+              {suggestions.artists?.slice(0, 2).map((artist: any) => (
+                <div key={`artist-${artist.id}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setQuery(artist.stageName);
+                    handleSearch(artist.stageName);
                   }}
                   className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer">
-              <img src={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3'} alt={artist.stageName} className="w-10 h-10 rounded-full object-cover" />
-              <div className="flex flex-col">
-                <span className="text-white text-[15px]">{artist.stageName}</span>
-                <span className="text-[#B3B3B3] text-[13px]">Nghệ sĩ</span>
-              </div>
-            </Link>
-          ))}
+                  <img src={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3'} alt={artist.stageName} className="w-10 h-10 rounded-full object-cover" />
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[15px] truncate">
+                      {highlightText(artist.stageName, query)}
+                    </span>
+                    <span className="text-[#B3B3B3] text-[13px]">Nghệ sĩ</span>
+                  </div>
+                </div>
+              ))}
 
-          {/* Gợi ý Bài Hát */}
-          {suggestions.songs?.map((song: any) => (
-            <div key={`song-${song.id}`} onMouseDown={(e) => {
-              e.preventDefault();
-              setContextAndPlay([{
-                id: song.id,
-                title: song.title,
-                artistName: song.artistName,
-                artistId: song.artistId,
-                coverUrl: song.coverUrl,
-                audioUrl: song.audioUrl,
-                duration: song.duration
-              }], 0, song.id);
-              handleSuggestionClick();
-            }} className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer">
-              <img src={song.coverUrl} alt={song.title} className="w-10 h-10 rounded shadow object-cover" />
-              <div className="flex flex-col">
-                <span className="text-white text-[15px]">{song.title}</span>
-                <span className="text-[#B3B3B3] text-[13px]">Bài hát • {song.artistName}</span>
-              </div>
+              {/* Songs Suggestions */}
+              {suggestions.songs?.map((song: any) => (
+                <div key={`song-${song.id}`} onMouseDown={(e) => {
+                  e.preventDefault();
+                  setQuery(song.title);
+                  handleSearch(song.title);
+                }} className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-md cursor-pointer">
+                  <img src={song.coverUrl} alt={song.title} className="w-10 h-10 rounded shadow object-cover" />
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[15px] truncate">
+                      {highlightText(song.title, query)}
+                    </span>
+                    <span className="text-[#B3B3B3] text-[13px] truncate">Bài hát • {song.artistName}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
   );
 };
+

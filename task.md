@@ -108,10 +108,10 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
   - [x] Fullscreen Mode: Chế độ nghe nhạc toàn màn hình (phím tắt F, Escape).
   - [x] Keyboard Shortcuts: Phím tắt điều khiển nhạc toàn cục.
 
-- [ ] **Phase 22: Điều hướng & Tìm kiếm Thông minh**
-  - [ ] Smart Search: Tích hợp Recent Search và Autocomplete (gợi ý khi đang gõ).
-  - [ ] Resizer Layout: Kéo thả resize Sidebar và lưu kích thước.
-  - [ ] Library Upgrade: Menu chuột phải LeftBar, ghim (Pin) playlist.
+- [x] **Phase 22: Điều hướng & Tìm kiếm Thông minh**
+  - [x] Smart Search: Tích hợp Recent Search và Autocomplete (gợi ý khi đang gõ).
+  - [x] Resizer Layout: Kéo thả resize Sidebar và lưu kích thước.
+  - [x] Library Upgrade: Menu chuột phải LeftBar, ghim (Pin) playlist.
 
 - [ ] **Phase 23: Settings & Hệ thống Tài khoản**
   - [ ] Account Management: Thay avatar, đổi mật khẩu, liên kết Google.

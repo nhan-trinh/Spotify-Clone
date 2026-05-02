@@ -1,5 +1,5 @@
 import { usePlayerStore } from '../../stores/player.store';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,9 +17,10 @@ interface MediaCardProps {
   type?: 'playlist' | 'album' | 'artist' | 'song' | 'profile';
   isPublic?: boolean;
   ownerId?: string;
+  onRemove?: () => void;
 }
 
-export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic, ownerId }: MediaCardProps) => {
+export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic, ownerId, onRemove }: MediaCardProps) => {
   const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -84,6 +85,23 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
           alt={title}
           className={cn("absolute top-0 left-0 w-full h-full object-cover", isCircle ? "rounded-full" : "rounded flex-1")}
         />
+
+        {/* Nút Xóa (Remove) - Thường dùng cho Recent Searches */}
+        {onRemove && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove();
+            }}
+            className={cn(
+              "absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/70 text-[#b3b3b3] hover:text-white transition-all z-20",
+              isHovered ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"
+            )}
+          >
+            <X size={18} />
+          </button>
+        )}
 
         {/* Nút Play xanh lá thần thánh */}
         <button

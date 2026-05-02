@@ -173,6 +173,7 @@ export const SearchService = {
         audioUrl: s.audioUrl320 || s.audioUrl128,
         canvasUrl: s.canvasUrl,
         duration: s.duration,
+        lyrics: s.lyrics,
         hasLyrics: !!s.lyrics
       };
     }).filter(Boolean);

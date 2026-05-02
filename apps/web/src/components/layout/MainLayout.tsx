@@ -17,6 +17,36 @@ import { useFriendStore } from '../../stores/friend.store';
 import { ReportModal } from '../shared/ReportModal';
 import { usePlayerStore } from '@/stores/player.store';
 import { useGlobalShortcuts } from '../../hooks/useGlobalShortcuts';
+import { useSidebarResize } from '../../hooks/useSidebarResize';
+
+// ---------- Resize Handle ----------
+interface ResizeHandleProps {
+  onMouseDown: (e: React.MouseEvent) => void;
+  onDoubleClick: () => void;
+  side: 'left' | 'right';
+}
+
+const ResizeHandle = ({ onMouseDown, onDoubleClick, side }: ResizeHandleProps) => (
+  <div
+    onMouseDown={onMouseDown}
+    onDoubleClick={onDoubleClick}
+    title="Kéo để resize • Double-click để reset"
+    className={cn(
+      "group relative flex-shrink-0 w-[6px] cursor-col-resize z-50 flex items-center justify-center",
+      "transition-all duration-200",
+      side === 'left' ? "mr-0" : "ml-0"
+    )}
+  >
+    {/* Invisible hit area */}
+    <div className="absolute inset-y-0 -left-1 -right-1" />
+    {/* Visual indicator */}
+    <div className={cn(
+      "w-[2px] h-16 rounded-full transition-all duration-200",
+      "bg-white/0 group-hover:bg-white/20 group-active:bg-[#1db954]/60",
+      "group-hover:shadow-[0_0_6px_rgba(29,185,84,0.4)] group-active:shadow-[0_0_10px_rgba(29,185,84,0.7)]"
+    )} />
+  </div>
+);
 
 export const MainLayout = () => {
   useGlobalShortcuts();
@@ -26,6 +56,8 @@ export const MainLayout = () => {
   const { currentTrack } = usePlayerStore();
   const { isSidebarVisible, isNowPlayingVisible, isQueueVisible, isFriendActivityVisible, setFullscreen } = useUIStore();
   const isRightSidebarVisible = (isNowPlayingVisible && !!currentTrack) || isQueueVisible || isFriendActivityVisible;
+
+  const { leftWidth, rightWidth, startLeftDrag, startRightDrag, resetSizes } = useSidebarResize();
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -40,22 +72,15 @@ export const MainLayout = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // 1. Kết nối Socket
       socketService.connect();
-
-      // 2. Khởi tạo store (listeners)
       initNotifications();
       initFriendActivity();
-
-      // 3. Lấy dữ liệu ban đầu
       fetchNotifications();
     } else {
       socketService.disconnect();
     }
 
-    return () => {
-      // Tạm thời không disconnect khi unmount layout để tránh treo/nối lại liên tục
-    };
+    return () => {};
   }, [isAuthenticated, initNotifications, initFriendActivity, fetchNotifications]);
 
   return (
@@ -63,15 +88,31 @@ export const MainLayout = () => {
       <Toaster richColors position="top-right" theme="dark" />
       <GlobalBanner />
       <ReportModal />
+
       {/* Top Section: Sidebar + Main Content */}
       <div className="flex flex-1 overflow-hidden px-2 pt-2 gap-0 pb-0 relative">
-        <div className={cn(
-          "transition-all duration-300 ease-in-out h-full overflow-hidden",
-          isSidebarVisible ? "w-[300px] opacity-100 mr-2" : "w-0 opacity-0 mr-0"
-        )}>
-          <Sidebar className="w-[300px] shrink-0 h-full" />
+
+        {/* LEFT SIDEBAR - resizable */}
+        <div
+          className={cn(
+            "transition-[opacity,margin] duration-300 ease-in-out h-full overflow-hidden shrink-0",
+            isSidebarVisible ? "opacity-100 mr-0" : "w-0 opacity-0 mr-0 pointer-events-none"
+          )}
+          style={{ width: isSidebarVisible ? leftWidth : 0 }}
+        >
+          <Sidebar className="w-full h-full" />
         </div>
 
+        {/* LEFT RESIZE HANDLE */}
+        {isSidebarVisible && (
+          <ResizeHandle
+            side="left"
+            onMouseDown={startLeftDrag}
+            onDoubleClick={resetSizes}
+          />
+        )}
+
+        {/* MAIN CONTENT */}
         <main className="relative flex flex-1 flex-col overflow-hidden rounded-lg bg-[#121212] isolate">
           {/* Topbar float over content */}
           <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
@@ -85,11 +126,23 @@ export const MainLayout = () => {
           </div>
         </main>
 
-        {/* Right Sidebar Slot */}
-        <div className={cn(
-          "hidden lg:flex flex-col relative transition-all duration-300 ease-in-out overflow-hidden shrink-0",
-          isRightSidebarVisible ? "w-[340px] opacity-100 ml-2" : "w-0 opacity-0 pointer-events-none ml-0"
-        )}>
+        {/* RIGHT RESIZE HANDLE */}
+        {isRightSidebarVisible && (
+          <ResizeHandle
+            side="right"
+            onMouseDown={startRightDrag}
+            onDoubleClick={resetSizes}
+          />
+        )}
+
+        {/* RIGHT SIDEBAR - resizable */}
+        <div
+          className={cn(
+            "hidden lg:flex flex-col relative transition-[opacity,margin] duration-300 ease-in-out overflow-hidden shrink-0",
+            isRightSidebarVisible ? "opacity-100 ml-0" : "w-0 opacity-0 pointer-events-none ml-0"
+          )}
+          style={{ width: isRightSidebarVisible ? rightWidth : 0 }}
+        >
           <div className={cn("absolute inset-0 z-10", !isNowPlayingVisible && "pointer-events-none")}>
             <NowPlayingSidebar />
           </div>
@@ -103,7 +156,7 @@ export const MainLayout = () => {
       </div>
 
       {/* Bottom Section: Player Bar */}
-      <div className="h-[90px] w-full shrink-0 flex items-center bg-black px-4">
+      <div className="h-[90px] w-full shrink-0 flex items-center bg-black px-4 border-t border-white/5">
         <PlayerBar />
       </div>
     </div>

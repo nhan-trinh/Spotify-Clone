@@ -39,11 +39,13 @@ export const SearchPage = () => {
   if (!query) {
     return (
       <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
+        {/* Recent Searches Section */}
+
         <h2 className="text-2xl font-bold mb-6">Duyệt tìm tất cả</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {BROWSE_CATEGORIES.map((cat) => (
-            <div 
-              key={cat.id} 
+            <div
+              key={cat.id}
               className={`relative overflow-hidden rounded-lg aspect-square p-4 cursor-pointer hover:scale-[1.02] hover:brightness-110 transition-all ${cat.color}`}
             >
               <span className="text-xl font-bold tracking-tight">{cat.name}</span>
@@ -60,13 +62,13 @@ export const SearchPage = () => {
       <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto">
         <div className="h-8 w-48 bg-white/10 rounded mb-6 animate-pulse"></div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-           {Array.from({ length: 5 }).map((_, i) => (
-             <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse">
-               <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
-               <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
-               <div className="h-3 bg-white/10 rounded w-1/2"></div>
-             </div>
-           ))}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse">
+              <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
+              <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-white/10 rounded w-1/2"></div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -105,30 +107,40 @@ export const SearchPage = () => {
 
             {/* Cột phải: Bài hát tiêu biểu */}
             <div className="lg:col-span-7 flex flex-col gap-4">
-               <h2 className="text-2xl font-bold">Bài hát</h2>
-               <div className="flex flex-col">
-                  {topSongs.map((song: any) => (
-                    <div 
-                      key={song.id}
-                      onClick={() => setContextAndPlay([song], 0, song.id)}
-                      className="group flex items-center gap-4 p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
-                    >
-                      <div className="relative w-10 h-10">
-                         <img src={song.coverUrl} className="w-full h-full object-cover rounded" alt={song.title} />
-                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 rounded">
-                           <Play size={16} className="fill-current text-white" />
-                         </div>
+              <h2 className="text-2xl font-bold">Bài hát</h2>
+              <div className="flex flex-col">
+                {topSongs.map((song: any) => (
+                  <div
+                    key={song.id}
+                    onClick={() => setContextAndPlay([{
+                      id: song.id,
+                      title: song.title,
+                      artistName: song.artistName,
+                      artistId: song.artistId,
+                      coverUrl: song.coverUrl,
+                      audioUrl: song.audioUrl,
+                      canvasUrl: song.canvasUrl,
+                      duration: song.duration,
+                      hasLyrics: song.hasLyrics,
+                    }], 0, song.id)}
+                    className="group flex items-center gap-4 p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <div className="relative w-10 h-10">
+                      <img src={song.coverUrl} className="w-full h-full object-cover rounded" alt={song.title} />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 rounded">
+                        <Play size={16} className="fill-current text-white" />
                       </div>
-                      <div className="flex-1 flex flex-col min-w-0">
-                        <span className="font-bold truncate text-sm">{song.title}</span>
-                        <span className="text-xs text-[#b3b3b3] truncate">{song.artistName}</span>
-                      </div>
-                      <span className="text-xs text-[#b3b3b3] p-2">
-                        {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
-                      </span>
                     </div>
-                  ))}
-               </div>
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <span className="font-bold truncate text-sm">{song.title}</span>
+                      <span className="text-xs text-[#b3b3b3] truncate">{song.artistName}</span>
+                    </div>
+                    <span className="text-xs text-[#b3b3b3] p-2">
+                      {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -139,12 +151,12 @@ export const SearchPage = () => {
             <h2 className="text-2xl font-bold mb-6">Nghệ sĩ</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {results.artists.map((artist: any) => (
-                <MediaCard 
+                <MediaCard
                   key={artist.id}
                   id={artist.id}
                   title={artist.stageName}
                   subtitle="Nghệ sĩ"
-                  coverUrl={artist.avatarUrl}
+                  coverUrl={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3'}
                   isCircle={true}
                   type="artist"
                 />
@@ -158,12 +170,12 @@ export const SearchPage = () => {
             <h2 className="text-2xl font-bold mb-6">Album</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {results.albums.map((album: any) => (
-                <MediaCard 
+                <MediaCard
                   key={album.id}
                   id={album.id}
                   title={album.title}
                   subtitle={album.artistName}
-                  coverUrl={album.coverUrl}
+                  coverUrl={album.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=200&h=200'}
                   type="album"
                 />
               ))}
@@ -176,7 +188,7 @@ export const SearchPage = () => {
             <h2 className="text-2xl font-bold mb-6">Playlist</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {results.playlists.map((playlist: any) => (
-                <MediaCard 
+                <MediaCard
                   key={playlist.id}
                   id={playlist.id}
                   title={playlist.title}
@@ -194,12 +206,12 @@ export const SearchPage = () => {
             <h2 className="text-2xl font-bold mb-6">Người dùng</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {results.users.map((user: any) => (
-                <MediaCard 
+                <MediaCard
                   key={user.id}
                   id={user.id}
                   title={user.name}
                   subtitle="Người dùng"
-                  coverUrl={user.avatarUrl}
+                  coverUrl={user.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200'}
                   isCircle={true}
                   type="profile"
                 />
@@ -214,14 +226,24 @@ export const SearchPage = () => {
             <h2 className="text-2xl font-bold mb-6">Bài hát</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {results.songs.map((song: any) => (
-                <MediaCard 
+                <MediaCard
                   key={song.id}
                   id={song.id}
                   title={song.title}
                   subtitle={song.artistName}
-                  coverUrl={song.coverUrl}
+                  coverUrl={song.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=200&h=200'}
                   type="song"
-                  songs={[song]}
+                  songs={[{
+                    id: song.id,
+                    title: song.title,
+                    artistName: song.artistName,
+                    artistId: song.artistId,
+                    coverUrl: song.coverUrl,
+                    audioUrl: song.audioUrl,
+                    canvasUrl: song.canvasUrl,
+                    duration: song.duration,
+                    hasLyrics: song.hasLyrics,
+                  }]}
                 />
               ))}
             </div>
