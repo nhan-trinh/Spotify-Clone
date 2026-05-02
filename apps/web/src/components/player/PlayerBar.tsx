@@ -10,7 +10,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { cn } from '../../lib/utils';
 
 export const PlayerBar = () => {
-  const { currentTrack, isPlaying, initPlayer } = usePlayerStore();
+  const { currentTrack, initPlayer } = usePlayerStore();
   const { isLiked, toggleLike } = useLibraryStore();
   const { isNowPlayingVisible, toggleNowPlaying, setNowPlayingVisible, isQueueVisible, toggleQueue, isFullscreen, toggleFullscreen } = useUIStore();
 
@@ -20,7 +20,7 @@ export const PlayerBar = () => {
       setNowPlayingVisible(true);
     }
   }, [currentTrack?.id, setNowPlayingVisible]);
-  
+
   // Khởi tạo player khi reload (nếu đã có track trong storage)
   useEffect(() => {
     initPlayer();
@@ -28,7 +28,7 @@ export const PlayerBar = () => {
 
   return (
     <div className="w-full h-full flex items-center justify-between bg-black">
-      
+
       {/* 1. Track Info (Bên trái) - Editorial Style */}
       <div className="flex w-[30%] min-w-[250px] items-center gap-6 group">
         {currentTrack && (
@@ -39,16 +39,16 @@ export const PlayerBar = () => {
                 <div className="absolute inset-0 border border-white/10 group-hover:border-[#1DB954]/50 transition-colors" />
               </Link>
             </div>
-            
+
             <div className="flex flex-col min-w-0">
-              <Link 
-                to={`/track/${currentTrack.id}`} 
+              <Link
+                to={`/track/${currentTrack.id}`}
                 className="text-white text-[18px] font-black leading-none tracking-tighter uppercase hover:text-[#1DB954] transition-colors line-clamp-1"
               >
                 {currentTrack.title}
               </Link>
-              <Link 
-                to={`/artist/${currentTrack.artistId}`} 
+              <Link
+                to={`/artist/${currentTrack.artistId}`}
                 className="text-[#666] text-[10px] font-bold uppercase tracking-[0.2em] mt-1 hover:text-white transition-colors line-clamp-1"
               >
                 {currentTrack.artistName}
@@ -81,7 +81,7 @@ export const PlayerBar = () => {
               { icon: <PlaySquare size={18} />, active: isNowPlayingVisible, onClick: toggleNowPlaying, tooltip: "INFO" },
               { icon: <ListMusic size={18} />, active: isQueueVisible, onClick: toggleQueue, tooltip: "QUEUE" },
             ].map((item, idx) => (
-              <button 
+              <button
                 key={idx}
                 onClick={item.onClick}
                 className={cn(
@@ -92,9 +92,9 @@ export const PlayerBar = () => {
                 {item.icon}
               </button>
             ))}
-            
+
             {currentTrack?.hasLyrics && (
-              <Link 
+              <Link
                 to={`/lyrics/${currentTrack.id}`}
                 className={cn(
                   "p-3 transition-all",
@@ -111,11 +111,11 @@ export const PlayerBar = () => {
 
         <VolumeControl />
 
-        <button 
+        <button
           className={cn(
             "p-3 transition-all",
             isFullscreen ? "text-[#1DB954]" : "text-[#444] hover:text-white"
-          )} 
+          )}
           onClick={toggleFullscreen}
         >
           <Maximize2 size={18} />
