@@ -1,14 +1,13 @@
-import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
-import { Play, Pause, MoreHorizontal, BadgeCheck, Heart, Activity, Database, Zap, Cpu } from 'lucide-react';
+import { Play, Pause, MoreHorizontal, BadgeCheck, Heart, Activity, Zap, Cpu } from 'lucide-react';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 import { formatTime, cn } from '../../lib/utils';
 import { useInteractionTracker } from '../../hooks/useInteractionTracker';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export const ArtistPage = () => {
   const { id } = useParams();

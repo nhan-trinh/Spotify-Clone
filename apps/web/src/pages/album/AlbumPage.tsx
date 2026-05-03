@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -8,11 +7,11 @@ import { Play, Pause, Heart, MoreHorizontal, Clock, BadgeCheck, Activity, Databa
 import { formatTime, cn } from '../../lib/utils';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 import { useInteractionTracker } from '../../hooks/useInteractionTracker';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export const AlbumPage = () => {
   const { id } = useParams();
-  
+
   const { data: album, isLoading: loading } = useQuery({
     queryKey: ['album', id],
     queryFn: async () => {
@@ -26,7 +25,7 @@ export const AlbumPage = () => {
   const { isLiked, toggleLike, isFollowingAlbum, toggleFollowAlbum } = useLibraryStore();
   const albumFollowed = id ? isFollowingAlbum(id) : false;
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
-  
+
   useInteractionTracker('ALBUM', id);
 
   if (loading) {
@@ -80,9 +79,9 @@ export const AlbumPage = () => {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
       <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
-        
+
         {/* ── HEADER ── */}
-        <motion.header 
+        <motion.header
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-16 flex flex-col md:flex-row items-end gap-10 border-b border-white/10 pb-16"
@@ -94,45 +93,45 @@ export const AlbumPage = () => {
               className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
             />
             <div className="absolute top-2 right-2 flex flex-col gap-1 items-end pointer-events-none mix-blend-difference">
-               <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">RELEASE_ID_{album.id.slice(0,6)}</span>
-               <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">ALBUM_MANIFEST_V4</span>
+              <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">RELEASE_ID_{album.id.slice(0, 6)}</span>
+              <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">ALBUM_MANIFEST_V4</span>
             </div>
           </div>
 
           <div className="flex-1 flex flex-col gap-4 min-w-0">
-             <div className="flex items-center gap-3">
-                <div className="w-10 h-[2px] bg-[#1db954]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Discography_Unit</span>
-             </div>
-             
-             <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] italic truncate max-w-full">
-               {album.title}
-             </h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-[2px] bg-[#1db954]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Discography_Unit</span>
+            </div>
 
-             <div className="flex flex-wrap items-center gap-6 mt-4">
-                <Link to={`/artist/${album.artist.id}`} className="flex items-center gap-2 group cursor-pointer">
-                   <div className="w-5 h-5 rounded-full overflow-hidden border border-white/20">
-                      <img src={album.artist.avatarUrl} className="w-full h-full object-cover" />
-                   </div>
-                   <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-[#1db954] transition-colors">{album.artist.stageName}</span>
-                      {album.artist.isVerified && <BadgeCheck size={12} className="text-[#1db954]" />}
-                   </div>
-                </Link>
-                <div className="h-4 w-[1px] bg-white/10" />
-                <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
-                   <Database size={12} />
-                   <span>{album.songs.length} Tracks</span>
+            <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] italic truncate max-w-full">
+              {album.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-6 mt-4">
+              <Link to={`/artist/${album.artist.id}`} className="flex items-center gap-2 group cursor-pointer">
+                <div className="w-5 h-5 rounded-full overflow-hidden border border-white/20">
+                  <img src={album.artist.avatarUrl} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
-                   <Zap size={12} />
-                   <span>Year: {releaseYear}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-[#1db954] transition-colors">{album.artist.stageName}</span>
+                  {album.artist.isVerified && <BadgeCheck size={12} className="text-[#1db954]" />}
                 </div>
-                <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
-                   <Clock size={12} />
-                   <span>{formatTime(totalDuration)}</span>
-                </div>
-             </div>
+              </Link>
+              <div className="h-4 w-[1px] bg-white/10" />
+              <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
+                <Database size={12} />
+                <span>{album.songs.length} Tracks</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
+                <Zap size={12} />
+                <span>Year: {releaseYear}</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
+                <Clock size={12} />
+                <span>{formatTime(totalDuration)}</span>
+              </div>
+            </div>
           </div>
         </motion.header>
 
@@ -144,8 +143,8 @@ export const AlbumPage = () => {
             className="group relative flex items-center gap-4 px-10 py-5 bg-[#1db954] text-black transition-all hover:bg-white overflow-hidden shadow-[10px_10px_0px_rgba(29,185,84,0.2)] disabled:opacity-20"
           >
             <div className="relative z-10 flex items-center gap-3">
-               {isThisPlaying ? <Pause size={24} className="fill-black" /> : <Play size={24} className="fill-black" />}
-               <span className="text-sm font-black uppercase tracking-widest italic">{isThisPlaying ? "Halt_Manifest" : "Initiate_Manifest"}</span>
+              {isThisPlaying ? <Pause size={24} className="fill-black" /> : <Play size={24} className="fill-black" />}
+              <span className="text-sm font-black uppercase tracking-widest italic">{isThisPlaying ? "Halt_Manifest" : "Initiate_Manifest"}</span>
             </div>
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-0" />
           </button>
@@ -198,7 +197,7 @@ export const AlbumPage = () => {
 
                   <div className="flex items-center gap-5 min-w-0">
                     <div className="w-10 h-10 border border-white/10 overflow-hidden flex-shrink-0 relative">
-                       <img src={track.coverUrl} className={cn("w-full h-full object-cover grayscale transition-all duration-700", !isRowPlaying && "group-hover:grayscale-0 group-hover:scale-110")} />
+                      <img src={track.coverUrl} className={cn("w-full h-full object-cover grayscale transition-all duration-700", !isRowPlaying && "group-hover:grayscale-0 group-hover:scale-110")} />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[13px] font-black uppercase tracking-tighter truncate leading-none">
@@ -207,7 +206,7 @@ export const AlbumPage = () => {
                       <p className={cn(
                         "text-[8px] font-black uppercase tracking-[0.2em] mt-1 transition-colors",
                         isRowPlaying ? "text-white/40" : "text-white/10 group-hover:text-black/20"
-                      )}>TRACK_UNIT_0{(index+1).toString()}</p>
+                      )}>TRACK_UNIT_0{(index + 1).toString()}</p>
                     </div>
                   </div>
 
@@ -244,29 +243,29 @@ export const AlbumPage = () => {
 
         {/* ── FOOTER STATUS ── */}
         <footer className="mt-32 pt-12 border-t border-white/10 opacity-20 flex flex-col md:flex-row justify-between gap-8">
-           <div className="flex flex-col gap-1">
-              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Discography_Metadata_Service</span>
-              <p className="text-[8px] font-black uppercase tracking-widest text-white mt-2 max-w-sm leading-relaxed">
-                 © {releaseYear} {album.artist.stageName}. ALL RIGHTS RESERVED. 
-                 UNAUTHORIZED TRANSMISSION OF THIS SONIC UNIT IS SUBJECT TO SYSTEM OVERRIDE.
-              </p>
-           </div>
-           <div className="flex items-end gap-8">
-              <div className="flex flex-col items-end gap-1">
-                 <span className="text-[7px] font-black uppercase tracking-widest text-white/40">Manifest_Version</span>
-                 <span className="text-[10px] font-black uppercase tracking-widest">ALBM_4.0_STABLE</span>
-              </div>
-              <div className="flex gap-4">
-                 <Cpu size={16} />
-                 <Zap size={16} />
-              </div>
-           </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Discography_Metadata_Service</span>
+            <p className="text-[8px] font-black uppercase tracking-widest text-white mt-2 max-w-sm leading-relaxed">
+              © {releaseYear} {album.artist.stageName}. ALL RIGHTS RESERVED.
+              UNAUTHORIZED TRANSMISSION OF THIS SONIC UNIT IS SUBJECT TO SYSTEM OVERRIDE.
+            </p>
+          </div>
+          <div className="flex items-end gap-8">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[7px] font-black uppercase tracking-widest text-white/40">Manifest_Version</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">ALBM_4.0_STABLE</span>
+            </div>
+            <div className="flex gap-4">
+              <Cpu size={16} />
+              <Zap size={16} />
+            </div>
+          </div>
         </footer>
       </div>
 
       {/* ── CONTEXT MENU ── */}
       {trackMenu && (
-        <SongContextMenu 
+        <SongContextMenu
           song={trackMenu.song} position={trackMenu.position} onClose={closeTrackMenu}
           onPlay={() => {
             const idx = album.songs.findIndex((s: any) => s.id === trackMenu.song.id);
