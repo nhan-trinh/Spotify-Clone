@@ -53,7 +53,10 @@ export const mediaWorker = new Worker('media-processing', async (job: Job<MediaJ
       if (songId) {
         await prisma.song.update({
           where: { id: songId },
-          data: { status: 'REJECTED' }
+          data: { 
+            status: 'FAILED',
+            statusReason: error.message || 'TECHNICAL_PROCESSING_ERROR'
+          }
         });
       }
     } catch (dbErr) {

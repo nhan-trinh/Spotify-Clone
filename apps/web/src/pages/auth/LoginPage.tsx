@@ -6,11 +6,11 @@ import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-do
 import { useLogin } from '../../hooks/useAuthMutation';
 import { api } from '../../lib/api';
 import { toast } from 'sonner';
-import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Icons } from '../../components/ui/icons';
-import logoSvg from '../../assets/logo.png';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Cpu, Fingerprint, Zap, Loader2, Activity, Database, Globe, ChevronLeft } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email.').email('Email không hợp lệ.'),
@@ -23,6 +23,7 @@ export const LoginPage = () => {
   const [step, setStep] = useState(1);
   const [emailValue, setEmailValue] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isActivated, setIsActivated] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const loginMutation = useLogin();
   const [searchParams] = useSearchParams();
@@ -34,10 +35,10 @@ export const LoginPage = () => {
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam === 'Account_Banned') {
-      toast.error('Tài khoản đã bị khóa! Không thể đăng nhập bằng Google.', { duration: 5000 });
-      setErrorMsg('Tài khoản đã bị quản trị viên khóa.');
+      toast.error('Tài khoản đã bị khóa!', { duration: 5000 });
+      setErrorMsg('IDENTITY_ACCESS_REVOKED: Account associated with this signal has been restricted.');
     } else if (errorParam) {
-      toast.error(`Lỗi đăng nhập: ${errorParam}`);
+      toast.error(`SIGNAL_ERROR: ${errorParam}`);
     }
   }, [searchParams]);
 
@@ -62,16 +63,16 @@ export const LoginPage = () => {
         const res = await api.post('/auth/check-email', { email }) as any;
         if (res.data?.exists) {
           if (res.data?.isGoogleLogin) {
-            setErrorMsg('Email này liên kết với Google. Vui lòng chọn "Continue with Google".');
+            setErrorMsg('LINKED_SIGNAL_DETECTED: This identity is associated with Google OAuth. Use the external link below.');
           } else {
             setEmailValue(email);
             setStep(2);
           }
         } else {
-          setErrorMsg('Email chưa được đăng ký trong hệ thống.');
+          setErrorMsg('SIGNAL_NOT_FOUND: Provided email does not exist in the primary registry.');
         }
       } catch (error) {
-        setErrorMsg('Lỗi kết nối máy chủ khi kiểm tra email.');
+        setErrorMsg('BUFFER_TIMEOUT: Server connection failure during identity verification.');
       } finally {
         setIsCheckingEmail(false);
       }
@@ -82,146 +83,300 @@ export const LoginPage = () => {
     setErrorMsg('');
     loginMutation.mutate(data, {
       onSuccess: () => {
-        navigate(from, { replace: true });
+        setIsActivated(true);
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 1500);
       },
       onError: (error: any) => {
-        setErrorMsg(error.response?.data?.error?.message || 'Tên người dùng hoặc mật khẩu không chính xác.');
+        setErrorMsg(error.response?.data?.error?.message || 'AUTHENTICATION_FAILED: Key mismatched or signal corrupted.');
       },
     });
   };
 
   const handleGoogleLogin = () => {
-    // Chuyển hướng trình duyệt đén API Backend để bắt đầu quy trình Google OAuth
     window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#121212] lg:bg-gradient-to-b lg:from-[#2a2a2a] lg:to-[#000000]">
-      <header className="mb-10 w-full flex justify-center">
-        <Link to="/">
-          <img src={logoSvg} alt="Spotify" className="h-40 w-auto object-contain" />
-        </Link>
-      </header>
+    <div className="flex min-h-screen w-full bg-black text-white relative overflow-hidden selection:bg-[#1db954] selection:text-black font-sans">
+      {/* ── Noise Texture Overlay ── */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      <div className="flex-1 flex flex-col items-center pt-2 px-2 pb-16">
+      {/* ── Editorial Background Elements ── */}
+      <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none hidden lg:block">
+         <span className="text-[15rem] font-black uppercase tracking-tighter italic leading-none">RB_v4</span>
+      </div>
+      
+      <div className="absolute bottom-0 left-0 p-12 opacity-[0.05] pointer-events-none hidden lg:block">
+         <div className="flex flex-col gap-2">
+            <span className="text-[1.5rem] font-black uppercase tracking-[0.5em]">ARCHIVE_SYSTEM</span>
+            <div className="w-64 h-[2px] bg-white/20" />
+            <span className="text-[0.7rem] font-black uppercase tracking-[1em]">IDENTITY_RECORDS</span>
+         </div>
+      </div>
 
-        <div className="mx-auto w-full max-w-[324px]">
-          {step === 1 && (
-            <>
-              <h1 className="text-[32px] md:text-[40px] font-bold tracking-tighter text-center mb-10 leading-tight">Welcome back</h1>
+      {/* ── Main Layout Container ── */}
+      <div className="flex-1 flex flex-col lg:flex-row relative z-10 h-full min-h-screen">
+        
+        {/* Left Side: Branding/Identity Manifest (Desktop only) */}
+        <div className="hidden lg:flex flex-1 flex-col justify-between p-16 border-r border-white/5 bg-white/[0.01]">
+           <Link to="/" className="flex items-baseline gap-1 group">
+              <span className="text-4xl font-black uppercase tracking-tighter text-white">Ring</span>
+              <span className="text-4xl font-black uppercase tracking-tighter text-[#1db954]">Beat</span>
+              <div className="w-2 h-2 bg-[#1db954] ml-2 animate-pulse" />
+           </Link>
 
-              {errorMsg && (
-                <div className="mb-6 rounded-sm bg-[#e22134] px-4 py-3 text-sm font-semibold flex items-center gap-2">
-                  <span className="text-white">{errorMsg}</span>
-                </div>
-              )}
-
+           <div className="space-y-12">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-bold">Email</Label>
-                  <Input
-                    id="email"
-                    placeholder="Email address"
-                    className="rounded-[4px] border border-[#727272] h-12 hover:border-white focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-white bg-[#121212]"
-                    {...register('email')}
-                    error={!!errors.email}
-                  />
-                  {errors.email && <p className="text-sm text-[#e22134]">{errors.email.message}</p>}
-                </div>
-
-                <Button
-                  type="button"
-                  onClick={handleNextStep}
-                  variant="spotify"
-                  size="lg"
-                  className="w-full mt-4 rounded-full h-12 text-base font-bold shadow-none"
-                  disabled={isCheckingEmail}
-                >
-                  {isCheckingEmail ? 'Wait...' : 'Continue'}
-                </Button>
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-[1px] bg-[#1db954]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Core_Protocol</span>
+                 </div>
+                 <h2 className="text-7xl font-black uppercase tracking-tighter leading-none italic">
+                   Identity<br />Verification
+                 </h2>
               </div>
-
-              <div className="flex items-center gap-4 my-8">
-                <div className="flex-1 h-[1px] bg-[#292929]"></div>
-                <span className="text-sm font-bold text-[#a7a7a7]">or</span>
-                <div className="flex-1 h-[1px] bg-[#292929]"></div>
+              
+              <div className="flex flex-col gap-6 opacity-30">
+                 <TechnicalReadout icon={Cpu} label="System_Core" value="Stable_v4.0.1" />
+                 <TechnicalReadout icon={Globe} label="Access_Node" value="External_Auth_v1" />
+                 <TechnicalReadout icon={Database} label="Cluster_Link" value="User_Registry_09" />
               </div>
+           </div>
 
-              <div className="flex flex-col gap-4">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-full font-bold border-[#878787] text-white hover:border-white bg-transparent justify-center gap-3"
-                  onClick={handleGoogleLogin}
-                >
-                  <Icons.google className="h-5 w-5 mr-1" />
-                  Continue with Google
-                </Button>
+           <div className="flex justify-between items-end opacity-20">
+              <span className="text-[8px] font-black uppercase tracking-[0.4em]">Auth_Gate_77 // Cluster_Primary</span>
+              <div className="flex gap-4">
+                 <Zap size={12} />
+                 <Activity size={12} />
               </div>
-
-              <hr className="border-[#292929] my-8" />
-
-              <div className="text-center text-[#a7a7a7] text-[15px] font-medium">
-                Don't have an account?{' '}
-                <Link to="/register" className="text-white hover:text-[#1ed760] font-bold underline underline-offset-1">
-                  Sign up
-                </Link>
-              </div>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <div className="flex flex-col mb-8">
-                <div className="flex items-center text-[#a7a7a7] mb-6">
-                  <button type="button" onClick={() => setStep(1)} className="hover:text-white p-1">
-                    <svg role="img" height="24" width="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.957 2.793a1 1 0 0 1 0 1.414L8.164 12l7.793 7.793a1 1 0 1 1-1.414 1.414L5.336 12l9.207-9.207a1 1 0 0 1 1.414 0z"></path></svg>
-                  </button>
-                </div>
-                <h1 className="text-3xl font-bold tracking-tighter text-left mb-2 leading-tight">Enter your password</h1>
-                <p className="text-[#a7a7a7] text-sm">{emailValue}</p>
-              </div>
-
-              {errorMsg && (
-                <div className="mb-6 rounded-sm bg-[#e22134] px-4 py-3 text-sm font-semibold flex items-center gap-2">
-                  <span className="text-white">{errorMsg}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-bold">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Password"
-                    className="rounded-[4px] border border-[#727272] h-12 hover:border-white focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-white bg-[#121212]"
-                    {...register('password')}
-                    error={!!errors.password}
-                  />
-                  {errors.password && <p className="text-sm text-[#e22134]">{errors.password.message}</p>}
-                </div>
-
-                <div className="pt-2">
-                  <Link to="/forgot-password" className="text-white hover:text-[#1ed760] text-sm font-bold underline underline-offset-1">
-                    Forgot your password?
-                  </Link>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="spotify"
-                  size="lg"
-                  className="w-full mt-8 rounded-full h-12 text-base font-bold shadow-none"
-                  disabled={isSubmitting || loginMutation.isPending}
-                >
-                  {isSubmitting || loginMutation.isPending ? 'Logging in...' : 'Log in'}
-                </Button>
-              </form>
-            </>
-          )}
+           </div>
         </div>
 
+        {/* Right Side: Auth Form */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-24 relative">
+           
+           {/* Form Terminal Container */}
+           <motion.div 
+             initial={{ opacity: 0, x: 20 }}
+             animate={{ opacity: 1, x: 0 }}
+             className="w-full max-w-[420px] bg-white/[0.02] border border-white/5 p-8 lg:p-12 shadow-[40px_40px_100px_rgba(0,0,0,0.5)] relative"
+           >
+              {/* Terminal Corner Markers */}
+              <div className="absolute -top-[1px] -left-[1px] w-4 h-4 border-t border-l border-[#1db954]" />
+              <div className="absolute -bottom-[1px] -right-[1px] w-4 h-4 border-b border-r border-white/20" />
+
+              <div className="mb-12">
+                 <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[8px] font-black text-[#1db954] uppercase tracking-widest">GATE_01_INPUT</span>
+                    <div className="h-[1px] flex-1 bg-[#1db954]/20" />
+                 </div>
+                 <h1 className="text-4xl font-black uppercase tracking-tighter text-white italic">
+                   {step === 1 ? 'Manifest_ID' : 'Key_Entry'}
+                 </h1>
+              </div>
+
+              {errorMsg && (
+                <div className="mb-8 border border-[#e22134]/30 bg-[#e22134]/5 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                     <div className="w-1.5 h-1.5 bg-[#e22134] animate-pulse" />
+                     <span className="text-[10px] font-black uppercase tracking-widest text-[#e22134] leading-relaxed">
+                       {errorMsg}
+                     </span>
+                  </div>
+                </div>
+              )}
+
+              <AnimatePresence mode="wait">
+                {step === 1 ? (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                         <Label htmlFor="email" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Registered_Email</Label>
+                         <span className="text-[7px] font-black text-[#1db954]/40 uppercase tracking-widest">Awaiting_Input</span>
+                      </div>
+                      <Input
+                        id="email"
+                        placeholder="IDENTITY@DOMAIN.COM"
+                        className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-tighter focus-visible:ring-0 focus-visible:border-[#1db954] transition-all hover:border-white placeholder:text-white/10 uppercase"
+                        {...register('email')}
+                        error={!!errors.email}
+                      />
+                      {errors.email && <p className="text-[9px] font-black uppercase tracking-widest text-[#e22134] mt-2 italic">_{errors.email.message}</p>}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      disabled={isCheckingEmail}
+                      className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {isCheckingEmail ? (
+                        <>
+                           <Loader2 className="h-4 w-4 animate-spin" />
+                           Verifying...
+                        </>
+                      ) : 'Proceed_to_Key'}
+                    </button>
+
+                    <div className="flex items-center gap-4 my-10">
+                      <div className="flex-1 h-[1px] bg-white/5"></div>
+                      <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.5em]">External_Links</span>
+                      <div className="flex-1 h-[1px] bg-white/5"></div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="w-full border border-white/10 h-14 font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-4 hover:bg-white hover:text-black transition-all bg-black"
+                      onClick={handleGoogleLogin}
+                    >
+                      <Icons.google className="h-4 w-4" />
+                      Continue with Google
+                    </button>
+
+                    <div className="mt-12 text-center">
+                       <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">No Registry Record Found?</p>
+                       <Link to="/register" className="text-[11px] font-black text-[#1db954] uppercase tracking-[0.3em] hover:text-white transition-colors border-b-2 border-[#1db954]/20 pb-1">
+                         Initialize_New_Account
+                       </Link>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div className="space-y-2">
+                       <button 
+                         type="button" 
+                         onClick={() => setStep(1)} 
+                         className="flex items-center gap-2 text-[9px] font-black text-white/30 hover:text-[#1db954] transition-colors uppercase tracking-[0.2em]"
+                       >
+                          <ChevronLeft size={12} />
+                          Return_to_Step_01
+                       </button>
+                       <div className="mt-4 p-4 bg-white/[0.03] border border-white/5">
+                          <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] block mb-1">Target_Identity</span>
+                          <span className="text-sm font-black uppercase tracking-tighter text-white truncate block">{emailValue}</span>
+                       </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                           <Label htmlFor="password" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Security_Key</Label>
+                           <span className="text-[7px] font-black text-[#1db954]/40 uppercase tracking-widest">Encrypted_Input</span>
+                        </div>
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="••••••••••••"
+                          className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-widest focus-visible:ring-0 focus-visible:border-[#1db954] transition-all hover:border-white placeholder:text-white/10"
+                          {...register('password')}
+                          error={!!errors.password}
+                        />
+                        {errors.password && <p className="text-[9px] font-black uppercase tracking-widest text-[#e22134] mt-2 italic">_{errors.password.message}</p>}
+                        
+                        <div className="pt-2">
+                          <Link to="/forgot-password" title="Initialize Recovery Sequence" className="text-[9px] font-black text-white/40 hover:text-white uppercase tracking-widest italic transition-colors">
+                            // Reset_Sequence
+                          </Link>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || loginMutation.isPending}
+                        className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 disabled:opacity-50"
+                      >
+                        {isSubmitting || loginMutation.isPending ? (
+                          <>
+                             <Loader2 className="h-4 w-4 animate-spin" />
+                             Processing...
+                          </>
+                        ) : 'Grant_Access'}
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+           </motion.div>
+
+           {/* Mobile Footer Decor */}
+           <div className="mt-12 lg:hidden opacity-20 flex flex-col items-center gap-2">
+              <span className="text-[7px] font-black uppercase tracking-[0.5em]">RingBeat Archive System // v4.0.1</span>
+              <Fingerprint size={24} />
+           </div>
+        </div>
       </div>
+
+      {/* ── Activation Overlay ── */}
+      <AnimatePresence>
+        {isActivated && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
+          >
+            <div className="absolute inset-0 opacity-[0.1] pointer-events-none bg-noise" />
+            
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ 
+                scale: [0.8, 1.1, 1],
+                opacity: 1,
+                x: [0, -10, 10, -5, 0],
+                filter: ["blur(0px)", "blur(10px)", "blur(0px)"]
+              }}
+              transition={{ duration: 0.4, times: [0, 0.1, 0.2, 0.3, 1] }}
+              className="relative"
+            >
+               <h2 className="text-[15vw] font-black italic uppercase tracking-tighter text-[#1db954] leading-none select-none">
+                 Activated
+               </h2>
+               <div className="absolute top-0 left-0 w-full h-full text-[15vw] font-black italic uppercase tracking-tighter text-white mix-blend-difference animate-pulse opacity-50">
+                 Activated
+               </div>
+            </motion.div>
+
+            {/* Technical scanlines/glitch bars */}
+            <motion.div 
+              animate={{ y: ["-100%", "100%"] }}
+              transition={{ duration: 0.2, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-white/5 h-20 w-full pointer-events-none"
+            />
+            
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+               <span className="text-[10px] font-black uppercase tracking-[1em] text-[#1db954] animate-pulse">
+                 SYNC_SUCCESS_01
+               </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+
+const TechnicalReadout = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  <div className="flex items-center gap-4">
+     <div className="w-8 h-8 flex items-center justify-center border border-white/10 bg-white/[0.02]">
+        <Icon size={14} className="text-[#1db954]" />
+     </div>
+     <div className="flex flex-col">
+        <span className="text-[7px] font-black uppercase tracking-[0.4em] text-white/40">{label}</span>
+        <span className="text-[11px] font-black uppercase tracking-widest text-white">{value}</span>
+     </div>
+  </div>
+);

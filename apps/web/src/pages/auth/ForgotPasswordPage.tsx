@@ -5,10 +5,10 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Icons } from '../../components/ui/icons';
+import { motion } from 'framer-motion';
+import { Zap, Activity, Globe, Fingerprint, ShieldAlert, ChevronLeft, Loader2, Key } from 'lucide-react';
 
 const forgotSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email.').email('Email không hợp lệ.'),
@@ -25,11 +25,11 @@ export const ForgotPasswordPage = () => {
       return (await api.post('/auth/forgot-password', { email })) as any;
     },
     onSuccess: (_, email) => {
-      setServerMsg({ type: 'success', text: 'Đã gửi yêu cầu! Đang chuyển trang nhập mã...' });
+      setServerMsg({ type: 'success', text: 'RECOVERY_SIGNAL_SENT: Code transmitted to registry email. Redirecting...' });
       setTimeout(() => navigate('/reset-password', { state: { email } }), 2000);
     },
     onError: (error: any) => {
-      setServerMsg({ type: 'error', text: error.response?.data?.error?.message || 'Có lỗi xảy ra.' });
+      setServerMsg({ type: 'error', text: error.response?.data?.error?.message || 'SIGNAL_INTERRUPTED: Failed to initiate recovery sequence.' });
     },
   });
 
@@ -43,55 +43,145 @@ export const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-gradient-to-b from-[#2a2a2a] to-[#000000]">
-      <header className="px-8 py-6 w-full flex justify-center sm:justify-start">
-        <Link to="/"><Icons.logo className="" /></Link>
-      </header>
+    <div className="flex min-h-screen w-full bg-black text-white relative overflow-hidden selection:bg-[#1db954] selection:text-black font-sans">
+      {/* ── Noise Texture Overlay ── */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      <div className="flex-1 flex flex-col items-center pt-8 px-4 pb-16">
-        <div className="w-full max-w-[734px] rounded-lg py-16 px-8 sm:px-[104px] text-white">
-          <div className="mx-auto w-full max-w-[324px]">
-            <h1 className="text-3xl font-bold tracking-tighter text-center mb-6">Đặt lại mật khẩu</h1>
-            <p className="text-center text-[#a7a7a7] text-sm font-semibold mb-8">
-              Nhập địa chỉ email liên kết với tài khoản Spotify của bạn, chúng tôi sẽ cấp mã để đặt lại mật khẩu.
-            </p>
+      {/* ── Editorial Background Elements ── */}
+      <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none hidden lg:block">
+        <span className="text-[15rem] font-black uppercase tracking-tighter italic leading-none">RCV_v4</span>
+      </div>
+
+      <div className="flex-1 flex flex-col lg:flex-row relative z-10 h-full min-h-screen">
+
+        {/* Left Side: Branding/Recovery Manifest (Desktop only) */}
+        <div className="hidden lg:flex flex-1 flex-col justify-between p-16 border-r border-white/5 bg-white/[0.01]">
+          <Link to="/" className="flex items-baseline gap-1 group">
+            <span className="text-4xl font-black uppercase tracking-tighter text-white">Ring</span>
+            <span className="text-4xl font-black uppercase tracking-tighter text-[#1db954]">Beat</span>
+            <div className="w-2 h-2 bg-[#1db954] ml-2 animate-pulse" />
+          </Link>
+
+          <div className="space-y-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-[1px] bg-[#1db954]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Recovery_Protocol</span>
+              </div>
+              <h2 className="text-7xl font-black uppercase tracking-tighter leading-none italic">
+                Access<br />Restoration
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-6 opacity-30">
+              <TechnicalReadout icon={Key} label="Sequence_Type" value="Password_Reset" />
+              <TechnicalReadout icon={Globe} label="Signal_Domain" value="Registry_Mail_Link" />
+              <TechnicalReadout icon={ShieldAlert} label="Security_Gate" value="Identity_Verify_Required" />
+            </div>
+          </div>
+
+          <div className="flex justify-between items-end opacity-20">
+            <span className="text-[8px] font-black uppercase tracking-[0.4em]">RCV_INIT_09 // CLUSTER_PRIMARY</span>
+            <div className="flex gap-4">
+              <Zap size={12} />
+              <Activity size={12} />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Recovery Form */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-24 relative">
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-full max-w-[420px] bg-white/[0.02] border border-white/5 p-8 lg:p-12 shadow-[40px_40px_100px_rgba(0,0,0,0.5)] relative"
+          >
+            {/* Terminal Corner Markers */}
+            <div className="absolute -top-[1px] -left-[1px] w-4 h-4 border-t border-l border-[#1db954]" />
+            <div className="absolute -bottom-[1px] -right-[1px] w-4 h-4 border-b border-r border-white/20" />
+
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[8px] font-black text-[#1db954] uppercase tracking-widest">SIGNAL_REQUEST</span>
+                <div className="h-[1px] flex-1 bg-[#1db954]/20" />
+              </div>
+              <h1 className="text-4xl font-black uppercase tracking-tighter text-white italic">
+                Recovery_Init
+              </h1>
+              <p className="mt-4 text-[9px] font-black uppercase tracking-[0.2em] text-white/30 leading-relaxed">
+                Enter the identity link associated with your RingBeat archive. A restoration key will be transmitted to the primary contact node.
+              </p>
+            </div>
 
             {serverMsg && (
-              <div className={`mb-6 rounded-sm px-4 py-3 text-sm font-semibold flex ${serverMsg.type === 'error' ? 'bg-[#e22134] text-white' : 'bg-[#1ed760] text-black'}`}>
-                {serverMsg.text}
+              <div className={`mb-8 border ${serverMsg.type === 'error' ? 'border-[#e22134]/30 bg-[#e22134]/5' : 'border-[#1db954]/30 bg-[#1db954]/5'} px-4 py-3`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-1.5 h-1.5 ${serverMsg.type === 'error' ? 'bg-[#e22134]' : 'bg-[#1db954]'} animate-pulse`} />
+                  <span className={`text-[10px] font-black uppercase tracking-widest leading-relaxed ${serverMsg.type === 'error' ? 'text-[#e22134]' : 'text-[#1db954]'}`}>
+                    {serverMsg.text}
+                  </span>
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-bold">Địa chỉ email</Label>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <Label htmlFor="email" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Target_Identity</Label>
+                  <span className="text-[7px] font-black text-[#1db954]/40 uppercase tracking-widest">Registry_Check</span>
+                </div>
                 <Input
                   id="email"
-                  placeholder="name@domain.com"
-                  className="rounded-sm border border-[#727272] h-12 bg-[#121212]"
+                  placeholder="IDENTITY@DOMAIN.COM"
+                  className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-tighter focus-visible:ring-0 focus-visible:border-[#1db954] transition-all hover:border-white placeholder:text-white/10 uppercase"
                   {...register('email')}
                   error={!!errors.email}
                 />
-                {errors.email && <p className="text-sm text-[#e22134]">{errors.email.message}</p>}
+                {errors.email && <p className="text-[9px] font-black uppercase tracking-widest text-[#e22134] mt-2 italic">_{errors.email.message}</p>}
               </div>
 
-              <Button
+              <button
                 type="submit"
-                variant="spotify"
-                size="lg"
-                className="w-full mt-8 rounded-full h-12 text-base"
                 disabled={forgotMutation.isPending}
+                className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                {forgotMutation.isPending ? 'Đang gửi...' : 'Gửi mã xác nhận'}
-              </Button>
+                {forgotMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Transmitting...
+                  </>
+                ) : 'Initialize_Restoration'}
+              </button>
             </form>
 
-            <div className="mt-8 text-center text-sm font-bold underline">
-              <Link to="/login" className="text-white hover:text-[#1ed760]">Quay lại màn hình đăng nhập</Link>
+            <div className="mt-12 text-center">
+              <Link to="/login" className="flex items-center justify-center gap-2 text-[10px] font-black text-white/30 hover:text-[#1db954] uppercase tracking-[0.2em] transition-colors">
+                <ChevronLeft size={12} />
+                Return_to_Auth_Gate
+              </Link>
             </div>
+          </motion.div>
+
+          {/* Mobile Footer Decor */}
+          <div className="mt-12 lg:hidden opacity-20 flex flex-col items-center gap-2">
+            <span className="text-[7px] font-black uppercase tracking-[0.5em]">RingBeat Restoration Core // v4.0.1</span>
+            <Fingerprint size={24} />
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const TechnicalReadout = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  <div className="flex items-center gap-4">
+    <div className="w-8 h-8 flex items-center justify-center border border-white/10 bg-white/[0.02]">
+      <Icon size={14} className="text-[#1db954]" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-[7px] font-black uppercase tracking-[0.4em] text-white/40">{label}</span>
+      <span className="text-[11px] font-black uppercase tracking-widest text-white">{value}</span>
+    </div>
+  </div>
+);

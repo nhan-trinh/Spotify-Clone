@@ -4,13 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegister } from '../../hooks/useAuthMutation';
-import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Icons } from '../../components/ui/icons';
-import { CheckCircle2, XCircle } from 'lucide-react';
-import logoSvg from '../../assets/logo.png';
+import { CheckCircle2, XCircle, ChevronLeft, Loader2, Zap, Activity, Database, Globe, Fingerprint, ShieldCheck } from 'lucide-react';
 import { api } from '../../lib/api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*[\d#?!&@$%\^&\*]).{10,}$/;
 
@@ -27,7 +26,6 @@ export const RegisterPage = () => {
   const registerMutation = useRegister();
   const navigate = useNavigate();
 
-  // Lưu state tổng 3 bước
   const [formData, setFormData] = useState<any>({});
   const [serverMsg, setServerMsg] = useState<{ type: 'error' | 'success', text: string } | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
@@ -48,27 +46,29 @@ export const RegisterPage = () => {
     try {
       const res = await api.post('/auth/check-email', { email: data.email }) as any;
       if (res.data?.exists) {
-        formStep1.setError('email', { type: 'manual', message: 'Địa chỉ email này đã được dùng để đăng ký' });
+        formStep1.setError('email', { type: 'manual', message: 'IDENTITY_CONFLICT: Email already registered in registry.' });
       } else {
         setFormData({ ...formData, ...data });
         setStep(2);
       }
     } catch (error) {
-      setServerMsg({ type: 'error', text: 'Có lỗi xảy ra khi kết nối tới máy chủ.' });
+      setServerMsg({ type: 'error', text: 'REGISTRY_ERROR: Connection failed during verification.' });
     } finally {
       setIsCheckingEmail(false);
     }
   };
+
   const handleNext2 = (data: any) => { setFormData({ ...formData, ...data }); setStep(3); };
+
   const handleFinalSubmit = (data: any) => {
     const finalData = { ...formData, ...data };
     registerMutation.mutate(finalData, {
-      onSuccess: (res) => {
-        setServerMsg({ type: 'success', text: res.data?.message || 'Đăng ký thành công! Đang chuyển trang.' });
+      onSuccess: () => {
+        setServerMsg({ type: 'success', text: 'REGISTRY_SUCCESS: Identity manifesting. Redirecting...' });
         setTimeout(() => navigate('/verify-email', { state: { email: finalData.email } }), 2000);
       },
       onError: (error: any) => {
-        setServerMsg({ type: 'error', text: error.response?.data?.error?.message || 'Đăng ký lỗi. Email có thể đã tồn tại.' });
+        setServerMsg({ type: 'error', text: error.response?.data?.error?.message || 'REGISTRY_FAILURE: Data corruption detected.' });
       },
     });
   };
@@ -78,196 +78,283 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#121212] lg:bg-gradient-to-b lg:from-[#2a2a2a] lg:to-[#000000]">
-      <header className="mb-10 w-full flex justify-center">
-        <Link to="/">
-          <img src={logoSvg} alt="Spotify" className="h-40 w-auto object-contain" />
-        </Link>
-      </header>
+    <div className="flex min-h-screen w-full bg-black text-white relative overflow-hidden selection:bg-[#1db954] selection:text-black font-sans">
+      {/* ── Noise Texture Overlay ── */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      {serverMsg && (
-        <div className={`mb-6 rounded-sm p-4 text-sm font-semibold flex items-center justify-center gap-2 ${serverMsg.type === 'error' ? 'bg-[#e22134] text-white' : 'bg-[#1ed760] text-black'}`}>
-          {serverMsg.text}
-        </div>
-      )}
+      {/* ── Editorial Background Elements ── */}
+      <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none hidden lg:block">
+        <span className="text-[15rem] font-black uppercase tracking-tighter italic leading-none">REG_v4</span>
+      </div>
 
-      {/* --- STEP 1: XÁC THỰC EMAIL --- */}
-      {step === 1 && (
-        <div className="w-full px-8 sm:px-0">
-          <h1 className="text-[40px] md:text-5xl font-bold tracking-tighter text-white text-center mb-10 leading-tight">
-            Sign up to start listening
-          </h1>
+      <div className="flex-1 flex flex-col lg:flex-row relative z-10 h-full min-h-screen">
 
-          <form onSubmit={formStep1.handleSubmit(handleNext1)} className="mx-auto w-full max-w-[324px] space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-bold text-white">Email address</Label>
-              <Input
-                id="email"
-                placeholder="name@domain.com"
-                className="rounded-[4px] border border-[#727272] h-12 bg-[#121212] hover:border-white focus-visible:ring-2 focus-visible:ring-white"
-                {...formStep1.register('email')}
-                error={!!formStep1.formState.errors.email}
-              />
-              {formStep1.formState.errors.email && <p className="text-sm text-[#e22134] flex items-center gap-1.5 pt-1"><span className="text-xl leading-none">⚠️</span>{formStep1.formState.errors.email.message as string}</p>}
-              <Link to="#" className="text-[#1ed760] font-bold text-sm underline pb-2 block"></Link>
-            </div>
+        {/* Left Side: Branding/Identity Creation (Desktop only) */}
+        <div className="hidden lg:flex flex-1 flex-col justify-between p-16 border-r border-white/5 bg-white/[0.01]">
+          <Link to="/" className="flex items-baseline gap-1 group">
+            <span className="text-4xl font-black uppercase tracking-tighter text-white">Ring</span>
+            <span className="text-4xl font-black uppercase tracking-tighter text-[#1db954]">Beat</span>
+            <div className="w-2 h-2 bg-[#1db954] ml-2 animate-pulse" />
+          </Link>
 
-            <Button type="submit" variant="spotify" size="lg" disabled={isCheckingEmail} className="w-full mt-4 h-12 rounded-full font-bold">
-              {isCheckingEmail ? 'Vui lòng chờ...' : 'Next'}
-            </Button>
-          </form>
-
-          <div className="mx-auto w-full max-w-[324px] flex items-center gap-4 my-8">
-            <div className="flex-1 h-[1px] bg-[#292929]"></div>
-            <span className="text-sm font-bold text-[#a7a7a7]">or</span>
-            <div className="flex-1 h-[1px] bg-[#292929]"></div>
-          </div>
-
-          <div className="mx-auto w-full max-w-[324px]">
-            <Button onClick={handleGoogleRegister} variant="outline" className="w-full h-12 rounded-full border-[#878787] text-white hover:border-white bg-transparent justify-center gap-3 font-bold">
-              <Icons.google className="h-5 w-5 mr-1" /> Sign up with Google
-            </Button>
-
-            <div className="mt-8 mb-8 text-center text-[#a7a7a7] text-sm font-medium">
-              Already have an account?{' '}
-              <div className="mt-2 text-base">
-                <Link to="/login" className="text-white hover:text-[#1ed760] underline underline-offset-1 font-bold">Log in</Link>
+          <div className="space-y-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-[1px] bg-[#1db954]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Creation_Protocol</span>
               </div>
+              <h2 className="text-7xl font-black uppercase tracking-tighter leading-none italic">
+                New Entity<br />Registration
+              </h2>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* --- STEP 2: TẠO MẬT KHẨU --- */}
-      {step === 2 && (
-        <div className="w-full px-8 sm:px-0 mx-auto max-w-[324px]">
-          {/* Thanh trượt trạng thái form (Mô phỏng Spotify) */}
-          <div className="flex flex-col mb-4">
-            <div className="w-full h-[3px] bg-[#727272] rounded-full mb-6">
-              <div className="h-full bg-[#1ed760] rounded-full" style={{ width: '33%' }}></div>
-            </div>
-            <div className="flex items-center text-[#a7a7a7]">
-              <button type="button" onClick={() => setStep(1)} className="hover:text-white mr-4">
-                <svg role="img" height="24" width="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.957 2.793a1 1 0 0 1 0 1.414L8.164 12l7.793 7.793a1 1 0 1 1-1.414 1.414L5.336 12l9.207-9.207a1 1 0 0 1 1.414 0z"></path></svg>
-              </button>
-              <div className="text-[15px] font-medium text-[#a7a7a7]">
-                <div className="text-sm font-normal">Step 1 of 3</div>
-                <div className="font-bold text-white">Create a password</div>
-              </div>
+            <div className="flex flex-col gap-6 opacity-30">
+              <TechnicalReadout icon={Database} label="Registry_Mode" value="Direct_Initialize" />
+              <TechnicalReadout icon={Globe} label="Auth_Node" value="External_OAuth_v1" />
+              <TechnicalReadout icon={ShieldCheck} label="Security_Level" value="Tier_01_Identity" />
             </div>
           </div>
 
-          <form onSubmit={formStep2.handleSubmit(handleNext2)} className="space-y-4 mt-8">
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-bold text-white">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type="password"
-                  className="rounded-[4px] border border-[#727272] h-12 bg-[#121212] pr-10 focus-visible:ring-2 focus-visible:ring-white"
-                  {...formStep2.register('password')}
-                  error={!!formStep2.formState.errors.password}
-                />
-                {/* Password helper text could go here */}
-              </div>
-
-              <div className="mt-2 text-sm text-white">
-                <p className="font-bold mb-1">Your password must contain at least</p>
-                <ul className="text-sm space-y-2 mt-2">
-                  <li className={`flex items-center gap-2 ${hasLetter ? 'text-[#1ed760]' : (passwordValue ? 'text-[#e22134]' : 'text-white')}`}>
-                    {hasLetter ? <CheckCircle2 className="w-5 h-5" /> : (passwordValue ? <XCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-[#727272]"></div>)}
-                    <span>1 letter</span>
-                  </li>
-                  <li className={`flex items-center gap-2 ${hasNumberOrSpecials ? 'text-[#1ed760]' : (passwordValue ? 'text-[#e22134]' : 'text-white')}`}>
-                    {hasNumberOrSpecials ? <CheckCircle2 className="w-5 h-5" /> : (passwordValue ? <XCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-[#727272]"></div>)}
-                    <span>1 number or special character</span>
-                  </li>
-                  <li className={`flex items-center gap-2 ${hasMinLength ? 'text-[#1ed760]' : (passwordValue ? 'text-[#e22134]' : 'text-white')}`}>
-                    {hasMinLength ? <CheckCircle2 className="w-5 h-5" /> : (passwordValue ? <XCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-[#727272]"></div>)}
-                    <span>10 characters</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <Button type="submit" variant="spotify" size="lg" disabled={!isPasswordValid} className="w-full mt-10 h-12 rounded-full font-bold">Next</Button>
-          </form>
-        </div>
-      )}
-
-      {/* --- STEP 3: VỀ BẠN --- */}
-      {step === 3 && (
-        <div className="w-full px-8 sm:px-0 mx-auto max-w-[324px]">
-          <div className="flex flex-col mb-4">
-            <div className="w-full h-[3px] bg-[#727272] rounded-full mb-6">
-              <div className="h-full bg-[#1ed760] rounded-full" style={{ width: '66%' }}></div>
-            </div>
-            <div className="flex items-center text-[#a7a7a7]">
-              <button type="button" onClick={() => setStep(2)} className="hover:text-white mr-4">
-                <svg role="img" height="24" width="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.957 2.793a1 1 0 0 1 0 1.414L8.164 12l7.793 7.793a1 1 0 1 1-1.414 1.414L5.336 12l9.207-9.207a1 1 0 0 1 1.414 0z"></path></svg>
-              </button>
-              <div className="text-[15px] font-medium text-[#a7a7a7]">
-                <div className="text-sm font-normal">Step 2 of 3</div>
-                <div className="font-bold text-white">Tell us about yourself</div>
-              </div>
+          <div className="flex justify-between items-end opacity-20">
+            <span className="text-[8px] font-black uppercase tracking-[0.4em]">INIT_G_77 // CLUSTER_PRIMARY</span>
+            <div className="flex gap-4">
+              <Zap size={12} />
+              <Activity size={12} />
             </div>
           </div>
-
-          <form onSubmit={formStep3.handleSubmit(handleFinalSubmit)} className="space-y-6 mt-8 pb-10">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-bold text-white">Name</Label>
-              <p className="text-xs text-[#a7a7a7]">This name will appear on your profile</p>
-              <Input
-                id="name"
-                className="rounded-[4px] border border-[#727272] h-12 bg-[#121212] focus-visible:ring-2 focus-visible:ring-white"
-                {...formStep3.register('name')}
-                error={!!formStep3.formState.errors.name}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="dateOfBirth" className="text-sm font-bold text-white">Date of birth</Label>
-              <Input
-                id="dateOfBirth"
-                type="date"
-                className="rounded-[4px] border border-[#727272] h-12 text-[#a7a7a7] bg-[#121212] focus-visible:ring-2 focus-visible:ring-white"
-                {...formStep3.register('dateOfBirth')}
-                error={!!formStep3.formState.errors.dateOfBirth}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-bold text-white">Gender</Label>
-              <p className="text-xs text-[#a7a7a7]">We use your gender to help personalize our content recommendations.</p>
-              <div className="flex flex-wrap gap-x-6 gap-y-4 pt-2">
-                <label className="flex items-center gap-3 cursor-pointer text-sm text-white">
-                  <input type="radio" value="man" {...formStep3.register('gender')} className="accent-[#1DB954] w-4 h-4" /> Man
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer text-sm text-white">
-                  <input type="radio" value="woman" {...formStep3.register('gender')} className="accent-[#1DB954] w-4 h-4" /> Woman
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer text-sm text-white">
-                  <input type="radio" value="non-binary" {...formStep3.register('gender')} className="accent-[#1DB954] w-4 h-4" /> Non-binary
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer text-sm text-white">
-                  <input type="radio" value="prefer-not-to-say" {...formStep3.register('gender')} className="accent-[#1DB954] w-4 h-4" /> Prefer not to say
-                </label>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="spotify"
-              size="lg"
-              className="w-full h-12 rounded-full mt-6 font-bold"
-              disabled={registerMutation.isPending}
-            >
-              {registerMutation.isPending ? 'Signing up...' : 'Sign up'}
-            </Button>
-          </form>
         </div>
-      )}
 
+        {/* Right Side: Multi-step Form */}
+        <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-24 relative overflow-y-auto">
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-full max-w-[420px] bg-white/[0.02] border border-white/5 p-8 lg:p-12 shadow-[40px_40px_100px_rgba(0,0,0,0.5)] relative"
+          >
+            {/* Terminal Corner Markers */}
+            <div className="absolute -top-[1px] -left-[1px] w-4 h-4 border-t border-l border-[#1db954]" />
+            <div className="absolute -bottom-[1px] -right-[1px] w-4 h-4 border-b border-r border-white/20" />
+
+            {/* Progress PHASE Indicator */}
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-black text-[#1db954] uppercase tracking-widest">PHASE_0{step}/03</span>
+                  <div className="w-8 h-[1px] bg-[#1db954]/40" />
+                </div>
+                <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.4em]">REGISTRY_INIT</span>
+              </div>
+              <h1 className="text-4xl font-black uppercase tracking-tighter text-white italic">
+                {step === 1 ? 'Manifest_ID' : step === 2 ? 'Key_Init' : 'Entity_Data'}
+              </h1>
+            </div>
+
+            {serverMsg && (
+              <div className={`mb-8 border ${serverMsg.type === 'error' ? 'border-[#e22134]/30 bg-[#e22134]/5' : 'border-[#1db954]/30 bg-[#1db954]/5'} px-4 py-3`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-1.5 h-1.5 ${serverMsg.type === 'error' ? 'bg-[#e22134]' : 'bg-[#1db954]'} animate-pulse`} />
+                  <span className={`text-[10px] font-black uppercase tracking-widest leading-relaxed ${serverMsg.type === 'error' ? 'text-[#e22134]' : 'text-[#1db954]'}`}>
+                    {serverMsg.text}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
+                >
+                  <form onSubmit={formStep1.handleSubmit(handleNext1)} className="space-y-8">
+                    <div className="space-y-4">
+                      <Label htmlFor="email" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Registered_Email</Label>
+                      <Input
+                        id="email"
+                        placeholder="IDENTITY@DOMAIN.COM"
+                        className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-tighter focus-visible:ring-0 focus-visible:border-[#1db954] transition-all hover:border-white placeholder:text-white/10 uppercase"
+                        {...formStep1.register('email')}
+                        error={!!formStep1.formState.errors.email}
+                      />
+                      {formStep1.formState.errors.email && <p className="text-[9px] font-black uppercase tracking-widest text-[#e22134] mt-2 italic">_{formStep1.formState.errors.email.message as string}</p>}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isCheckingEmail}
+                      className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {isCheckingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Execute_Phase_01'}
+                    </button>
+                  </form>
+
+                  <div className="flex items-center gap-4 my-10">
+                    <div className="flex-1 h-[1px] bg-white/5"></div>
+                    <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.5em]">External_Links</span>
+                    <div className="flex-1 h-[1px] bg-white/5"></div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="w-full border border-white/10 h-14 font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-4 hover:bg-white hover:text-black transition-all bg-black"
+                    onClick={handleGoogleRegister}
+                  >
+                    <Icons.google className="h-4 w-4" />
+                    Register with Google
+                  </button>
+
+                  <div className="mt-12 text-center">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Identity Already Confirmed?</p>
+                    <Link to="/login" className="text-[11px] font-black text-[#1db954] uppercase tracking-[0.3em] hover:text-white transition-colors border-b-2 border-[#1db954]/20 pb-1">
+                      Return_to_Login
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
+                >
+                  <div className="space-y-2">
+                    <button type="button" onClick={() => setStep(1)} className="flex items-center gap-2 text-[9px] font-black text-white/30 hover:text-[#1db954] transition-colors uppercase tracking-[0.2em]">
+                      <ChevronLeft size={12} /> Return_to_Phase_01
+                    </button>
+                  </div>
+
+                  <form onSubmit={formStep2.handleSubmit(handleNext2)} className="space-y-8">
+                    <div className="space-y-4">
+                      <Label htmlFor="password" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Security_Key_Init</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••••••"
+                        className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-widest focus-visible:ring-0 focus-visible:border-[#1db954] transition-all hover:border-white placeholder:text-white/10"
+                        {...formStep2.register('password')}
+                        error={!!formStep2.formState.errors.password}
+                      />
+
+                      <div className="grid grid-cols-1 gap-2 pt-4">
+                        <ValidationItem label="1 ALPHA_CHAR" valid={hasLetter} active={!!passwordValue} />
+                        <ValidationItem label="1 NUM_OR_SPEC_CHAR" valid={hasNumberOrSpecials} active={!!passwordValue} />
+                        <ValidationItem label="MIN_10_UNITS" valid={hasMinLength} active={!!passwordValue} />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!isPasswordValid}
+                      className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:opacity-30"
+                    >
+                      Execute_Phase_02
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
+                >
+                  <div className="space-y-2">
+                    <button type="button" onClick={() => setStep(2)} className="flex items-center gap-2 text-[9px] font-black text-white/30 hover:text-[#1db954] transition-colors uppercase tracking-[0.2em]">
+                      <ChevronLeft size={12} /> Return_to_Phase_02
+                    </button>
+                  </div>
+
+                  <form onSubmit={formStep3.handleSubmit(handleFinalSubmit)} className="space-y-8 pb-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Entity_Alias</Label>
+                      <Input
+                        id="name"
+                        className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-tighter focus-visible:ring-0 focus-visible:border-[#1db954] transition-all"
+                        {...formStep3.register('name')}
+                        error={!!formStep3.formState.errors.name}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="dateOfBirth" className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Origination_Date</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        className="rounded-none border-x-0 border-t-0 border-b border-white/20 h-14 bg-transparent text-lg font-black tracking-tighter focus-visible:ring-0 focus-visible:border-[#1db954] transition-all invert"
+                        {...formStep3.register('dateOfBirth')}
+                        error={!!formStep3.formState.errors.dateOfBirth}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Entity_Categorization</Label>
+                      <div className="grid grid-cols-1 gap-3">
+                        {['man', 'woman', 'non-binary', 'prefer-not-to-say'].map((g) => (
+                          <label key={g} className="flex items-center justify-between p-3 border border-white/5 bg-white/[0.01] hover:bg-white/[0.05] cursor-pointer group transition-colors">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">{g.replace(/-/g, '_')}</span>
+                            <input type="radio" value={g} {...formStep3.register('gender')} className="accent-[#1db954] w-3 h-3" />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={registerMutation.isPending}
+                      className="w-full bg-[#1db954] text-black h-14 font-black uppercase tracking-[0.3em] text-xs hover:bg-white transition-all shadow-[8px_8px_0px_rgba(29,185,84,0.1)] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {registerMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Finalize_Registration'}
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          <div className="mt-12 lg:hidden opacity-20 flex flex-col items-center gap-2">
+            <span className="text-[7px] font-black uppercase tracking-[0.5em]">RingBeat Registry Core // v4.0.1</span>
+            <Fingerprint size={24} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+const TechnicalReadout = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  <div className="flex items-center gap-4">
+    <div className="w-8 h-8 flex items-center justify-center border border-white/10 bg-white/[0.02]">
+      <Icon size={14} className="text-[#1db954]" />
+    </div>
+    <div className="flex flex-col">
+      <span className="text-[7px] font-black uppercase tracking-[0.4em] text-white/40">{label}</span>
+      <span className="text-[11px] font-black uppercase tracking-widest text-white">{value}</span>
+    </div>
+  </div>
+);
+
+const ValidationItem = ({ label, valid, active }: { label: string; valid: boolean; active: boolean }) => (
+  <div className="flex items-center justify-between">
+    <span className={cn(
+      "text-[8px] font-black uppercase tracking-[0.2em] transition-colors",
+      active ? (valid ? "text-[#1db954]" : "text-[#e22134]") : "text-white/20"
+    )}>
+      {label}
+    </span>
+    {active && (
+      valid ? <CheckCircle2 size={10} className="text-[#1db954]" /> : <XCircle size={10} className="text-[#e22134]" />
+    )}
+  </div>
+);
+
+const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');

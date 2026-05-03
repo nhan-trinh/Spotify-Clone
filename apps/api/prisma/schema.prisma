@@ -29,6 +29,7 @@ enum SongStatus {
   PROCESSING // Đang xử lý FFmpeg (Phase 10)
   APPROVED // Đã duyệt, public
   REJECTED // Bị từ chối
+  FAILED // Lỗi kỹ thuật (FFmpeg...)
   ARCHIVED // Đã ẩn
   BANNED // Bị gỡ bỏ do vi phạm
 }
@@ -208,6 +209,7 @@ model Song {
   language     String?
   releaseDate  DateTime?
   status       SongStatus @default(PENDING)
+  statusReason String? // Lý do từ chối hoặc lỗi kỹ thuật
   playCount    Int        @default(0)
   likeCount    Int        @default(0)
   canvasUrl    String? // Video loop ngắn cho Spotify Canvas

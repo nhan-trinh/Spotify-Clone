@@ -1,12 +1,11 @@
 import { usePlayerStore } from '../../stores/player.store';
 import { Play, Pause, X, Music2, Cpu, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { useState } from 'react';
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SongContextMenu, useContextMenu } from './SongContextMenu';
 import { PlaylistContextMenu, usePlaylistContextMenu } from './PlaylistContextMenu';
 import { useLibraryStore } from '../../stores/library.store';
-import { motion } from 'framer-motion';
 
 interface MediaCardProps {
   id: string;
@@ -21,9 +20,9 @@ interface MediaCardProps {
   onRemove?: () => void;
 }
 
-export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic, ownerId, onRemove }: MediaCardProps) => {
+// Tách riêng để memo hoạt động đúng
+export const MediaCard = memo(({ id, title, subtitle, coverUrl, isCircle = false, songs = [], type = 'playlist', isPublic, ownerId, onRemove }: MediaCardProps) => {
   const { setContextAndPlay, currentContextId, isPlaying, togglePlay } = usePlayerStore();
-  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const { updatePlaylist } = useLibraryStore();
   const { menu: songMenu, openMenu: openSongMenu, closeMenu: closeSongMenu } = useContextMenu();
@@ -69,13 +68,10 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
   };
 
   return (
-    <motion.div
+    <div
       onClick={handleCardClick}
       onContextMenu={handleContextMenu}
-      whileHover={{ scale: 0.98 }}
-      className="bg-black p-3 flex flex-col border border-white/5 hover:border-white/20 transition-all cursor-pointer group relative overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="bg-black p-3 flex flex-col border border-white/5 hover:border-white/20 transition-colors cursor-pointer group relative overflow-hidden will-change-auto"
     >
       <div className={cn(
         "relative mb-4 w-full pb-[100%] overflow-hidden bg-[#050505] border border-white/5",
@@ -87,16 +83,18 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
           <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">{type}</span>
         </div>
 
-        {/* Scanline Effect */}
-        <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-20 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+        {/* Scanline Effect — CSS-only, không tốn JS */}
+        <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-[0.15] pointer-events-none transition-opacity duration-300 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
         {coverUrl ? (
           <img
             src={coverUrl}
             alt={title}
+            loading="lazy"
+            decoding="async"
             className={cn(
-              "absolute top-0 left-0 w-full h-full object-cover transition-all duration-1000",
-              isHovered ? "grayscale-0 scale-105" : "grayscale",
+              "absolute top-0 left-0 w-full h-full object-cover transition-[filter,transform] duration-500",
+              "grayscale group-hover:grayscale-0 group-hover:scale-105",
               isCircle && "p-2"
             )}
           />
@@ -114,10 +112,7 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
               e.stopPropagation();
               onRemove();
             }}
-            className={cn(
-              "absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/80 text-white hover:bg-white hover:text-black transition-all z-30 border border-white/10",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/80 text-white hover:bg-white hover:text-black transition-all z-30 border border-white/10 opacity-0 group-hover:opacity-100"
           >
             <X size={14} />
           </button>
@@ -127,15 +122,17 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
         <button
           onClick={handlePlayClick}
           className={cn(
-            "absolute bottom-0 right-0 w-12 h-12 flex items-center justify-center bg-[#1db954] text-black transition-all duration-500 z-30 shadow-[-4px_-4px_0px_rgba(0,0,0,0.3)]",
-            ((isHovered || isThisPlaying) && songs.length > 0) ? "translate-y-0 translate-x-0" : "translate-y-full translate-x-full"
+            "absolute bottom-0 right-0 w-12 h-12 flex items-center justify-center bg-[#1db954] text-black transition-transform duration-300 z-30 shadow-[-4px_-4px_0px_rgba(0,0,0,0.3)]",
+            (isThisPlaying && songs.length > 0)
+              ? "translate-y-0 translate-x-0"
+              : "translate-y-full translate-x-full group-hover:translate-y-0 group-hover:translate-x-0"
           )}
         >
           {isThisPlaying ? <Pause size={20} className="fill-current" /> : <Play size={20} className="fill-current ml-0.5" />}
         </button>
 
         {/* Industrial Corner Decor */}
-        <div className="absolute bottom-2 left-2 flex gap-1 items-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute bottom-2 left-2 flex gap-1 items-center z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
            <Cpu size={8} className="text-[#1db954]" />
            <Zap size={8} className="text-white/20" />
         </div>
@@ -144,7 +141,7 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
       <div className="flex flex-col gap-1 min-w-0 relative">
         <h3 className={cn(
           "font-black uppercase tracking-tighter truncate text-[13px] leading-tight transition-colors",
-          isThisPlaying ? "text-[#1db954]" : "text-white group-hover:text-white"
+          isThisPlaying ? "text-[#1db954]" : "text-white"
         )}>
           {title}
         </h3>
@@ -152,13 +149,13 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
            <p className="text-white/20 text-[8px] font-black uppercase tracking-widest truncate max-w-[70%]">
              {subtitle}
            </p>
-           <span className="text-[6px] font-black text-[#1db954] opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">
+           <span className="text-[6px] font-black text-[#1db954] opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
              STABLE_SIGNAL
            </span>
         </div>
       </div>
 
-      {/* Rendering menus outside any overflow-hidden containers */}
+      {/* Context Menus — rendered via portal, không ảnh hưởng layout */}
       {songMenu && (
         <SongContextMenu
           song={songMenu.song}
@@ -181,6 +178,8 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
           }}
         />
       )}
-    </motion.div>
+    </div>
   );
-};
+});
+
+MediaCard.displayName = 'MediaCard';

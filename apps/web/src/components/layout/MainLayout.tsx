@@ -10,7 +10,6 @@ import { GlobalBanner } from './GlobalBanner';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { socketService } from '../../lib/socket';
-import { Toaster } from 'sonner';
 import { cn } from '../../lib/utils';
 import { useUIStore } from '../../stores/ui.store';
 import { useFriendStore } from '../../stores/friend.store';
@@ -85,7 +84,6 @@ export const MainLayout = () => {
 
   return (
     <div className="flex h-screen w-full flex-col bg-[#000000] overflow-hidden text-white">
-      <Toaster richColors position="top-right" theme="dark" />
       <GlobalBanner />
       <ReportModal />
 

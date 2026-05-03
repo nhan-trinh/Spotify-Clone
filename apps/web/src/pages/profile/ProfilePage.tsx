@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '../../lib/api';
-import { User as UserIcon, BadgeCheck, AlertTriangle, Share2, Sparkles } from 'lucide-react';
+import { User as UserIcon, AlertTriangle, Share2, Activity, Cpu, Zap, Database, Fingerprint } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { VinylCard } from '../../components/shared/VinylCard';
+import { MediaCard } from '../../components/shared/MediaCard';
 import { useUIStore } from '../../stores/ui.store';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 export const ProfilePage = () => {
   const { id } = useParams();
@@ -27,7 +28,6 @@ export const ProfilePage = () => {
         const profileRes = await api.get(`/users/${targetId}`) as any;
         setProfile(profileRes.data);
 
-        // Fetch history only if it's the current user
         if (isOwnProfile) {
           const historyRes = await api.get('/users/history') as any;
           setHistory(historyRes.data);
@@ -35,7 +35,7 @@ export const ProfilePage = () => {
       } catch (error) {
         console.error('Failed to fetch profile:', error);
       } finally {
-        setTimeout(() => setLoading(false), 500);
+        setLoading(false);
       }
     };
 
@@ -47,7 +47,6 @@ export const ProfilePage = () => {
     try {
       await api.post(`/users/${profile.id}/follow`);
       setProfile({ ...profile, isFollowing: true, stats: { ...profile.stats, followers: profile.stats.followers + 1 } });
-
       const { socketService } = await import('../../lib/socket');
       socketService.emit('social:follow_success', { followingId: profile.id });
     } catch (error) {
@@ -65,231 +64,282 @@ export const ProfilePage = () => {
     }
   };
 
-  if (loading) {
-    return <ProfileSkeleton />;
-  }
+  if (loading) return <ProfileSkeleton />;
 
   if (!profile) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#121212] text-[#B3B3B3]">
-        <UserIcon size={80} className="mb-6 opacity-20" />
-        <h2 className="text-3xl font-bold text-white mb-2">Không tìm thấy hồ sơ</h2>
-        <p className="mb-6 text-sm">Người dùng này có thể không tồn tại.</p>
-        <Link to="/" className="px-6 py-2.5 rounded-full bg-white text-black font-bold hover:scale-105 transition-transform">
-          Quay lại trang chủ
+      <div className="flex-1 flex flex-col items-center justify-center bg-black text-white selection:bg-[#1db954] selection:text-black">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
+        <Fingerprint size={80} className="mb-6 text-white/10" />
+        <h2 className="text-3xl font-black uppercase tracking-tighter italic mb-2">Registry_Entry_Missing</h2>
+        <p className="mb-8 text-[10px] font-black uppercase tracking-widest text-white/30 italic">The requested identity could not be located in the primary database.</p>
+        <Link to="/" className="px-8 py-4 border border-white text-white font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-black transition-all">
+          Return_to_Core_Terminal
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#121212]">
-      
-      {/* VIBRANT & YOUTHFUL HEADER SECTION */}
-      <div className="relative pt-32 pb-10 px-8 flex items-end min-h-[380px] overflow-hidden bg-[#121212]">
-        
-        {/* Dynamic Mesh Background Layers */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          {/* Animated Vibrant Orbs */}
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[80%] bg-[#b721ff] blur-[140px] opacity-[0.25] rounded-full animate-aura" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[70%] bg-[#21d4fd] blur-[120px] opacity-[0.2] rounded-full animate-aura" style={{ animationDelay: '3s' }} />
-          <div className="absolute top-[10%] left-[30%] w-[40%] h-[40%] bg-[#1DB954] blur-[150px] opacity-[0.15] rounded-full animate-aura" style={{ animationDelay: '1s' }} />
-          
-          {/* Noise Overlay for Texture */}
-          <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+    <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
+      {/* ── Texture Overlay ── */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
-          {/* Smooth Gradient Fade to Content */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/70 to-transparent" />
-        </div>
+      <div className="px-6 lg:px-12 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
 
-        {/* Header Content */}
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-          
-          {/* The Vinyl Avatar */}
+        {/* ── IDENTITY MANIFEST (HEADER) ── */}
+        <motion.header
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-20 flex flex-col md:flex-row items-start gap-12 border-b border-white/10 pb-16 relative"
+        >
+          {/* Avatar Terminal */}
           <div className="relative group flex-shrink-0">
-            {/* Spinning subtle outer ring (Vinyl vibe) */}
-            <div className="absolute inset-[-10px] rounded-full border border-white/20 shadow-[0_0_50px_rgba(33,212,253,0.3)] animate-spin-slow opacity-60 flex items-center justify-center">
-               <div className="w-[90%] h-[90%] rounded-full border-[0.5px] border-white/10" />
-            </div>
-            
-            <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden shadow-2xl border-[4px] border-[#121212] bg-[#282828] z-10">
+            <div className="w-48 h-48 md:w-64 md:h-64 border-2 border-white/10 bg-[#050505] relative overflow-hidden group-hover:border-white transition-all duration-500 shadow-[30px_30px_80px_rgba(0,0,0,0.8)]">
               {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+                />
               ) : (
-                <UserIcon size={80} className="w-full h-full p-12 text-[#B3B3B3]" />
+                <div className="w-full h-full flex items-center justify-center bg-white/[0.02]">
+                  <UserIcon size={64} className="text-white/10" />
+                </div>
               )}
+
               {isOwnProfile && (
                 <Link
                   to="/settings"
-                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-bold tracking-widest uppercase backdrop-blur-sm"
+                  className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-sm z-20"
                 >
-                  Thay đổi
+                  Overwrite_Asset
                 </Link>
               )}
+
+              {/* Decorative Corner Label */}
+              <div className="absolute top-2 left-2 z-10">
+                <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.5em] bg-black/60 px-1 py-0.5">Asset_ID: {profile.id.slice(0, 6)}</span>
+              </div>
             </div>
+
+            {/* Visual Glitch Decor */}
+            <div className="absolute -bottom-4 -right-4 w-12 h-12 border-r-2 border-b-2 border-[#1db954] opacity-40" />
           </div>
 
-          <div className="flex flex-col gap-2 text-center md:text-left flex-1 pb-2">
-            <span className="text-xs font-black uppercase tracking-[0.2em] text-white/90 drop-shadow-md flex items-center justify-center md:justify-start gap-2 bg-white/10 w-max mx-auto md:mx-0 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
-              {profile.role === 'ARTIST' && <BadgeCheck size={14} className="text-[#3d91f4] fill-white" />}
-              {profile.role === 'ARTIST' ? 'Nghệ sĩ xác thực' : 'Hồ sơ người nghe'}
-            </span>
-            
-            <h1 className="text-5xl md:text-7xl lg:text-[6rem] font-black text-white tracking-tighter drop-shadow-lg leading-none mt-2 mb-2">
-              {profile.name}
-            </h1>
-            
-            <div className="flex items-center justify-center md:justify-start gap-3 text-white/80 text-sm font-medium mt-2">
-              <span><strong className="text-white">{profile.stats?.playlists || 0}</strong> Playlists</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-              <span><strong className="text-white">{(profile.stats?.followers || 0).toLocaleString()}</strong> Người theo dõi</span>
+          <div className="flex-1 flex flex-col gap-6 min-w-0">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-[2px] bg-[#1db954]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">
+                  {profile.role === 'ARTIST' ? 'ARCHITECT_LEVEL_AUTH' : 'IDENTITY_UNIT_LOGGED'}
+                </span>
+              </div>
+
+              <h1 className="text-6xl md:text-8xl lg:text-[7rem] font-black uppercase tracking-tighter leading-[0.8] italic truncate">
+                {profile.name}
+              </h1>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-center md:justify-start gap-3 mt-5">
+            <div className="flex flex-wrap items-center gap-10 mt-4">
+              <StatItem label="Signal_Collection" value={profile.stats?.playlists || 0} unit="SETS" />
+              <StatItem label="Network_Reach" value={profile.stats?.followers || 0} unit="NODES" />
+              <StatItem label="Connectivity" value={profile.stats?.following || 0} unit="NODES" />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 mt-8">
               {!isOwnProfile && (
-                currentUser?.role === 'ARTIST' && (profile.role === 'USER_FREE' || profile.role === 'USER_PREMIUM') ? (
-                  <span className="px-6 py-2.5 rounded-full border border-[#b721ff]/50 bg-[#b721ff]/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                    <Sparkles size={14} />
-                    Fan hâm mộ
-                  </span>
-                ) : (
-                  <button
-                    onClick={profile.isFollowing ? handleUnfollow : handleFollow}
-                    className={cn(
-                      "px-8 py-2.5 rounded-full font-bold text-sm transition-all duration-300 active:scale-95 uppercase tracking-wider",
-                      profile.isFollowing
-                        ? "bg-transparent text-white border border-white/40 hover:border-white"
-                        : "bg-gradient-to-r from-[#21d4fd] to-[#b721ff] text-white hover:scale-105 shadow-[0_0_15px_rgba(183,33,255,0.4)] border-none"
-                    )}
-                  >
-                    {profile.isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                  </button>
-                )
+                <button
+                  onClick={profile.isFollowing ? handleUnfollow : handleFollow}
+                  className={cn(
+                    "px-10 py-4 font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-500",
+                    profile.isFollowing
+                      ? "border border-white text-white hover:bg-white hover:text-black"
+                      : "bg-[#1db954] text-black border border-[#1db954] hover:bg-white hover:border-white shadow-[10px_10px_0px_rgba(29,185,84,0.1)]"
+                  )}
+                >
+                  {profile.isFollowing ? 'Halt_Observation' : 'Initialize_Link'}
+                </button>
               )}
 
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  toast.success('Đã sao chép liên kết hồ sơ');
+                  toast.success('Asset link captured to buffer');
                 }}
-                className="p-3 rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/20 transition-all active:scale-90 backdrop-blur-md"
-                title="Sao chép liên kết"
+                className="p-4 border border-white/10 text-white/40 hover:text-white hover:border-white transition-all bg-[#050505]"
+                title="Capture_Link"
               >
-                <Share2 size={20} />
+                <Share2 size={16} />
               </button>
-              
+
               {!isOwnProfile && currentUser && (
                 <button
                   onClick={() => openReportModal(profile.id, 'USER', profile.name)}
-                  className="p-3 rounded-full border border-white/10 bg-white/5 text-white hover:text-red-500 hover:bg-red-500/20 transition-all active:scale-90 backdrop-blur-md"
-                  title="Báo cáo người dùng"
+                  className="p-4 border border-white/10 text-white/20 hover:text-red-500 hover:border-red-500 transition-all bg-[#050505]"
                 >
-                  <AlertTriangle size={20} />
+                  <AlertTriangle size={16} />
                 </button>
               )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* MAIN CONTENT (Structured Grid layout with VinylCards) */}
-      <div className="px-8 pb-24 pt-8 space-y-12 bg-[#121212] relative z-20">
+          {/* Editorial Vertical Spine (Right) */}
+          <div className="hidden lg:flex absolute right-0 top-0 bottom-16 w-8 items-center justify-center border-l border-white/10 opacity-20 pointer-events-none">
+            <span className="text-[7px] font-black uppercase tracking-[0.6em] whitespace-nowrap rotate-90 origin-center">
+              PROFILE_SYSTEM_V4.0 // RINGBEAT_INTERNAL_ARCHIVE
+            </span>
+          </div>
+        </motion.header>
 
-        {/* Recently Played */}
-        {isOwnProfile && (
-          <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 fill-mode-both">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white hover:underline cursor-pointer">Giai điệu gần đây</h2>
-              <span className="text-xs font-bold text-[#B3B3B3] hover:text-white cursor-pointer uppercase tracking-widest">Xem tất cả</span>
-            </div>
+        {/* ── MANIFEST SECTIONS ── */}
+        <div className="space-y-32">
 
-            {history.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                {history.slice(0, 6).map((song: any) => (
-                  <VinylCard
-                    key={song.id}
-                    item={song}
-                    type="song"
+          {/* 01: RECENT ACTIVITY */}
+          {isOwnProfile && (
+            <ManifestSection title="Signal_History" index="01">
+              {history.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
+                  {history.slice(0, 6).map((song: any) => (
+                    <MediaCard
+                      key={song.id}
+                      id={song.id}
+                      title={song.title}
+                      subtitle={song.artistName}
+                      coverUrl={song.coverUrl}
+                      type="song"
+                      songs={[song]}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState label="Archive_History_Empty" />
+              )}
+            </ManifestSection>
+          )}
+
+          {/* 02: DISCOGRAPHY (Artist only) */}
+          {profile.role === 'ARTIST' && profile.albums?.length > 0 && (
+            <ManifestSection title="Master_Archives" index="02">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
+                {profile.albums.map((album: any) => (
+                  <MediaCard
+                    key={album.id}
+                    id={album.id}
+                    title={album.title}
+                    subtitle="COLLECTION"
+                    coverUrl={album.coverUrl}
+                    type="album"
+                  />
+                ))}
+              </div>
+            </ManifestSection>
+          )}
+
+          {/* 03: PUBLIC COLLECTIONS */}
+          <ManifestSection title="Network_Libraries" index={isOwnProfile ? "02" : "01"}>
+            {profile.playlists?.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
+                {profile.playlists.map((pl: any) => (
+                  <MediaCard
+                    key={pl.id}
+                    id={pl.id}
+                    title={pl.title}
+                    subtitle={`SETS // ${pl.ownerName || profile.name}`}
+                    coverUrl={pl.coverUrl}
+                    type="playlist"
+                    songs={pl.songs}
+                    isPublic={pl.isPublic}
+                    ownerId={pl.ownerId}
                   />
                 ))}
               </div>
             ) : (
-              <div className="text-[#B3B3B3] italic text-sm py-4">Chưa có lịch sử nghe nhạc. Hãy bắt đầu nghe ngay! 🎵</div>
+              <div className="py-24 border border-dashed border-white/5 flex flex-col items-center justify-center opacity-20 italic">
+                <Database size={40} className="mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-[0.4em]">No_Public_Data_Detected</p>
+              </div>
             )}
-          </section>
-        )}
+          </ManifestSection>
 
-        {/* Discography (Artist) */}
-        {profile.role === 'ARTIST' && profile.albums?.length > 0 && (
-          <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white hover:underline cursor-pointer">Danh sách đĩa nhạc</h2>
-              <span className="text-xs font-bold text-[#B3B3B3] hover:text-white cursor-pointer uppercase tracking-widest">Xem tất cả</span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-              {profile.albums.map((album: any) => (
-                <VinylCard
-                  key={album.id}
-                  item={album}
-                  type="album"
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        </div>
 
-        {/* Public Playlists */}
-        <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white hover:underline cursor-pointer">Bộ sưu tập công khai</h2>
+        {/* ── FOOTER STATUS ── */}
+        <footer className="mt-40 pt-12 border-t border-white/10 opacity-20 flex justify-between items-center">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Profile_Terminal_Success</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-white">RingBeat Data Archives // Cluster: User-Registry-V4</span>
           </div>
-
-          {profile.playlists?.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-              {profile.playlists.map((pl: any) => (
-                <VinylCard
-                  key={pl.id}
-                  item={pl}
-                  type="playlist"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-[#B3B3B3] italic text-sm">Người dùng này đang giấu kín gu âm nhạc của mình.</div>
-          )}
-        </section>
-
+          <div className="flex gap-8">
+            <Cpu size={14} />
+            <Zap size={14} />
+          </div>
+        </footer>
       </div>
     </div>
   );
 };
 
+/* ── COMPONENT ABSTRACTIONS (Optimized) ── */
+
+const StatItem = memo(({ label, value, unit }: { label: string; value: number | string; unit: string }) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">{label}</span>
+    <div className="flex items-baseline gap-2">
+      <span className="text-3xl font-black italic tracking-tighter text-white">
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </span>
+      <span className="text-[8px] font-black text-[#1db954]/60 uppercase tracking-widest">{unit}</span>
+    </div>
+  </div>
+));
+StatItem.displayName = 'StatItem';
+
+const ManifestSection = memo(({ title, index, children }: { title: string; index: string; children: React.ReactNode }) => (
+  <section className="w-full">
+    <div className="flex items-center gap-4 mb-10">
+      <div className="flex flex-col">
+        <span className="text-[10px] font-black text-[#1db954] mb-1 italic">{index}</span>
+        <h2 className="text-3xl font-black uppercase tracking-tighter italic text-white">{title}</h2>
+      </div>
+      <div className="h-[1px] flex-1 bg-white/10 mt-6" />
+    </div>
+    {children}
+  </section>
+));
+ManifestSection.displayName = 'ManifestSection';
+
+const EmptyState = memo(({ label }: { label: string }) => (
+  <div className="py-24 border border-white/5 bg-[#050505] flex flex-col items-center justify-center opacity-40">
+    <Activity size={32} className="mb-4 text-white/10" />
+    <p className="text-[9px] font-black uppercase tracking-[0.5em] italic">{label}</p>
+  </div>
+));
+EmptyState.displayName = 'EmptyState';
+
 const ProfileSkeleton = () => (
-  <div className="flex-1 overflow-y-auto bg-[#121212]">
-    <div className="h-[380px] flex items-end p-8 bg-[#181818]/50">
-      <div className="flex flex-col md:flex-row items-center md:items-end gap-10 w-full">
-        <Skeleton className="w-48 h-48 md:w-56 md:h-56 rounded-full" />
-        <div className="space-y-4 flex-1 pb-2 w-full">
-          <Skeleton className="h-6 w-32 rounded-full mx-auto md:mx-0" />
-          <Skeleton className="h-20 w-3/4 max-w-[500px] rounded-lg mx-auto md:mx-0" />
-          <div className="flex justify-center md:justify-start gap-4">
-            <Skeleton className="h-12 w-32 rounded-full" />
-            <Skeleton className="h-12 w-12 rounded-full" />
+  <div className="flex-1 w-full min-h-full bg-black overflow-hidden relative">
+    <div className="absolute inset-0 opacity-[0.03] bg-noise" />
+    <div className="px-6 lg:px-12 pt-24 space-y-16">
+      <div className="flex flex-col md:flex-row items-start gap-12 border-b border-white/10 pb-16">
+        <Skeleton className="w-48 h-48 md:w-64 md:h-64 rounded-none border border-white/10" />
+        <div className="space-y-6 flex-1 w-full pt-4">
+          <Skeleton className="h-4 w-32 bg-white/5" />
+          <Skeleton className="h-32 w-full bg-white/5" />
+          <div className="flex gap-10">
+            <Skeleton className="h-12 w-24 bg-white/5" />
+            <Skeleton className="h-12 w-24 bg-white/5" />
           </div>
         </div>
       </div>
-    </div>
-    <div className="p-8 space-y-12">
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-48 rounded-lg" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+      <div className="space-y-12">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-48 bg-white/5" />
+          <Skeleton className="h-[1px] flex-1 bg-white/5" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="space-y-4">
-              <Skeleton className="aspect-square w-full rounded-xl" />
-              <Skeleton className="h-5 w-full rounded-md" />
-              <Skeleton className="h-4 w-2/3 rounded-md" />
-            </div>
+            <Skeleton key={i} className="aspect-square bg-white/5 border border-white/5" />
           ))}
         </div>
       </div>

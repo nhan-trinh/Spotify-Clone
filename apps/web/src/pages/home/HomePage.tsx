@@ -1,10 +1,10 @@
+import { useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { MediaCard } from '../../components/shared/MediaCard';
 import { RecentCard } from '../../components/shared/RecentCard';
 import { MediaCarousel } from '../../components/shared/MediaCarousel';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Cpu, Database, Zap, Activity } from 'lucide-react';
 
 export const HomePage = () => {
@@ -13,7 +13,8 @@ export const HomePage = () => {
     queryFn: async () => {
       const res = await api.get('/home/feed') as any;
       return res.data;
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 phút, giảm network request khi navigate về Home
   });
 
   const { data: personalizedData } = useQuery({
@@ -25,15 +26,16 @@ export const HomePage = () => {
       } catch (e) {
         return null;
       }
-    }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const getGreeting = () => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Morning_Archive';
     if (hour < 18) return 'Afternoon_Stream';
     return 'Evening_Session';
-  };
+  }, []);
 
   if (!feedData) {
     return (
@@ -58,17 +60,13 @@ export const HomePage = () => {
       <div className="px-6 lg:px-12 pt-20 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
         
         {/* ── HERO SECTION (Refined) ── */}
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-16 border-b border-white/10 pb-12"
-        >
+        <section className="mb-16 border-b border-white/10 pb-12">
           <div className="flex items-center gap-3 mb-4">
              <div className="w-8 h-[2px] bg-[#1db954]" />
-             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-[#1db954]">System_Ready // {new Date().toLocaleTimeString()}</span>
+             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-[#1db954]">System_Ready</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
-             {getGreeting()}
+             {greeting}
           </h1>
           <div className="flex items-center gap-6 mt-6 opacity-30">
              <div className="flex items-center gap-2">
@@ -80,7 +78,7 @@ export const HomePage = () => {
                 <span className="text-[9px] font-black uppercase tracking-widest">Archive_v4</span>
              </div>
           </div>
-        </motion.section>
+        </section>
 
         {/* ── 01: RECENTLY PLAYED ── */}
         <Section title="Recently Played" index="01">
@@ -217,7 +215,7 @@ export const HomePage = () => {
   );
 };
 
-const Section = ({ title, index, showAllLink, children }: { title: string; index: string; showAllLink?: string; children: React.ReactNode }) => (
+const Section = memo(({ title, index, showAllLink, children }: { title: string; index: string; showAllLink?: string; children: React.ReactNode }) => (
   <section className="mb-20 w-full">
     <div className="flex items-end justify-between mb-8 border-b border-white/5 pb-4">
       <div className="flex flex-col gap-1">
@@ -237,4 +235,5 @@ const Section = ({ title, index, showAllLink, children }: { title: string; index
     </div>
     {children}
   </section>
-);
+));
+Section.displayName = 'Section';

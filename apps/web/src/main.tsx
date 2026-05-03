@@ -17,13 +17,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <Toaster
-        position="bottom-center"
+        position="bottom-right"
         toastOptions={{
+          className: 'brutalist-toast',
           style: {
-            background: '#282828',
+            background: '#000000',
             color: '#ffffff',
-            border: '1px solid #333',
-            borderRadius: '8px',
+            border: '2px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '0px',
+            fontFamily: 'inherit',
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            fontWeight: '900',
+            letterSpacing: '0.1em',
+            boxShadow: '10px 10px 0px rgba(0,0,0,0.5)',
           },
         }}
       />
