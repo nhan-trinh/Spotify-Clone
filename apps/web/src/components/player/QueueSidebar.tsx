@@ -35,7 +35,7 @@ export const QueueSidebar = () => {
         : "translate-x-full opacity-0 pointer-events-none"
     )}>
       {/* Texture Overlay (Grain) */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay bg-noise" />
 
       {/* Giant Background Label */}
       <div className="absolute -right-8 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center rotate-90 whitespace-nowrap">

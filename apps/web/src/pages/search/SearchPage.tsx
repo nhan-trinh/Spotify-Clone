@@ -5,20 +5,20 @@ import { api } from '../../lib/api';
 import { MediaCard } from '../../components/shared/MediaCard';
 import { SearchFilterChips } from '../../components/search/SearchFilterChips';
 import { TopResultCard } from '../../components/search/TopResultCard';
-import { Play } from 'lucide-react';
+import { Play, Search as SearchIcon, Zap, Cpu, Database } from 'lucide-react';
 import { usePlayerStore } from '../../stores/player.store';
+import { motion } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 const BROWSE_CATEGORIES = [
-  { id: '1', name: 'Podcasts', color: 'bg-[#E13300]' },
-  { id: '2', name: 'Cho bạn', color: 'bg-[#1E3264]' },
-  { id: '3', name: 'Mới phát hành', color: 'bg-[#E8115B]' },
-  { id: '4', name: 'Nhạc Việt', color: 'bg-[#148A08]' },
-  { id: '5', name: 'Pop', color: 'bg-[#D84000]' },
-  { id: '6', name: 'K-Pop', color: 'bg-[#148A08]' },
-  { id: '7', name: 'Chill', color: 'bg-[#503750]' },
-  { id: '8', name: 'Hip-Hop', color: 'bg-[#BC5900]' },
-  { id: '9', name: 'Buồn', color: 'bg-[#8D67AB]' },
-  { id: '10', name: 'Tập luyện', color: 'bg-[#777777]' },
+  { id: '01', name: 'Podcasts_Archive', color: 'border-white/20' },
+  { id: '02', name: 'Personal_Feed', color: 'border-[#1db954]/40' },
+  { id: '03', name: 'Fresh_Units', color: 'border-white/20' },
+  { id: '04', name: 'Vietnamese_Signal', color: 'border-white/20' },
+  { id: '05', name: 'Pop_Manifest', color: 'border-[#1db954]/40' },
+  { id: '06', name: 'Chill_Signals', color: 'border-white/20' },
+  { id: '07', name: 'Industrial_HipHop', color: 'border-white/20' },
+  { id: '08', name: 'Vocal_Architecture', color: 'border-[#1db954]/40' },
 ];
 
 export const SearchPage = () => {
@@ -38,20 +38,61 @@ export const SearchPage = () => {
 
   if (!query) {
     return (
-      <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
-        {/* Recent Searches Section */}
+      <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
+        {/* Grain Overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
-        <h2 className="text-2xl font-bold mb-6">Duyệt tìm tất cả</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {BROWSE_CATEGORIES.map((cat) => (
-            <div
-              key={cat.id}
-              className={`relative overflow-hidden rounded-lg aspect-square p-4 cursor-pointer hover:scale-[1.02] hover:brightness-110 transition-all ${cat.color}`}
-            >
-              <span className="text-xl font-bold tracking-tight">{cat.name}</span>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-black/20 rounded-full rotate-12 blur-sm"></div>
+        <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
+          <motion.header
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-16 flex flex-col gap-4 border-b border-white/10 pb-12"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-[2px] bg-[#1db954]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Query_Manifest_V4</span>
             </div>
-          ))}
+            <h1 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-[0.8] italic">
+              Discovery_Console
+            </h1>
+          </motion.header>
+
+          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-8 flex items-center gap-4">
+            Explore_All_Categories
+            <div className="h-[1px] flex-1 bg-white/5" />
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+            {BROWSE_CATEGORIES.map((cat) => (
+              <motion.div
+                key={cat.id}
+                whileHover={{ scale: 0.98, backgroundColor: '#fff', color: '#000' }}
+                className={cn(
+                  "relative overflow-hidden aspect-[16/9] p-6 cursor-pointer border transition-all duration-500 group bg-[#050505]",
+                  cat.color
+                )}
+              >
+                <div className="flex flex-col h-full justify-between relative z-10">
+                  <span className="text-[8px] font-black italic text-[#1db954] group-hover:text-black transition-colors">{cat.id}</span>
+                  <span className="text-lg md:text-xl font-black uppercase tracking-tighter italic leading-none">{cat.name}</span>
+                </div>
+                {/* Tech noise background */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-5 pointer-events-none bg-noise" />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* FOOTER STATUS */}
+          <footer className="mt-32 pt-12 border-t border-white/10 opacity-20 flex justify-between items-center">
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Search_Index_Active</span>
+              <span className="text-[7px] font-black uppercase tracking-widest text-white">RingBeat Industrial Discovery // v4.0.1</span>
+            </div>
+            <div className="flex gap-8">
+              <Database size={14} />
+              <Zap size={14} />
+            </div>
+          </footer>
         </div>
       </div>
     );
@@ -59,16 +100,15 @@ export const SearchPage = () => {
 
   if (loading) {
     return (
-      <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto">
-        <div className="h-8 w-48 bg-white/10 rounded mb-6 animate-pulse"></div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse">
-              <div className="w-full aspect-square bg-white/10 rounded mb-4 shadow-[0_8px_24px_rgba(0,0,0,0.5)]"></div>
-              <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-white/10 rounded w-1/2"></div>
-            </div>
-          ))}
+      <div className="flex-1 w-full min-h-full bg-black p-8 lg:p-16 flex flex-col gap-12">
+        <div className="h-24 bg-white/5 animate-pulse border border-white/10" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-5 h-64 bg-white/5 animate-pulse border border-white/10" />
+          <div className="lg:col-span-7 space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 bg-white/5 border border-white/10 animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -78,10 +118,11 @@ export const SearchPage = () => {
 
   if (!hasResults) {
     return (
-      <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
-        <div className="text-center mt-20">
-          <h2 className="text-2xl font-bold mb-2">Không tìm thấy kết quả nào cho "{query}"</h2>
-          <p className="text-[#B3B3B3]">Vui lòng kiểm tra lại chính tả hoặc dùng các từ khóa khác.</p>
+      <div className="flex-1 w-full min-h-full bg-black flex items-center justify-center p-8">
+        <div className="text-center">
+          <SearchIcon size={48} className="text-white/10 mb-6 mx-auto" />
+          <h2 className="text-2xl font-black uppercase tracking-widest italic text-white/40">No_Matches_Found_For: {query}</h2>
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/20 mt-2 italic">Refine_Query_Signal</p>
         </div>
       </div>
     );
@@ -90,166 +131,194 @@ export const SearchPage = () => {
   const topSongs = results.songs?.slice(0, 4) || [];
 
   return (
-    <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
-      <div className="mb-6">
-        <SearchFilterChips activeTab={activeTab} onTabChange={setActiveTab} />
-      </div>
+    <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
+      {/* Grain Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
-      <div className="flex flex-col gap-10">
-        {/* TOP RESULT & SONGS - Chỉ hiện ở tab ALL */}
-        {activeTab === 'all' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Cột trái: Top Result */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              <h2 className="text-2xl font-bold">Kết quả hàng đầu</h2>
-              {results.topResult && <TopResultCard result={results.topResult} />}
+      <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
+        <div className="mb-24 border-b border-white/10 pb-16 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-end gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-[0.8] mb-6">Search_Manifest</h1>
+            <div className="flex items-center gap-4">
+              <div className="h-[2px] w-16 bg-[#1db954]" />
+              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/30 italic">Query_Origin: "{query}"</p>
             </div>
+          </motion.div>
 
-            {/* Cột phải: Bài hát tiêu biểu */}
-            <div className="lg:col-span-7 flex flex-col gap-4">
-              <h2 className="text-2xl font-bold">Bài hát</h2>
-              <div className="flex flex-col">
-                {topSongs.map((song: any) => (
-                  <div
-                    key={song.id}
-                    onClick={() => setContextAndPlay([{
-                      id: song.id,
-                      title: song.title,
-                      artistName: song.artistName,
-                      artistId: song.artistId,
-                      coverUrl: song.coverUrl,
-                      audioUrl: song.audioUrl,
-                      canvasUrl: song.canvasUrl,
-                      duration: song.duration,
-                      hasLyrics: song.hasLyrics,
-                    }], 0, song.id)}
-                    className="group flex items-center gap-4 p-2 rounded-md hover:bg-white/10 transition-colors cursor-pointer"
-                  >
-                    <div className="relative w-10 h-10">
-                      <img src={song.coverUrl} className="w-full h-full object-cover rounded" alt={song.title} />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 rounded">
-                        <Play size={16} className="fill-current text-white" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col items-start lg:items-end gap-4"
+          >
+            <SearchFilterChips activeTab={activeTab} onTabChange={setActiveTab} />
+            <div className="flex items-center gap-2 opacity-10">
+              <span className="text-[8px] font-black uppercase tracking-[0.3em]">Filtering_Protocol_Active</span>
+              <Database size={10} />
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="flex flex-col gap-20">
+          {/* TOP RESULT & SONGS */}
+          {activeTab === 'all' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+              {/* Left Column: Top Result */}
+              <div className="lg:col-span-5 flex flex-col gap-6">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1db954] flex items-center gap-3">
+                  Primary_Source_Identified
+                  <div className="h-[1px] flex-1 bg-[#1db954]/20" />
+                </h2>
+                {results.topResult && <TopResultCard result={results.topResult} />}
+              </div>
+
+              {/* Right Column: Featured Songs */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 flex items-center gap-3">
+                  Transmission_Units
+                  <div className="h-[1px] flex-1 bg-white/5" />
+                </h2>
+                <div className="flex flex-col gap-1">
+                  {topSongs.map((song: any, idx: number) => (
+                    <motion.div
+                      key={song.id}
+                      onClick={() => setContextAndPlay([{
+                        id: song.id, title: song.title, artistName: song.artistName, artistId: song.artistId,
+                        coverUrl: song.coverUrl, audioUrl: song.audioUrl, canvasUrl: song.canvasUrl,
+                        duration: song.duration, hasLyrics: song.hasLyrics,
+                      }], 0, song.id)}
+                      whileHover={{ x: 4 }}
+                      className="group flex items-center gap-6 p-4 border-b border-white/5 hover:bg-white transition-all cursor-pointer relative overflow-hidden"
+                    >
+                      <div className="text-[10px] font-black italic text-white/20 group-hover:text-black/40 w-6">0{idx + 1}</div>
+                      <div className="relative w-12 h-12 border border-white/10 overflow-hidden flex-shrink-0">
+                        <img src={song.coverUrl} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt={song.title} />
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#1db954] opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Play size={16} className="fill-black text-black" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 flex flex-col min-w-0">
-                      <span className="font-bold truncate text-sm">{song.title}</span>
-                      <span className="text-xs text-[#b3b3b3] truncate">{song.artistName}</span>
-                    </div>
-                    <span className="text-xs text-[#b3b3b3] p-2">
-                      {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
-                    </span>
-                  </div>
-                ))}
+                      <div className="flex-1 flex flex-col min-w-0">
+                        <span className="text-[13px] font-black uppercase tracking-tighter truncate leading-none mb-1 group-hover:text-black">{song.title}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/30 group-hover:text-black/60">{song.artistName}</span>
+                      </div>
+                      <span className="text-[10px] font-black italic text-white/20 group-hover:text-black/40">
+                        {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
+                      </span>
+                      {/* Hover Progress Tab */}
+                      <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#1db954] translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
+
+          {/* GRID RESULTS */}
+          {(activeTab === 'all' || activeTab === 'artists') && results.artists?.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-4">
+                Architect_Profiles_Located
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                {results.artists.map((artist: any) => (
+                  <MediaCard
+                    key={artist.id} id={artist.id} title={artist.stageName} subtitle="Architect"
+                    coverUrl={artist.avatarUrl} isCircle={true} type="artist"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(activeTab === 'all' || activeTab === 'albums') && results.albums?.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-4">
+                Discography_Units_Located
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                {results.albums.map((album: any) => (
+                  <MediaCard
+                    key={album.id} id={album.id} title={album.title} subtitle={album.artistName}
+                    coverUrl={album.coverUrl} type="album"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(activeTab === 'all' || activeTab === 'playlists') && results.playlists?.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-4">
+                Archive_Sets_Located
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                {results.playlists.map((playlist: any) => (
+                  <MediaCard
+                    key={playlist.id} id={playlist.id} title={playlist.title} subtitle={playlist.description || "MANIFEST_SET"}
+                    coverUrl={playlist.coverUrl} type="playlist"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(activeTab === 'all' || activeTab === 'profiles') && results.users?.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-4">
+                User_Entities_Located
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                {results.users.map((user: any) => (
+                  <MediaCard
+                    key={user.id} id={user.id} title={user.name} subtitle="Entity"
+                    coverUrl={user.avatarUrl} isCircle={true} type="profile"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'songs' && results.songs?.length > 0 && (
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-4">
+                Individual_Transmission_Signals
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                {results.songs.map((song: any) => (
+                  <MediaCard
+                    key={song.id} id={song.id} title={song.title} subtitle={song.artistName}
+                    coverUrl={song.coverUrl} type="song"
+                    songs={[{
+                      id: song.id, title: song.title, artistName: song.artistName, artistId: song.artistId,
+                      coverUrl: song.coverUrl, audioUrl: song.audioUrl, canvasUrl: song.canvasUrl,
+                      duration: song.duration, hasLyrics: song.hasLyrics,
+                    }]}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* FOOTER STATUS */}
+        <footer className="mt-40 pt-12 border-t border-white/10 opacity-20 flex justify-between items-center">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Search_Operation_Completed</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-white">RingBeat Data Discovery Terminal // Signal: Strong</span>
           </div>
-        )}
-
-        {/* GRID RESULTS - Hiện tùy theo tab */}
-        {(activeTab === 'all' || activeTab === 'artists') && results.artists?.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Nghệ sĩ</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {results.artists.map((artist: any) => (
-                <MediaCard
-                  key={artist.id}
-                  id={artist.id}
-                  title={artist.stageName}
-                  subtitle="Nghệ sĩ"
-                  coverUrl={artist.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3'}
-                  isCircle={true}
-                  type="artist"
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {(activeTab === 'all' || activeTab === 'albums') && results.albums?.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Album</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {results.albums.map((album: any) => (
-                <MediaCard
-                  key={album.id}
-                  id={album.id}
-                  title={album.title}
-                  subtitle={album.artistName}
-                  coverUrl={album.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=200&h=200'}
-                  type="album"
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {(activeTab === 'all' || activeTab === 'playlists') && results.playlists?.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Playlist</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {results.playlists.map((playlist: any) => (
-                <MediaCard
-                  key={playlist.id}
-                  id={playlist.id}
-                  title={playlist.title}
-                  subtitle={playlist.description || "Danh sách phát"}
-                  coverUrl={playlist.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=200&h=200'}
-                  type="playlist"
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {(activeTab === 'all' || activeTab === 'profiles') && results.users?.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Người dùng</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {results.users.map((user: any) => (
-                <MediaCard
-                  key={user.id}
-                  id={user.id}
-                  title={user.name}
-                  subtitle="Người dùng"
-                  coverUrl={user.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200'}
-                  isCircle={true}
-                  type="profile"
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Khi xem tab Songs thì hiện Grid lớn cho Songs */}
-        {activeTab === 'songs' && results.songs?.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Bài hát</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {results.songs.map((song: any) => (
-                <MediaCard
-                  key={song.id}
-                  id={song.id}
-                  title={song.title}
-                  subtitle={song.artistName}
-                  coverUrl={song.coverUrl || 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?auto=format&fit=crop&q=80&w=200&h=200'}
-                  type="song"
-                  songs={[{
-                    id: song.id,
-                    title: song.title,
-                    artistName: song.artistName,
-                    artistId: song.artistId,
-                    coverUrl: song.coverUrl,
-                    audioUrl: song.audioUrl,
-                    canvasUrl: song.canvasUrl,
-                    duration: song.duration,
-                    hasLyrics: song.hasLyrics,
-                  }]}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
+          <div className="flex gap-8">
+            <Cpu size={14} />
+            <Zap size={14} />
+          </div>
+        </footer>
       </div>
     </div>
   );

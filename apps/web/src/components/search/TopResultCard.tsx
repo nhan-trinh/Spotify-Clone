@@ -1,7 +1,8 @@
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Activity, Cpu, Zap, BadgeCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../../stores/player.store';
+import { motion } from 'framer-motion';
 
 interface TopResultCardProps {
   result: {
@@ -25,9 +26,7 @@ export const TopResultCard = ({ result }: TopResultCardProps) => {
   
   const title = result.title || result.stageName || 'Unknown';
   const imageUrl = result.coverUrl || result.avatarUrl || 'https://images.unsplash.com/photo-1549834125-82d3c48159a3?auto=format&fit=crop&q=80&w=400&h=400';
-  const typeLabel = result.type === 'artist' ? 'Nghệ sĩ' : 
-                    result.type === 'song' ? 'Bài hát' :
-                    result.type === 'album' ? 'Album' : 'Playlist';
+  const typeLabel = result.type.toUpperCase();
 
   const isThisPlaying = currentContextId === result.id && isPlaying;
 
@@ -47,7 +46,6 @@ export const TopResultCard = ({ result }: TopResultCardProps) => {
     } else if (currentContextId === result.id) {
       togglePlay();
     }
-    // TODO: Fetch songs for artist/album if needed, for now just basic support
   };
 
   const handleClick = () => {
@@ -58,49 +56,87 @@ export const TopResultCard = ({ result }: TopResultCardProps) => {
   };
 
   return (
-    <div 
+    <motion.div 
       onClick={handleClick}
-      className="bg-[#181818] hover:bg-[#282828] p-5 rounded-lg transition-all cursor-pointer group relative flex flex-col gap-5 h-full"
+      whileHover={{ scale: 0.99 }}
+      className="bg-[#050505] p-8 border border-white/10 hover:bg-white transition-all duration-500 cursor-pointer group relative flex flex-col gap-8 h-full overflow-hidden"
     >
-      <div className="relative w-24 h-24 sm:w-32 sm:h-32">
-        <img 
-          src={imageUrl} 
-          alt={title} 
-          className={cn(
-            "w-full h-full object-cover shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
-            result.type === 'artist' ? "rounded-full" : "rounded-md"
-          )}
-        />
+      {/* Technical Labels */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-0.5 pointer-events-none mix-blend-difference">
+        <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.4em]">PRIMARY_SOURCE_REF_{result.id.slice(0, 6)}</span>
+        <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">TYPE: {typeLabel}</span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black text-white tracking-tighter truncate">
+      {/* Scanline Effect */}
+      <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+
+      {/* Artwork Container */}
+      <div className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0">
+        <div className={cn(
+           "w-full h-full border border-white/10 overflow-hidden bg-black relative",
+           result.type === 'artist' ? "rounded-full p-2" : "rounded-none"
+        )}>
+          <img 
+            src={imageUrl} 
+            alt={title} 
+            className={cn(
+              "w-full h-full object-cover transition-all duration-1000",
+              "grayscale group-hover:grayscale-0 scale-110 group-hover:scale-100"
+            )}
+          />
+        </div>
+        {/* Verification Icon for Artists */}
+        {result.isVerified && (
+           <div className="absolute bottom-2 right-2 bg-black border border-white/10 p-1.5 z-20">
+              <BadgeCheck size={14} className="text-[#1db954]" />
+           </div>
+        )}
+      </div>
+
+      {/* Info Section */}
+      <div className="flex flex-col gap-3 relative z-20">
+        <div className="flex items-center gap-4">
+           <div className="h-[2px] w-8 bg-[#1db954] transition-all group-hover:w-12 group-hover:bg-black" />
+           <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/30 group-hover:text-black/40 italic">Signal_Origin</span>
+        </div>
+        <h1 className="text-4xl md:text-5xl font-black text-white group-hover:text-black uppercase tracking-tighter italic leading-[0.8] truncate max-w-full">
           {title}
         </h1>
-        <div className="flex items-center gap-2">
-          <span className="bg-[#121212] text-xs font-bold text-white px-3 py-1 rounded-full uppercase tracking-wider">
-            {typeLabel}
-          </span>
-          {result.isVerified && (
-            <span className="flex items-center justify-center w-4 h-4 bg-blue-500 rounded-full">
-              <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 text-white fill-current">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-              </svg>
-            </span>
-          )}
+        <div className="flex items-center gap-6 mt-2">
+           <div className="flex flex-col gap-1">
+              <span className="text-[7px] font-black text-white/20 group-hover:text-black/20 uppercase tracking-widest">Protocol</span>
+              <span className="text-[10px] font-black text-[#1db954] group-hover:text-black uppercase tracking-widest">{typeLabel}_UNIT</span>
+           </div>
+           <div className="h-6 w-[1px] bg-white/10 group-hover:bg-black/10" />
+           <div className="flex flex-col gap-1">
+              <span className="text-[7px] font-black text-white/20 group-hover:text-black/20 uppercase tracking-widest">Status</span>
+              <span className={cn(
+                "text-[10px] font-black uppercase tracking-widest flex items-center gap-2",
+                isThisPlaying ? "text-[#1db954] group-hover:text-black" : "text-white/40 group-hover:text-black/40"
+              )}>
+                {isThisPlaying ? <Activity size={10} className="animate-pulse" /> : <div className="w-1.5 h-1.5 bg-[#1db954] rounded-full" />}
+                {isThisPlaying ? 'LIVE_STREAMING' : 'IDLE_UNIT'}
+              </span>
+           </div>
         </div>
       </div>
 
-      {/* Nút Play thần thánh */}
+      {/* Brutalist Play Block */}
       <button 
         onClick={handlePlay}
         className={cn(
-          "absolute bottom-5 right-5 w-12 h-12 flex items-center justify-center rounded-full bg-[#1db954] text-black shadow-2xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300",
-          (isThisPlaying) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0"
+          "absolute bottom-0 right-0 w-20 h-20 flex items-center justify-center bg-[#1db954] text-black transition-all duration-500 z-30 shadow-[-10px_-10px_0px_rgba(0,0,0,0.3)] group-hover:shadow-none",
+          (isThisPlaying) ? "translate-x-0 translate-y-0" : "translate-x-full translate-y-full group-hover:translate-x-0 group-hover:translate-y-0"
         )}
       >
-        {isThisPlaying ? <Pause size={24} className="fill-current" /> : <Play size={24} className="fill-current ml-1" />}
+        {isThisPlaying ? <Pause size={32} className="fill-current" /> : <Play size={32} className="fill-current ml-1" />}
       </button>
-    </div>
+
+      {/* Background Tech Icons */}
+      <div className="absolute top-8 right-8 flex gap-3 opacity-0 group-hover:opacity-10 transition-opacity">
+         <Cpu size={16} className="text-black" />
+         <Zap size={16} className="text-black" />
+      </div>
+    </motion.div>
   );
 };

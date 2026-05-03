@@ -1,11 +1,12 @@
 import { usePlayerStore } from '../../stores/player.store';
-import { Play, Pause, X } from 'lucide-react';
+import { Play, Pause, X, Music2, Cpu, Zap } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SongContextMenu, useContextMenu } from './SongContextMenu';
 import { PlaylistContextMenu, usePlaylistContextMenu } from './PlaylistContextMenu';
 import { useLibraryStore } from '../../stores/library.store';
+import { motion } from 'framer-motion';
 
 interface MediaCardProps {
   id: string;
@@ -28,17 +29,14 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
   const { menu: songMenu, openMenu: openSongMenu, closeMenu: closeSongMenu } = useContextMenu();
   const { menu: playlistMenu, openPlaylistMenu, closePlaylistMenu } = usePlaylistContextMenu();
 
-  // Nhận diện theo ngữ cảnh Card Id
   const isThisPlaying = currentContextId === id && isPlaying;
 
   const handlePlayClick = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
-      e.stopPropagation(); // Không ăn click parent
+      e.stopPropagation();
     }
     if (songs.length === 0) return;
-
-    // Nếu đang phát list này thì sang Pause
     if (currentContextId === id) {
       togglePlay();
     } else {
@@ -71,22 +69,44 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
   };
 
   return (
-    <div
-      data-id={id}
+    <motion.div
       onClick={handleCardClick}
       onContextMenu={handleContextMenu}
-      className="hover:bg-[#282828] p-4 flex flex-col rounded-md transition-colors cursor-pointer group relative"
+      whileHover={{ scale: 0.98 }}
+      className="bg-black p-3 flex flex-col border border-white/5 hover:border-white/20 transition-all cursor-pointer group relative overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative mb-4 w-full pb-[100%]">
-        <img
-          src={coverUrl}
-          alt={title}
-          className={cn("absolute top-0 left-0 w-full h-full object-cover", isCircle ? "rounded-full" : "rounded flex-1")}
-        />
+      <div className={cn(
+        "relative mb-4 w-full pb-[100%] overflow-hidden bg-[#050505] border border-white/5",
+        isCircle && "rounded-full"
+      )}>
+        {/* Technical Index Overlay */}
+        <div className="absolute top-3 left-3 z-20 flex flex-col gap-0.5 pointer-events-none mix-blend-difference">
+          <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.3em]">REF_{id.slice(0, 6)}</span>
+          <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">{type}</span>
+        </div>
 
-        {/* Nút Xóa (Remove) - Thường dùng cho Recent Searches */}
+        {/* Scanline Effect */}
+        <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-20 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+
+        {coverUrl ? (
+          <img
+            src={coverUrl}
+            alt={title}
+            className={cn(
+              "absolute top-0 left-0 w-full h-full object-cover transition-all duration-1000",
+              isHovered ? "grayscale-0 scale-105" : "grayscale",
+              isCircle && "p-2"
+            )}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Music2 size={32} className="text-white/5" />
+          </div>
+        )}
+
+        {/* Remove Button */}
         {onRemove && (
           <button
             onClick={(e) => {
@@ -95,30 +115,50 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
               onRemove();
             }}
             className={cn(
-              "absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/70 text-[#b3b3b3] hover:text-white transition-all z-20",
-              isHovered ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"
+              "absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/80 text-white hover:bg-white hover:text-black transition-all z-30 border border-white/10",
+              isHovered ? "opacity-100" : "opacity-0"
             )}
           >
-            <X size={18} />
+            <X size={14} />
           </button>
         )}
 
-        {/* Nút Play xanh lá thần thánh */}
+        {/* Play Button - Brutalist Block */}
         <button
           onClick={handlePlayClick}
           className={cn(
-            "absolute bottom-2 right-2 w-12 h-12 flex items-center justify-center rounded-full bg-[#1db954] text-black shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300 z-10",
-            // Chỉ hiện nút khi có nhạc và đang hover hoặc đang phát
-            ((isHovered || isThisPlaying) && songs.length > 0) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+            "absolute bottom-0 right-0 w-12 h-12 flex items-center justify-center bg-[#1db954] text-black transition-all duration-500 z-30 shadow-[-4px_-4px_0px_rgba(0,0,0,0.3)]",
+            ((isHovered || isThisPlaying) && songs.length > 0) ? "translate-y-0 translate-x-0" : "translate-y-full translate-x-full"
           )}
         >
-          {isThisPlaying ? <Pause size={24} className="fill-current" /> : <Play size={24} className="fill-current ml-1" />}
+          {isThisPlaying ? <Pause size={20} className="fill-current" /> : <Play size={20} className="fill-current ml-0.5" />}
         </button>
+
+        {/* Industrial Corner Decor */}
+        <div className="absolute bottom-2 left-2 flex gap-1 items-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+           <Cpu size={8} className="text-[#1db954]" />
+           <Zap size={8} className="text-white/20" />
+        </div>
       </div>
 
-      <h3 className="text-white font-bold text-base truncate mb-1">{title}</h3>
-      <p className="text-[#a7a7a7] text-sm font-medium line-clamp-2">{subtitle}</p>
+      <div className="flex flex-col gap-1 min-w-0 relative">
+        <h3 className={cn(
+          "font-black uppercase tracking-tighter truncate text-[13px] leading-tight transition-colors",
+          isThisPlaying ? "text-[#1db954]" : "text-white group-hover:text-white"
+        )}>
+          {title}
+        </h3>
+        <div className="flex items-center justify-between overflow-hidden">
+           <p className="text-white/20 text-[8px] font-black uppercase tracking-widest truncate max-w-[70%]">
+             {subtitle}
+           </p>
+           <span className="text-[6px] font-black text-[#1db954] opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">
+             STABLE_SIGNAL
+           </span>
+        </div>
+      </div>
 
+      {/* Rendering menus outside any overflow-hidden containers */}
       {songMenu && (
         <SongContextMenu
           song={songMenu.song}
@@ -141,6 +181,6 @@ export const MediaCard = ({ id, title, subtitle, coverUrl, isCircle = false, son
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 };

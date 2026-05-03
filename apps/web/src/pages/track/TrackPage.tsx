@@ -70,7 +70,7 @@ export const TrackPage = () => {
   return (
     <div className="flex-1 w-full min-h-full bg-black text-white flex flex-col relative overflow-x-hidden group/page selection:bg-[#1db954] selection:text-black">
       {/* 1. Texture Layer (Grain) */}
-      <div className="fixed inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
       {/* 2. Giant Background Typography (Asymmetric) */}
       <div className="fixed -right-20 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center rotate-90 whitespace-nowrap z-0">

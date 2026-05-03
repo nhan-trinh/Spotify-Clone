@@ -80,7 +80,7 @@ export const NowPlayingSidebar = () => {
       )}
 
       {/* 2. Texture Overlay (Grain) */}
-      <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay z-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay z-10 bg-noise" />
 
       {/* 3. Giant Editorial Typography (Background) */}
       <div className="absolute -left-12 top-1/4 select-none pointer-events-none origin-center -rotate-90 whitespace-nowrap z-0">

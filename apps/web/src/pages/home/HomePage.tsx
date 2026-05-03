@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { MediaCard } from '../../components/shared/MediaCard';
 import { RecentCard } from '../../components/shared/RecentCard';
 import { MediaCarousel } from '../../components/shared/MediaCarousel';
-import { FastAverageColor } from 'fast-average-color';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Cpu, Database, Zap, Activity } from 'lucide-react';
 
 export const HomePage = () => {
-  const [dominantColor, setDominantColor] = useState('#121212');
-
   const { data: feedData } = useQuery({
     queryKey: ['homeFeed'],
     queryFn: async () => {
@@ -18,7 +16,6 @@ export const HomePage = () => {
     }
   });
 
-  // Dữ liệu cá nhân hóa (Gần đây, Nghe lại, Daily Mix)
   const { data: personalizedData } = useQuery({
     queryKey: ['personalizedFeed'],
     queryFn: async () => {
@@ -31,93 +28,79 @@ export const HomePage = () => {
     }
   });
 
-  useEffect(() => {
-    if (!feedData) return;
-
-    // Phát hiện màu từ ảnh đầu tiên
-    const firstUrl = feedData?.recentlyPlayed?.[0]?.coverUrl;
-    if (firstUrl && firstUrl.length > 5) {
-      const fac = new FastAverageColor();
-      const img = new Image();
-      img.crossOrigin = 'Anonymous'; // Bắt buộc cho CORS
-      img.src = firstUrl + (firstUrl.includes('?') ? '&' : '?') + 'corsbuster=' + Date.now();
-      img.onload = () => {
-        try {
-          const color = fac.getColor(img);
-          setDominantColor(color.hex);
-        } catch (err) {
-          console.log('Không thể lấy màu do CORS', err);
-        } finally {
-          fac.destroy();
-        }
-      };
-    }
-  }, [feedData]);
-
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Chào buổi sáng';
-    if (hour < 18) return 'Chào buổi chiều';
-    return 'Chào buổi tối';
+    if (hour < 12) return 'Morning_Archive';
+    if (hour < 18) return 'Afternoon_Stream';
+    return 'Evening_Session';
   };
 
   if (!feedData) {
     return (
-      <div className="p-6 pt-24 min-h-full w-full max-w-screen-2xl mx-auto text-white">
-        {/* Skeleton cho Recently Played */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 lg:h-20 bg-white/10 rounded flex overflow-hidden animate-pulse">
-              <div className="w-16 lg:w-20 bg-white/20"></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Skeleton cho Daily Mix / Personalized Sections */}
-        <div className="mb-8">
-          <div className="h-8 w-64 bg-white/10 rounded mb-4 animate-pulse"></div>
-          <div className="flex gap-6 overflow-hidden">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-[#181818] p-4 rounded-md animate-pulse min-w-[200px] flex-1">
-                <div className="w-full aspect-square bg-white/10 rounded mb-4"></div>
-                <div className="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-white/10 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
+      <div className="p-8 pt-24 min-h-full w-full bg-black text-white selection:bg-[#1db954] selection:text-black">
+        <div className="flex flex-col gap-12 animate-pulse">
+           <div className="h-20 w-64 bg-white/5" />
+           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-20 bg-white/5 border border-white/10" />
+              ))}
+           </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 w-full min-h-full overflow-y-auto relative isolate ">
-      {/* Dynamic Gradient Background Layer */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-colors duration-1000 ease-in-out -z-10"
-        style={{ background: `linear-gradient(to bottom, ${dominantColor}88 0%, #121212 332px)` }}
-      />
+    <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black">
+      {/* Texture Layer */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
-      <div className="px-6 pt-20 pb-28 relative z-10 w-full max-w-screen-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6 tracking-tight">{getGreeting()}</h1>
+      <div className="px-6 lg:px-12 pt-20 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
+        
+        {/* ── HERO SECTION (Refined) ── */}
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16 border-b border-white/10 pb-12"
+        >
+          <div className="flex items-center gap-3 mb-4">
+             <div className="w-8 h-[2px] bg-[#1db954]" />
+             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-[#1db954]">System_Ready // {new Date().toLocaleTimeString()}</span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none italic">
+             {getGreeting()}
+          </h1>
+          <div className="flex items-center gap-6 mt-6 opacity-30">
+             <div className="flex items-center gap-2">
+                <Cpu size={12} />
+                <span className="text-[9px] font-black uppercase tracking-widest">Neural_Sync</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <Database size={12} />
+                <span className="text-[9px] font-black uppercase tracking-widest">Archive_v4</span>
+             </div>
+          </div>
+        </motion.section>
 
-        {/* Top Grid (Recently Played Playlists) */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-10 w-full">
-          {feedData.recentlyPlayed?.map((item: any) => (
-            <RecentCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              coverUrl={item.coverUrl}
-              type="playlist"
-              songs={item.songs}
-            />
-          ))}
-        </div>
+        {/* ── 01: RECENTLY PLAYED ── */}
+        <Section title="Recently Played" index="01">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
+            {feedData.recentlyPlayed?.map((item: any) => (
+              <RecentCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                coverUrl={item.coverUrl}
+                type="playlist"
+                songs={item.songs}
+              />
+            ))}
+          </div>
+        </Section>
 
-        {/* 🕒 Recently Visited (Mixed Types) */}
+        {/* ── 02: RECENTLY VISITED ── */}
         {personalizedData?.recentlyVisited?.length > 0 && (
-          <Section title="Vừa truy cập gần đây">
+          <Section title="Recently Visited" index="02">
             <MediaCarousel>
               {personalizedData.recentlyVisited.map((item: any) => (
                 <MediaCard
@@ -135,46 +118,30 @@ export const HomePage = () => {
           </Section>
         )}
 
-        {/* 🌟 Daily Mix Section */}
+        {/* ── 03: DAILY MIX ── */}
         {personalizedData?.dailyMix?.length > 0 && (
-          <Section title="Dành cho hôm nay" showAllLink="/section/daily-mix">
+          <Section title="Daily Mix" index="03" showAllLink="/section/daily-mix">
             <MediaCarousel>
               {personalizedData.dailyMix.map((song: any) => (
-                <MediaCard
-                  key={song.id}
-                  id={song.id}
-                  title={song.title}
-                  subtitle={song.artistName}
-                  coverUrl={song.coverUrl}
-                  type="song"
-                  songs={[song]}
-                />
+                <MediaCard key={song.id} id={song.id} title={song.title} subtitle={song.artistName} coverUrl={song.coverUrl} type="song" songs={[song]} />
               ))}
             </MediaCarousel>
           </Section>
         )}
 
-        {/* 🌟 Listen Again Section */}
+        {/* ── 04: LISTEN AGAIN ── */}
         {personalizedData?.listenAgain?.length > 0 && (
-          <Section title="Nghe lại" showAllLink="/section/listen-again">
+          <Section title="Listen Again" index="04" showAllLink="/section/listen-again">
             <MediaCarousel>
               {personalizedData.listenAgain.map((item: any) => (
-                <MediaCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  subtitle={item.artistName}
-                  coverUrl={item.coverUrl}
-                  type="song"
-                  songs={[item]}
-                />
+                <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.artistName} coverUrl={item.coverUrl} type="song" songs={[item]} />
               ))}
             </MediaCarousel>
           </Section>
         )}
 
-        {/* Made For You Section */}
-        <Section title="Dành cho bạn" showAllLink="/section/made-for-you">
+        {/* ── 05: MADE FOR YOU ── */}
+        <Section title="Made For You" index="05" showAllLink="/section/made-for-you">
           <MediaCarousel>
             {feedData.madeForYou?.map((item: any) => (
               <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} ownerId={item.ownerId} />
@@ -182,9 +149,9 @@ export const HomePage = () => {
           </MediaCarousel>
         </Section>
 
-        {/* Trending Section */}
+        {/* ── 06: TRENDING ── */}
         {feedData.trending?.length > 0 && (
-          <Section title="Thịnh hành" showAllLink="/section/trending">
+          <Section title="Trending" index="06" showAllLink="/section/trending">
             <MediaCarousel>
               {feedData.trending?.map((item: any) => (
                 <MediaCard key={item.id} id={item.id} title={item.title} subtitle={item.description} coverUrl={item.coverUrl} songs={item.songs} isPublic={item.isPublic} ownerId={item.ownerId} />
@@ -193,98 +160,81 @@ export const HomePage = () => {
           </Section>
         )}
 
-        {/* ✅ New Releases - Bài hát mới nhất */}
+        {/* ── 07: NEW RELEASES ── */}
         {feedData.newReleases?.length > 0 && (
-          <Section title="Mới phát hành" showAllLink="/section/new-releases">
+          <Section title="New Releases" index="07" showAllLink="/section/new-releases">
             <MediaCarousel>
               {feedData.newReleases?.map((song: any) => (
-                <MediaCard
-                  key={song.id}
-                  id={song.id}
-                  title={song.title}
-                  subtitle={song.artistName}
-                  coverUrl={song.coverUrl}
-                  type="song"
-                  songs={[song]}
-                />
+                <MediaCard key={song.id} id={song.id} title={song.title} subtitle={song.artistName} coverUrl={song.coverUrl} type="song" songs={[song]} />
               ))}
             </MediaCarousel>
           </Section>
         )}
 
-        {/* ✅ Top Songs - Được nghe nhiều */}
+        {/* ── 08: TOP SONGS ── */}
         {feedData.topSongs?.length > 0 && (
-          <Section title="Được nghe nhiều nhất" showAllLink="/section/top-songs">
+          <Section title="Top Songs" index="08" showAllLink="/section/top-songs">
             <MediaCarousel>
               {feedData.topSongs?.map((song: any) => (
-                <MediaCard
-                  key={song.id}
-                  id={song.id}
-                  title={song.title}
-                  subtitle={song.artistName}
-                  coverUrl={song.coverUrl}
-                  type="song"
-                  songs={[song]}
-                />
+                <MediaCard key={song.id} id={song.id} title={song.title} subtitle={song.artistName} coverUrl={song.coverUrl} type="song" songs={[song]} />
               ))}
             </MediaCarousel>
           </Section>
         )}
 
-        {/* ✅ New Albums */}
+        {/* ── 09: NEW ALBUMS ── */}
         {feedData.newAlbums?.length > 0 && (
-          <Section title="Album mới phát hành" showAllLink="/section/new-albums">
+          <Section title="New Albums" index="09" showAllLink="/section/new-albums">
             <MediaCarousel>
               {feedData.newAlbums?.map((album: any) => (
-                <MediaCard
-                  key={album.id}
-                  id={album.id}
-                  title={album.title}
-                  subtitle={album.artistName}
-                  coverUrl={album.coverUrl}
-                  type="album"
-                />
+                <MediaCard key={album.id} id={album.id} title={album.title} subtitle={album.artistName} coverUrl={album.coverUrl} type="album" />
               ))}
             </MediaCarousel>
           </Section>
         )}
 
-        {/* ✅ Recommended Artists */}
+        {/* ── 10: RECOMMENDED ARTISTS ── */}
         {personalizedData?.recommendedArtists?.length > 0 && (
-          <Section title="Nghệ sĩ bạn có thể thích">
+          <Section title="Recommended Artists" index="10">
             <MediaCarousel>
               {personalizedData.recommendedArtists.map((artist: any) => (
-                <MediaCard
-                  key={artist.id}
-                  id={artist.id}
-                  title={artist.stageName}
-                  subtitle="Nghệ sĩ"
-                  coverUrl={artist.avatarUrl}
-                  type="artist"
-                  isCircle={true}
-                />
+                <MediaCard key={artist.id} id={artist.id} title={artist.stageName} subtitle="Artist" coverUrl={artist.avatarUrl} type="artist" isCircle={true} />
               ))}
             </MediaCarousel>
           </Section>
         )}
+
+        {/* ── SYSTEM STATUS ── */}
+        <div className="mt-24 pt-8 border-t border-white/10 flex justify-between items-center opacity-20">
+           <span className="text-[8px] font-black uppercase tracking-widest">Archive_Stream_End</span>
+           <div className="flex gap-4">
+              <Zap size={10} />
+              <Activity size={10} />
+           </div>
+        </div>
       </div>
     </div>
   );
 };
 
-// ─── Helper Components ─────────────────────────────────────────────────────────
-const Section = ({ title, showAllLink, children }: { title: string; showAllLink?: string; children: React.ReactNode }) => (
-  <section className="mb-10 w-full">
-    <div className="flex items-end justify-between mb-4">
-      <h2 className="text-2xl font-bold text-white tracking-tight hover:underline cursor-pointer">{title}</h2>
+const Section = ({ title, index, showAllLink, children }: { title: string; index: string; showAllLink?: string; children: React.ReactNode }) => (
+  <section className="mb-20 w-full">
+    <div className="flex items-end justify-between mb-8 border-b border-white/5 pb-4">
+      <div className="flex flex-col gap-1">
+         <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-[#1db954]">{index}</span>
+            <div className="w-4 h-[1px] bg-white/20" />
+         </div>
+         <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+            {title}
+         </h2>
+      </div>
       {showAllLink && (
-        <Link to={showAllLink} className="text-sm font-bold text-[#b3b3b3] hover:text-white transition-colors hover:underline">
-          Hiện tất cả
+        <Link to={showAllLink} className="text-[10px] font-black text-[#555] hover:text-white transition-colors uppercase tracking-widest border border-white/10 px-4 py-1">
+          View_All
         </Link>
       )}
     </div>
     {children}
   </section>
 );
-
-

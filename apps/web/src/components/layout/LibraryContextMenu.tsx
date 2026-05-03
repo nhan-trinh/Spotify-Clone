@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Plus, Heart, ArrowUpDown, SortAsc, Clock, Calendar, LucideProps } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export type SortMode = 'recent' | 'name' | 'oldest';
 
@@ -12,15 +13,14 @@ interface LibraryContextMenuProps {
   currentSort: SortMode;
 }
 
-// ── Icon components instead of JSX at module level ──
 const IconClock = (props: LucideProps) => <Clock {...props} />;
 const IconSortAsc = (props: LucideProps) => <SortAsc {...props} />;
 const IconCalendar = (props: LucideProps) => <Calendar {...props} />;
 
-const SORT_OPTIONS: { label: string; mode: SortMode; Icon: React.FC<LucideProps> }[] = [
-  { label: 'Gần đây nhất', mode: 'recent',  Icon: IconClock },
-  { label: 'Theo tên (A-Z)', mode: 'name',  Icon: IconSortAsc },
-  { label: 'Cũ nhất trước', mode: 'oldest', Icon: IconCalendar },
+const SORT_OPTIONS: { label: string; mode: SortMode; Icon: React.FC<LucideProps>; index: string }[] = [
+  { label: 'Gần đây nhất', mode: 'recent',  Icon: IconClock, index: 'REC' },
+  { label: 'Theo tên (A-Z)', mode: 'name',  Icon: IconSortAsc, index: 'A-Z' },
+  { label: 'Cũ nhất trước', mode: 'oldest', Icon: IconCalendar, index: 'OLD' },
 ];
 
 export const LibraryContextMenu = ({
@@ -28,7 +28,6 @@ export const LibraryContextMenu = ({
 }: LibraryContextMenuProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click or Escape
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -42,64 +41,100 @@ export const LibraryContextMenu = ({
     };
   }, [onClose]);
 
-  // ── Use visualViewport for accurate viewport on mobile (virtual keyboard) ──
-  // Fall back to window dims if visualViewport not supported
   const vvWidth  = window.visualViewport?.width  ?? window.innerWidth;
   const vvHeight = window.visualViewport?.height ?? window.innerHeight;
+  const menuHeight = ref.current?.offsetHeight ?? 280;
+  const menuWidth  = ref.current?.offsetWidth  ?? 240;
 
-  // ── Use actual rendered height instead of magic number 240 ──
-  const menuHeight = ref.current?.offsetHeight ?? 260;
-  const menuWidth  = ref.current?.offsetWidth  ?? 208;
-
-  const adjustedX = Math.min(position.x, vvWidth  - menuWidth  - 8);
-  const adjustedY = Math.min(position.y, vvHeight - menuHeight - 8);
+  const adjustedX = Math.min(position.x, vvWidth  - menuWidth  - 16);
+  const adjustedY = Math.min(position.y, vvHeight - menuHeight - 16);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
       ref={ref}
-      style={{ left: Math.max(8, adjustedX), top: Math.max(8, adjustedY) }}
-      className="fixed z-[9999] w-52 bg-[#282828] rounded-md shadow-2xl border border-white/10 py-1 text-sm text-white"
+      style={{ left: Math.max(16, adjustedX), top: Math.max(16, adjustedY) }}
+      className="fixed z-[9999] w-60 bg-black border border-white/20 shadow-[20px_20px_60px_rgba(0,0,0,0.8)] overflow-hidden isolate"
     >
-      {/* Create actions */}
-      <button
-        onClick={() => { onCreatePlaylist(); onClose(); }}
-        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/10 transition-colors text-left"
-      >
-        <Plus size={15} className="text-[#b3b3b3]" />
-        Tạo Playlist mới
-      </button>
-      <button
-        onClick={() => { onCreateFromLiked(); onClose(); }}
-        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/10 transition-colors text-left"
-      >
-        <Heart size={15} className="text-[#b3b3b3]" />
-        Tạo từ bài đã thích
-      </button>
+      {/* Texture Overlay */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      {/* Divider */}
-      <div className="my-1 border-t border-white/10" />
+      <div className="relative z-10">
+        {/* Header Section */}
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+           <span className="text-[9px] font-black text-[#1db954] uppercase tracking-[0.4em]">Context_Module</span>
+           <div className="w-1.5 h-1.5 bg-[#1db954]" />
+        </div>
 
-      {/* Sort options */}
-      <div className="px-3 pt-1 pb-0.5">
-        <span className="text-[11px] font-semibold text-[#b3b3b3] uppercase tracking-wider flex items-center gap-1.5">
-          <ArrowUpDown size={11} /> Sắp xếp theo
-        </span>
+        {/* Action Set */}
+        <div className="py-2">
+           <div className="px-4 py-1">
+              <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Action_Set</span>
+           </div>
+           <button
+             onClick={() => { onCreatePlaylist(); onClose(); }}
+             className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#1db954] hover:text-black transition-all group/item"
+           >
+             <div className="flex items-center gap-3">
+                <Plus size={14} className="text-[#1db954] group-hover/item:text-black" />
+                <span className="text-[11px] font-black uppercase tracking-widest">New Playlist</span>
+             </div>
+             <span className="text-[8px] font-black opacity-20 group-hover/item:opacity-100">01</span>
+           </button>
+           <button
+             onClick={() => { onCreateFromLiked(); onClose(); }}
+             className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#1db954] hover:text-black transition-all group/item"
+           >
+             <div className="flex items-center gap-3">
+                <Heart size={14} className="text-[#1db954] group-hover/item:text-black" />
+                <span className="text-[11px] font-black uppercase tracking-widest">From Liked</span>
+             </div>
+             <span className="text-[8px] font-black opacity-20 group-hover/item:opacity-100">02</span>
+           </button>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-white/10" />
+
+        {/* Sort Order */}
+        <div className="py-2 bg-white/[0.02]">
+           <div className="px-4 py-1 flex items-center gap-2">
+              <ArrowUpDown size={10} className="text-white/30" />
+              <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Sort_Parameter</span>
+           </div>
+           {SORT_OPTIONS.map(({ mode, label, Icon, index }) => {
+             const isActive = currentSort === mode;
+             return (
+               <button
+                 key={mode}
+                 onClick={() => { onSort(mode); onClose(); }}
+                 className={`w-full flex items-center justify-between px-4 py-2.5 transition-all group/sort ${
+                   isActive ? 'bg-white/5 text-[#1db954]' : 'hover:bg-white/10 text-white/70'
+                 }`}
+               >
+                 <div className="flex items-center gap-3">
+                    <Icon size={12} className={isActive ? 'text-[#1db954]' : 'opacity-40 group-hover/sort:opacity-100'} />
+                    <span className="text-[10px] font-black uppercase tracking-tighter">{label}</span>
+                 </div>
+                 <span className={`text-[8px] font-black italic ${isActive ? 'text-[#1db954]' : 'opacity-20'}`}>
+                    {index}
+                 </span>
+               </button>
+             );
+           })}
+        </div>
+
+        {/* Footer Info */}
+        <div className="px-4 py-2 bg-black border-t border-white/10 flex items-center justify-between">
+           <span className="text-[7px] font-black text-white/10 uppercase tracking-widest italic">Core_Archive_v4</span>
+           <div className="flex gap-1">
+              <div className="w-1 h-1 bg-white/10" />
+              <div className="w-1 h-1 bg-white/10" />
+              <div className="w-1 h-1 bg-white/20" />
+           </div>
+        </div>
       </div>
-      {SORT_OPTIONS.map(({ mode, label, Icon }) => (
-        <button
-          key={mode}
-          onClick={() => { onSort(mode); onClose(); }}
-          className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white/10 transition-colors text-left ${
-            currentSort === mode ? 'text-[#1db954]' : ''
-          }`}
-        >
-          <Icon size={14} className={currentSort === mode ? 'text-[#1db954]' : 'text-[#b3b3b3]'} />
-          {label}
-          {currentSort === mode && (
-            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#1db954]" />
-          )}
-        </button>
-      ))}
-    </div>
+    </motion.div>
   );
 };

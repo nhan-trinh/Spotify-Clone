@@ -24,7 +24,7 @@ export const FriendActivitySidebar = () => {
       isFriendActivityVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
     )}>
       {/* Texture Overlay (Grain) */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay bg-noise" />
 
       {/* Giant Background Label (Editorial Style) */}
       <div className="absolute -right-12 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center rotate-90 whitespace-nowrap">
@@ -129,13 +129,13 @@ export const FriendActivitySidebar = () => {
 
                   {activity.currentSong ? (
                     <div className="space-y-1 relative">
-                      <p className={cn(
+                      <div className={cn(
                         "text-[12px] font-black truncate flex items-center gap-3 tracking-tight transition-colors",
                         activity.isPlaying ? "text-white" : "text-[#444]"
                       )}>
                         {activity.isPlaying && <Equalizer />}
                         <span className="truncate">{activity.currentSong.title}</span>
-                      </p>
+                      </div>
                       <p className="text-[9px] text-[#222] font-black uppercase tracking-[0.2em] truncate group-hover/item:text-white/40 transition-colors">
                         {activity.currentSong.artistName}
                       </p>

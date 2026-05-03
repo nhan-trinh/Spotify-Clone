@@ -1,8 +1,9 @@
 import { usePlayerStore } from '../../stores/player.store';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Activity } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface RecentCardProps {
   id: string;
@@ -47,36 +48,55 @@ export const RecentCard = ({ id, title, coverUrl, songs = [], type = 'playlist' 
   };
 
   return (
-    <div 
-      data-id={id}
+    <motion.div 
+      whileHover={{ x: 4 }}
       onClick={handleCardClick}
-      className="bg-white/10 hover:bg-white/20 flex items-center rounded overflow-hidden transition-colors cursor-pointer group pr-4"
+      className="bg-black border border-white/10 flex items-center overflow-hidden transition-all cursor-pointer group relative h-16 md:h-20"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <img 
-        src={coverUrl} 
-        alt={title} 
-        className={cn(
-          "w-12 h-12 md:w-16 md:h-16 object-cover shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
-          type === 'artist' ? "rounded-full p-2" : "rounded-none"
-        )} 
-      />
-      
-      <div className="flex-1 px-4 truncate">
-        <h3 className="text-white font-bold text-[15px] truncate">{title}</h3>
+      {/* Index Decoration */}
+      <div className="absolute top-1 left-1 z-20 mix-blend-difference pointer-events-none">
+         <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">ID_{id.slice(0,4)}</span>
+      </div>
+
+      <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 border-r border-white/10 overflow-hidden relative">
+        <img 
+          src={coverUrl} 
+          alt={title} 
+          className={cn(
+            "w-full h-full object-cover transition-all duration-700",
+            isHovered ? "grayscale-0 scale-110" : "grayscale opacity-50",
+            type === 'artist' ? "p-2" : "p-0"
+          )} 
+        />
+        {isThisPlaying && (
+           <div className="absolute inset-0 bg-[#1db954]/20 flex items-center justify-center">
+              <Activity size={16} className="text-[#1db954] animate-pulse" />
+           </div>
+        )}
       </div>
       
-      {/* Nút play nhỏ hơn xíu */}
+      <div className="flex-1 px-5 flex flex-col justify-center gap-1 overflow-hidden">
+        <h3 className={cn(
+          "font-black uppercase tracking-tighter truncate transition-colors",
+          isThisPlaying ? "text-[#1db954]" : "text-white group-hover:text-[#1db954]"
+        )}>
+          {title}
+        </h3>
+        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">{type}_UNIT</span>
+      </div>
+      
+      {/* Sharp Play Button */}
       <button 
         onClick={handlePlayClick}
         className={cn(
-          "w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-full bg-[#1db954] text-black shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300",
-          (isHovered || isThisPlaying) ? "opacity-100" : "opacity-0 pointer-events-none"
+          "w-12 h-full flex items-center justify-center bg-[#1db954] text-black transition-all duration-300",
+          (isHovered || isThisPlaying) ? "translate-x-0" : "translate-x-full"
         )}
       >
-        {isThisPlaying ? <Pause size={20} className="fill-current" /> : <Play size={20} className="fill-current ml-1" />}
+        {isThisPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="fill-current ml-1" />}
       </button>
-    </div>
+    </motion.div>
   );
 };

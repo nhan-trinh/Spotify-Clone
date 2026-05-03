@@ -6,8 +6,7 @@ import { queryClient } from '../../lib/query-client';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { useAuthStore } from '../../stores/auth.store';
-import { FastAverageColor } from 'fast-average-color';
-import { Play, Pause, Heart, MoreHorizontal, Clock, Edit2, Camera, X, Loader2, UserPlus } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Camera, X, Loader2, UserPlus, Activity, Database, Zap, Cpu } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
@@ -15,10 +14,10 @@ import { PlaylistContextMenu, usePlaylistContextMenu } from '../../components/sh
 import { CollaboratorModal } from '../../components/playlist/CollaboratorModal';
 import { toast } from 'sonner';
 import { useInteractionTracker } from '../../hooks/useInteractionTracker';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const PlaylistPage = () => {
   const { id } = useParams();
-  const [dominantColor, setDominantColor] = useState('#121212');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', description: '', coverUrl: '', isCollaborative: false });
   const [saving, setSaving] = useState(false);
@@ -32,7 +31,6 @@ export const PlaylistPage = () => {
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
   const { menu: playlistMenu, openPlaylistMenu, closePlaylistMenu } = usePlaylistContextMenu();
 
-  // Tracking tương tác
   useInteractionTracker('PLAYLIST', id);
 
   const { data: playlist, isLoading: loading } = useQuery({
@@ -46,76 +44,36 @@ export const PlaylistPage = () => {
 
   useEffect(() => {
     if (!playlist) return;
-
     setEditForm({
       title: playlist.title || '',
       description: playlist.description || '',
       coverUrl: playlist.coverUrl || '',
       isCollaborative: playlist.isCollaborative || false,
     });
-
-    if (playlist.coverUrl && playlist.coverUrl.length > 5) {
-      const fac = new FastAverageColor();
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.src = playlist.coverUrl + (playlist.coverUrl.includes('?') ? '&' : '?') + 'corsbuster=' + Date.now();
-      img.onload = () => {
-        try {
-          const color = fac.getColor(img);
-          setDominantColor(color.hex);
-        } catch (e) { } finally { fac.destroy(); }
-      };
-    }
   }, [playlist]);
 
   if (loading) {
     return (
-      <div className="flex-1 w-full min-h-full overflow-y-auto bg-[#121212] p-6 pt-24 text-white">
-        <div className="flex items-end gap-6 mb-8 animate-pulse">
-          <div className="w-[232px] h-[232px] bg-white/10 rounded shadow-lg"></div>
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="h-4 w-24 bg-white/10 rounded"></div>
-            <div className="h-16 w-3/4 bg-white/10 rounded"></div>
-            <div className="h-4 w-1/2 bg-white/10 rounded mt-4"></div>
-          </div>
-        </div>
-        <div className="px-6">
-          <div className="flex items-center gap-6 mb-8 animate-pulse">
-            <div className="w-14 h-14 bg-white/10 rounded-full"></div>
-            <div className="w-10 h-10 bg-white/10 rounded-full"></div>
-            <div className="w-10 h-10 bg-white/10 rounded-full"></div>
-          </div>
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex gap-4 items-center animate-pulse">
-                <div className="w-8 h-8 bg-white/10 rounded"></div>
-                <div className="w-10 h-10 bg-white/10 rounded"></div>
-                <div className="flex-1 h-4 bg-white/10 rounded"></div>
-                <div className="w-16 h-4 bg-white/10 rounded"></div>
-              </div>
-            ))}
-          </div>
+      <div className="flex-1 w-full min-h-full bg-black p-8 lg:p-16 flex flex-col gap-12">
+        <div className="h-64 bg-white/5 animate-pulse border border-white/10" />
+        <div className="space-y-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-16 bg-white/5 border border-white/10 animate-pulse" />
+          ))}
         </div>
       </div>
     );
   }
 
   if (!playlist) {
-    return <div className="p-6 pt-24 text-white text-center">Không tìm thấy Playlist</div>;
+    return <div className="p-32 text-center font-black uppercase tracking-[0.5em] text-white/20">Archive_Not_Found</div>;
   }
 
   const isThisPlaying = currentContextId === id && isPlaying;
-  // Format for player store
   const trackList = playlist.songs.map((ps: any) => ({
-    id: ps.song.id,
-    title: ps.song.title,
-    artistName: ps.song.artist.stageName,
-    artistId: ps.song.artistId,
-    coverUrl: ps.song.coverUrl,
-    audioUrl: ps.song.audioUrl320 || ps.song.audioUrl128 || '',
-    canvasUrl: ps.song.canvasUrl,
-    duration: ps.song.duration,
-    hasLyrics: !!ps.song.lyrics,
+    id: ps.song.id, title: ps.song.title, artistName: ps.song.artist.stageName, artistId: ps.song.artistId,
+    coverUrl: ps.song.coverUrl, audioUrl: ps.song.audioUrl320 || ps.song.audioUrl128 || '',
+    canvasUrl: ps.song.canvasUrl, duration: ps.song.duration, hasLyrics: !!ps.song.lyrics,
   }));
 
   const handleMainPlay = () => {
@@ -128,7 +86,6 @@ export const PlaylistPage = () => {
   };
 
   const handleTrackPlay = (index: number) => {
-    // Nếu đang phát bài hát CHÍNH XÁC ID này trong context này thì Pause
     if (currentContextId === id && currentTrack?.id === trackList[index].id) {
       togglePlay();
     } else {
@@ -141,13 +98,11 @@ export const PlaylistPage = () => {
     setSaving(true);
     try {
       await api.patch(`/playlists/${id}`, editForm);
-      // Xóa cache để Reload data mới nhất
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
       setIsEditing(false);
-      toast.success('Đã cập nhật playlist thành công');
+      toast.success('Archive updated successfully');
     } catch (e: any) {
-      console.error('Failed to update playlist:', e);
-      toast.error(e?.response?.data?.message || 'Có lỗi khi cập nhật playlist');
+      toast.error('Failed to update archive');
     } finally {
       setSaving(false);
     }
@@ -163,11 +118,10 @@ export const PlaylistPage = () => {
       const res = await api.patch(`/playlists/${id}/cover`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       }) as any;
-      const newUrl = res.data.coverUrl;
-      setEditForm((prev: any) => ({ ...prev, coverUrl: newUrl }));
+      setEditForm((prev: any) => ({ ...prev, coverUrl: res.data.coverUrl }));
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
     } catch (e) {
-      console.error('Failed to upload cover:', e);
+      toast.error('Cover upload failed');
     } finally {
       setUploadingCover(false);
     }
@@ -181,309 +135,326 @@ export const PlaylistPage = () => {
     if (!id) return;
     try {
       await removeSongFromPlaylist(id, songId);
-      // Invalidate query để cập nhật UI ngay lập tức
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
     } catch (err) {
-      console.error('Failed to remove song:', err);
+      console.error(err);
     }
   };
 
   return (
-    <div className="flex-1 w-full min-h-full overflow-y-auto relative isolate text-white">
-      {/* Dynamic Header Gradient Background */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-colors duration-1000 ease-in-out -z-10 h-[400px]"
-        style={{
-          background: `linear-gradient(to bottom, ${dominantColor} 0%, #121212 100%)`
-        }}
-      ></div>
+    <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
+      {/* Grain Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
-      {/* Header Info */}
-      <div className="flex items-end gap-6 px-6 pt-24 pb-6 w-full max-w-screen-2xl mx-auto">
-        <div
-          className={cn(
-            "relative group flex-shrink-0 shadow-[0_8px_40px_rgba(0,0,0,0.5)]",
-            isOwner && "cursor-pointer"
-          )}
-          onClick={() => isOwner && setIsEditing(true)}
+      <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
+
+        {/* ── HEADER ── */}
+        <motion.header
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16 flex flex-col md:flex-row items-end gap-10 border-b border-white/10 pb-16"
         >
-          <img
-            src={playlist.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'}
-            alt={playlist.title}
-            className="w-[232px] h-[232px] object-cover"
-          />
-          {isOwner && (
-            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Edit2 size={48} className="text-white mb-2" />
-              <span className="text-white text-sm font-bold">Chọn ảnh</span>
+          <div
+            className={cn(
+              "relative group w-64 h-64 border border-white/10 overflow-hidden bg-[#050505] shadow-[30px_30px_80px_rgba(0,0,0,0.8)]",
+              isOwner && "cursor-pointer"
+            )}
+            onClick={() => isOwner && setIsEditing(true)}
+          >
+            <img
+              src={playlist.coverUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=300&h=300'}
+              alt={playlist.title}
+              className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+            />
+            <div className="absolute top-2 right-2 flex flex-col gap-1 items-end pointer-events-none mix-blend-difference">
+              <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">ARCHIVE_REF_{playlist.id.slice(0, 6)}</span>
+              <span className="text-[6px] font-black text-[#1db954] uppercase tracking-[0.2em]">{playlist.isPublic ? "PUBLIC_SIGNAL" : "ENCRYPTED_SIGNAL"}</span>
             </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold">Danh sách phát</span>
-            <span className={cn(
-              "text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider",
-              playlist.isPublic ? "bg-[#1db954]/20 text-[#1db954] border border-[#1db954]/30" : "bg-white/10 text-[#b3b3b3] border border-white/20"
-            )}>
-              {playlist.isPublic ? "Công khai" : "Riêng tư"}
-            </span>
-            {playlist.isCollaborative && (
-              <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                Collaborative
-              </span>
+            {isOwner && (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                <Camera size={40} className="text-[#1db954] mb-3" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Update_Image</span>
+              </div>
             )}
           </div>
-          <div className="relative group/title">
+
+          <div className="flex-1 flex flex-col gap-4 min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-[2px] bg-[#1db954]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Playlist_Archive</span>
+            </div>
+
             <h1
               className={cn(
-                "text-5xl md:text-7xl font-bold tracking-tighter mb-2 line-clamp-2",
-                isOwner && "cursor-pointer"
+                "text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] italic truncate max-w-full",
+                isOwner && "cursor-pointer hover:text-[#1db954] transition-colors"
               )}
               onClick={() => isOwner && setIsEditing(true)}
             >
               {playlist.title}
             </h1>
-          </div>
-          <p className="text-sm text-[#b3b3b3]">{playlist.description}</p>
-          <div className="flex items-center gap-1 text-sm mt-1">
-            <span className="font-bold hover:underline cursor-pointer">{playlist.owner?.name}</span>
-            <span className="text-[#b3b3b3] px-1">•</span>
-            <span className="text-[#b3b3b3]">{playlist.songs.length} bài hát</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Background layer 2 (dark gradient fading down) */}
-      <div
-        className="absolute inset-x-0 w-full top-[340px] bottom-0 pointer-events-none -z-10"
-        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, #121212 250px)' }}
-      ></div>
+            {playlist.description && (
+              <p className="text-white/40 text-xs font-black uppercase tracking-widest mt-2 max-w-2xl leading-relaxed italic border-l-2 border-white/10 pl-4">
+                {playlist.description}
+              </p>
+            )}
 
-      {/* Actions */}
-      <div className="px-6 py-6 flex items-center gap-6 w-full max-w-screen-2xl mx-auto relative z-10">
-        <button
-          onClick={handleMainPlay}
-          className="w-14 h-14 flex items-center justify-center rounded-full bg-[#1db954] text-black shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all duration-300"
-        >
-          {isThisPlaying ? <Pause size={28} className="fill-current" /> : <Play size={28} className="fill-current ml-1" />}
-        </button>
-        <button
-          onClick={() => id && toggleFollowPlaylist(id, playlist.title)}
-          className={`transition-colors ${playlistFollowed ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
-            }`}
-          title={playlistFollowed ? 'Xóa khỏi thư viện' : 'Lưu vào thư viện'}
-        >
-          <Heart size={32} className={playlistFollowed ? 'fill-[#1db954]' : ''} />
-        </button>
-        <button
-          onClick={(e) => openPlaylistMenu(e, { ...playlist, ownerId: playlist.ownerId })}
-          className="text-[#b3b3b3] hover:text-white transition-colors"
-        >
-          <MoreHorizontal size={32} />
-        </button>
-        {isOwner && playlist.isCollaborative && (
+            <div className="flex flex-wrap items-center gap-6 mt-4">
+              <div className="flex items-center gap-2 group cursor-pointer">
+                <div className="w-5 h-5 rounded-full overflow-hidden border border-white/20">
+                  <img src={playlist.owner?.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-[#1db954] transition-colors">{playlist.owner?.name}</span>
+              </div>
+              <div className="h-4 w-[1px] bg-white/10" />
+              <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
+                <Database size={12} />
+                <span>{playlist.songs.length} Entries</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
+                <Zap size={12} />
+                <span>Total_Duration: {Math.floor(playlist.songs.reduce((acc: number, s: any) => acc + s.song.duration, 0) / 60)}M</span>
+              </div>
+            </div>
+          </div>
+        </motion.header>
+
+        {/* ── ACTIONS ── */}
+        <div className="flex items-center gap-8 mb-16">
           <button
-            onClick={() => setShowCollaborators(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:border-white transition-all text-sm font-bold ml-auto"
+            onClick={handleMainPlay}
+            className="group relative flex items-center gap-4 px-10 py-5 bg-[#1db954] text-black transition-all hover:bg-white overflow-hidden shadow-[10px_10px_0px_rgba(29,185,84,0.2)]"
           >
-            <UserPlus size={20} />
-            Mời người khác
+            <div className="relative z-10 flex items-center gap-3">
+              {isThisPlaying ? <Pause size={24} className="fill-black" /> : <Play size={24} className="fill-black" />}
+              <span className="text-sm font-black uppercase tracking-widest italic">{isThisPlaying ? "Halt_Stream" : "Initiate_Stream"}</span>
+            </div>
+            <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-0" />
           </button>
-        )}
-      </div>
 
-      {/* Tracks Table */}
-      <div className="px-6 pb-28 w-full max-w-screen-2xl mx-auto relative z-10">
-        <div className={cn(
-          "grid gap-4 px-4 py-2 border-b border-[#ffffff1a] text-[#b3b3b3] text-sm font-medium",
-          playlist.isCollaborative 
-            ? "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1.5fr)_minmax(120px,1fr)]" 
-            : "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)]"
-        )}>
-          <div className="text-center">#</div>
-          <div>Tiêu đề</div>
-          <div className="hidden md:block">Lượt nghe</div>
-          {playlist.isCollaborative && <div className="hidden lg:block">Người thêm</div>}
-          <div className="flex justify-end pr-8"><Clock size={16} /></div>
+          <button
+            onClick={() => id && toggleFollowPlaylist(id, playlist.title)}
+            className={cn(
+              "p-4 border transition-all duration-500",
+              playlistFollowed ? "bg-white text-black border-white" : "border-white/20 text-white hover:border-white"
+            )}
+          >
+            <Heart size={24} className={playlistFollowed ? "fill-black" : ""} />
+          </button>
+
+          <button
+            onClick={(e) => openPlaylistMenu(e, { ...playlist, ownerId: playlist.ownerId })}
+            className="p-4 border border-white/20 text-white hover:border-white transition-all"
+          >
+            <MoreHorizontal size={24} />
+          </button>
+
+          {isOwner && playlist.isCollaborative && (
+            <button
+              onClick={() => setShowCollaborators(true)}
+              className="ml-auto flex items-center gap-3 px-6 py-3 border border-white/10 hover:border-[#1db954] text-white hover:text-[#1db954] text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              <UserPlus size={16} />
+              Grant_Access
+            </button>
+          )}
         </div>
 
-        <div className="mt-4 flex flex-col gap-1">
-          {playlist.songs.map((item: any, index: number) => {
-            const track = item.song;
-            const isRowPlaying = currentContextId === id && currentTrack?.id === track.id;
+        {/* ── MANIFEST ── */}
+        <div className="flex flex-col gap-1">
+          {/* Table Header */}
+          <div className="grid grid-cols-[40px_1fr_120px_120px_60px] gap-6 px-6 py-4 border-b border-white/10 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">
+            <span>#_ID</span>
+            <span>Archive_Signature</span>
+            <span className="hidden md:block">Playback_Count</span>
+            <span className={cn("hidden lg:block", !playlist.isCollaborative && "invisible")}>Origin_User</span>
+            <span className="text-right">Dur.</span>
+          </div>
 
-            return (
-              <div
-                key={item.songId}
-                className={cn(
-                  "grid gap-4 px-4 py-2 rounded-md hover:bg-white/10 group cursor-pointer text-[#b3b3b3] items-center",
-                  playlist.isCollaborative 
-                    ? "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1.5fr)_minmax(120px,1fr)]" 
-                    : "grid-cols-[16px_minmax(120px,4fr)_minmax(120px,2fr)_minmax(120px,1fr)]"
-                )}
-                onDoubleClick={() => handleTrackPlay(index)}
-                onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist.stageName })}
-              >
-                {/* Chỗ này sẽ chuyển từ số thành Nút play khi hover */}
-                <div className="text-base flex items-center justify-center w-full">
-                  <div className="group-hover:hidden text-center w-full">
-                    {isRowPlaying ? (
-                      isPlaying ? (
-                        <img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" className="w-3 h-3 mx-auto" alt="playing" />
-                      ) : (
-                        <span className="text-[#1db954]">{index + 1}</span>
-                      )
-                    ) : (
-                      index + 1
-                    )}
+          <div className="flex flex-col">
+            {playlist.songs.map((item: any, index: number) => {
+              const track = item.song;
+              const isRowPlaying = currentContextId === id && currentTrack?.id === track.id;
+
+              return (
+                <motion.div
+                  key={item.songId}
+                  onClick={() => handleTrackPlay(index)}
+                  onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist.stageName })}
+                  whileHover={{ x: 4 }}
+                  className={cn(
+                    "group grid grid-cols-[40px_1fr_120px_120px_60px] gap-6 items-center px-6 py-4 border-b border-white/5 transition-all cursor-pointer relative overflow-hidden",
+                    isRowPlaying ? "bg-[#1db954]/10" : "hover:bg-white text-white hover:text-black"
+                  )}
+                >
+                  <span className={cn(
+                    "text-[10px] font-black italic transition-colors text-center",
+                    isRowPlaying ? "text-[#1db954]" : "text-white/20 group-hover:text-black/40"
+                  )}>
+                    {isRowPlaying ? <Activity size={12} className="animate-pulse mx-auto" /> : (index + 1).toString().padStart(2, '0')}
+                  </span>
+
+                  <div className="flex items-center gap-5 min-w-0">
+                    <div className="w-10 h-10 border border-white/10 overflow-hidden flex-shrink-0 relative">
+                      <img src={track.coverUrl} className={cn("w-full h-full object-cover grayscale transition-all duration-700", !isRowPlaying && "group-hover:grayscale-0 group-hover:scale-110")} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-black uppercase tracking-tighter truncate leading-none mb-1">
+                        {track.title}
+                      </p>
+                      <Link to={`/artist/${track.artistId}`} onClick={(e) => e.stopPropagation()} className={cn(
+                        "text-[9px] font-black uppercase tracking-widest truncate block",
+                        isRowPlaying ? "text-white/60" : "text-white/20 group-hover:text-black/60 hover:underline"
+                      )}>
+                        {track.artist.stageName}
+                      </Link>
+                    </div>
                   </div>
-                  <div className="hidden group-hover:flex items-center justify-center w-full text-white">
-                    <button onClick={(e) => { e.stopPropagation(); handleTrackPlay(index); }}>
-                      {isRowPlaying && isPlaying ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-1" />}
-                    </button>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <img src={track.coverUrl} alt={track.title} className="w-10 h-10 object-cover flex-shrink-0 rounded shadow" />
-                  <div className="flex flex-col truncate">
-                    <span className={cn("text-base truncate font-medium", isRowPlaying ? "text-[#1db954]" : "text-white")}>{track.title}</span>
-                    <Link to={`/artist/${track.artistId}`} onClick={(e) => e.stopPropagation()} className="text-sm truncate hover:underline hover:text-white inline-block">
-                      {track.artist.stageName}
-                    </Link>
-                  </div>
-                </div>
+                  <span className={cn("hidden md:block text-[9px] font-black uppercase tracking-widest", isRowPlaying ? "text-white/40" : "text-white/20 group-hover:text-black/40")}>
+                    {track.playCount.toLocaleString()} UNITS
+                  </span>
 
-                <div className="hidden md:flex items-center text-sm truncate">
-                  {track.playCount.toLocaleString()}
-                </div>
-
-                {playlist.isCollaborative && (
-                  <div className="hidden lg:flex items-center gap-2 overflow-hidden">
+                  <div className={cn("hidden lg:flex items-center gap-2 overflow-hidden", !playlist.isCollaborative && "invisible")}>
                     {item.addedByUser && (
                       <>
-                        <img src={item.addedByUser.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} alt={item.addedByUser.name} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
-                        <span className="text-xs truncate hover:underline cursor-pointer">{item.addedByUser.name}</span>
+                        <img src={item.addedByUser.avatarUrl || 'https://www.gravatar.com/avatar/?d=mp'} className="w-4 h-4 rounded-full grayscale group-hover:grayscale-0" />
+                        <span className={cn("text-[9px] font-black uppercase tracking-widest truncate", isRowPlaying ? "text-white/40" : "text-white/20 group-hover:text-black/40")}>{item.addedByUser.name}</span>
                       </>
                     )}
                   </div>
-                )}
 
-                <div className="flex justify-end items-center gap-4 pr-4 text-sm">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleLike(track.id, track.title); }}
-                    className={`opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(track.id) ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
-                      }`}
-                  >
-                    <Heart size={16} className={isLiked(track.id) ? 'fill-[#1db954]' : ''} />
-                  </button>
-                  {formatTime(track.duration)}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); openTrackMenu(e, { ...track, artistName: track.artist.stageName }); }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#b3b3b3] hover:text-white p-1"
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Edit Modal */}
-      {isEditing && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
-          <div className="bg-[#282828] w-full max-w-[524px] rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 pb-0">
-              <h2 className="text-2xl font-bold">Sửa chi tiết</h2>
-              <button onClick={() => setIsEditing(false)} className="text-[#b3b3b3] hover:text-white transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdatePlaylist} className="p-6 space-y-4">
-              <div className="flex gap-4">
-                <div className="relative group w-48 h-48 bg-[#333] shadow-lg flex-shrink-0">
-                  <img
-                    src={editForm.coverUrl || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A33BE2E/image-size/large?v=v2&px=999'}
-                    className="w-full h-full object-cover"
-                    alt=""
-                  />
-                  <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    {uploadingCover ? <Loader2 className="animate-spin text-white" /> : <Camera size={48} className="text-white" />}
-                    <span className="text-xs text-white font-bold mt-2">Chọn ảnh</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} />
-                  </label>
-                </div>
-
-                <div className="flex-1 space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#b3b3b3]">Tên</label>
-                    <input
-                      className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-white/20"
-                      value={editForm.title}
-                      onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))}
-                      placeholder="Thêm tên"
-                      required
-                    />
+                  <div className="flex items-center justify-end gap-6">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLike(track.id, track.title); }}
+                      className={cn(
+                        "transition-all duration-300",
+                        isLiked(track.id) ? "text-[#1db954]" : "text-white/20 group-hover:text-black/20 hover:text-[#1db954]"
+                      )}
+                    >
+                      <Heart size={14} className={isLiked(track.id) ? "fill-[#1db954]" : ""} />
+                    </button>
+                    <span className={cn("text-[10px] font-black italic", isRowPlaying ? "text-[#1db954]" : "text-white/20 group-hover:text-black/40")}>{formatTime(track.duration)}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openTrackMenu(e, { ...track, artistName: track.artist.stageName }); }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#b3b3b3]">Mô tả</label>
-                    <textarea
-                      className="w-full bg-[#3e3e3e] border-none rounded px-3 py-2 text-sm h-28 focus:outline-none focus:ring-1 focus:ring-white/20 resize-none"
-                      value={editForm.description}
-                      onChange={e => setEditForm((p: any) => ({ ...p, description: e.target.value }))}
-                      placeholder="Thêm mô tả tùy chọn"
-                    />
-                  </div>
-                  {isOwner && !playlist.isSystem && (
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/10">
-                      <div>
-                        <p className="text-sm font-bold">Chế độ cộng tác</p>
-                        <p className="text-xs text-[#b3b3b3]">Cho phép người khác thêm/xóa bài hát.</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditForm((p: any) => ({ ...p, isCollaborative: !p.isCollaborative }))}
-                        className={cn(
-                          "w-12 h-6 rounded-full relative transition-colors duration-200",
-                          editForm.isCollaborative ? "bg-[#1db954]" : "bg-[#727272]"
-                        )}
-                      >
-                        <div className={cn(
-                          "absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200",
-                          editForm.isCollaborative ? "left-7" : "left-1"
-                        )} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="bg-white text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform disabled:opacity-50"
-                >
-                  {saving ? 'Đang lưu...' : 'Lưu'}
-                </button>
-              </div>
-              <p className="text-[10px] text-[#b3b3b3] leading-tight mt-4">
-                Bằng cách tiếp tục, bạn đồng ý cho phép sếp tải hình ảnh lên dịch vụ của mình. Vui lòng đảm bảo sếp có quyền tải hình ảnh này lên.
-              </p>
-            </form>
+                  {/* Hover Progress Tab */}
+                  <div className="absolute right-0 top-0 bottom-0 w-1 bg-[#1db954] translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      )}
 
+        {/* ── FOOTER STATUS ── */}
+        <footer className="mt-32 pt-12 border-t border-white/10 opacity-20 flex justify-between items-center">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#1db954]">Archive_Transmission_Stable</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-white">Security_Protocol: AES-256_ACTIVE</span>
+          </div>
+          <div className="flex gap-8">
+            <Cpu size={14} />
+            <Zap size={14} />
+          </div>
+        </footer>
+      </div>
+
+      {/* ── MODALS ── */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4 backdrop-blur-md selection:bg-white selection:text-black"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#050505] border border-white/20 w-full max-w-2xl shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden"
+            >
+              <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 bg-noise" />
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between p-8 border-b border-white/10">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter italic">Edit_Archive_Manifest</h2>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-1">Override_System_Parameters</p>
+                  </div>
+                  <button onClick={() => setIsEditing(false)} className="p-2 border border-white/10 hover:border-white transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUpdatePlaylist} className="p-8 space-y-8">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="relative group w-48 h-48 bg-[#111] border border-white/10 flex-shrink-0">
+                      <img src={editForm.coverUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=300&h=300'} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                      <label className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer backdrop-blur-sm">
+                        {uploadingCover ? <Loader2 className="animate-spin text-[#1db954]" /> : <Camera size={32} className="text-[#1db954] mb-2" />}
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white">Inject_Visual</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleCoverUpload} />
+                      </label>
+                    </div>
+
+                    <div className="flex-1 space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Manifest_Identity</label>
+                        <input
+                          className="w-full bg-[#111] border border-white/10 px-4 py-3 text-sm font-black uppercase tracking-tighter outline-none focus:border-[#1db954] transition-colors"
+                          value={editForm.title}
+                          onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))}
+                          placeholder="ASSIGN_IDENTITY" required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Archive_Description</label>
+                        <textarea
+                          className="w-full bg-[#111] border border-white/10 px-4 py-3 text-sm font-black uppercase tracking-tighter h-24 outline-none focus:border-[#1db954] transition-colors resize-none"
+                          value={editForm.description}
+                          onChange={e => setEditForm((p: any) => ({ ...p, description: e.target.value }))}
+                          placeholder="ENTER_DATA_STRING"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-6 border border-white/10 bg-white/[0.02]">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest italic">Collaborative_Protocol</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-1">Multi-User Manifest Access</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((p: any) => ({ ...p, isCollaborative: !p.isCollaborative }))}
+                      className={cn("w-12 h-6 border transition-all duration-500 relative", editForm.isCollaborative ? "bg-[#1db954] border-[#1db954]" : "border-white/20 bg-transparent")}
+                    >
+                      <div className={cn("absolute top-1 w-4 h-4 transition-all duration-500", editForm.isCollaborative ? "right-1 bg-black" : "left-1 bg-white")} />
+                    </button>
+                  </div>
+
+                  <div className="flex justify-end pt-4 border-t border-white/10">
+                    <button
+                      type="submit" disabled={saving}
+                      className="bg-[#1db954] text-black font-black uppercase tracking-widest px-12 py-4 hover:bg-white transition-all italic text-sm shadow-[8px_8px_0px_rgba(29,185,84,0.2)]"
+                    >
+                      {saving ? 'EXECUTING...' : 'COMMIT_CHANGES'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── MENUS ── */}
       {trackMenu && (
         <SongContextMenu
-          song={trackMenu.song}
-          position={trackMenu.position}
-          onClose={closeTrackMenu}
+          song={trackMenu.song} position={trackMenu.position} onClose={closeTrackMenu}
           onPlay={() => {
             const idx = playlist.songs.findIndex((s: any) => s.song.id === trackMenu.song.id);
             if (idx !== -1) handleTrackPlay(idx);
@@ -493,20 +464,14 @@ export const PlaylistPage = () => {
       )}
       {playlistMenu && (
         <PlaylistContextMenu
-          playlist={playlistMenu.playlist}
-          position={playlistMenu.position}
-          onClose={closePlaylistMenu}
-          onRename={() => setIsEditing(true)}
+          playlist={playlistMenu.playlist} position={playlistMenu.position}
+          onClose={closePlaylistMenu} onRename={() => setIsEditing(true)}
         />
       )}
-
       {showCollaborators && (
         <CollaboratorModal
-          playlistId={id!}
-          collaborators={playlist.collaborators}
-          ownerId={playlist.ownerId}
-          currentUserId={user?.id || ''}
-          onClose={() => setShowCollaborators(false)}
+          playlistId={id!} collaborators={playlist.collaborators} ownerId={playlist.ownerId}
+          currentUserId={user?.id || ''} onClose={() => setShowCollaborators(false)}
         />
       )}
     </div>

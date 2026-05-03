@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useNotificationStore, Notification } from '../../stores/notification.store';
-import { Bell, Check, Trash2, X as XIcon, AlertTriangle, Lock, Music } from 'lucide-react';
+import { Bell, Check, Trash2, X as XIcon, AlertTriangle, Lock, Music, Cpu, Zap, Activity, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 import { cn } from '../../lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -29,61 +30,93 @@ export const NotificationPopover = () => {
   const safeNotifications = notifications || [];
 
   return (
-    <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl bg-[#282828] shadow-2xl ring-1 ring-white/10 z-[60] overflow-hidden flex flex-col max-h-[500px] animate-in fade-in zoom-in-95 duration-200">
-      {/* Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between bg-[#282828]">
-        <h3 className="font-bold text-lg">Thông báo</h3>
-        {unreadCount > 0 && (
-          <button 
-            onClick={() => markAllAsRead()}
-            className="text-xs text-[#B3B3B3] hover:text-white transition-colors"
-          >
-            Đánh dấu tất cả đã đọc
-          </button>
-        )}
-      </div>
+    <div className="absolute right-0 mt-3 w-80 sm:w-[420px] bg-[#050505] border-2 border-white/20 shadow-[20px_20px_60px_rgba(0,0,0,0.9)] z-[100] overflow-hidden flex flex-col max-h-[600px] isolate">
+      {/* ── Noise Overlay ── */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar min-h-[100px]">
+      {/* ── Header ── */}
+      <header className="p-6 border-b border-white/10 flex flex-col gap-4 relative z-10 bg-white/[0.02]">
+        <div className="flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-[#1db954]" />
+              <h3 className="text-sm font-black uppercase tracking-[0.4em] text-white">Signal_Buffer</h3>
+           </div>
+           <div className="flex items-center gap-2">
+              <Activity size={12} className="text-[#1db954]" />
+              <span className="text-[8px] font-black uppercase tracking-widest text-[#1db954]">Feed: Stable</span>
+           </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-white/5 pt-4">
+           <span className="text-[10px] font-black uppercase tracking-widest text-white/30 italic">Unread_Signals: {unreadCount}</span>
+           {unreadCount > 0 && (
+             <button 
+               onClick={() => markAllAsRead()}
+               className="text-[9px] font-black uppercase tracking-widest text-[#1db954] hover:text-black hover:bg-[#1db954] px-2 py-1 transition-all border border-transparent hover:border-[#1db954]"
+             >
+               Wipe_Signals_Status
+             </button>
+           )}
+        </div>
+      </header>
+
+      {/* ── Notification List ── */}
+      <div className="flex-1 overflow-y-auto no-scrollbar min-h-[150px] relative z-10">
         {loading && safeNotifications.length === 0 ? (
-          <div className="p-10 flex flex-col items-center justify-center text-[#B3B3B3] gap-2">
-            <div className="w-8 h-8 border-2 border-[#1DB954] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm">Đang tải...</p>
+          <div className="p-16 flex flex-col items-center justify-center text-white/20 gap-4">
+            <div className="w-12 h-[2px] bg-[#1db954] animate-pulse" />
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] italic">Fetching_Data_Signals...</p>
           </div>
         ) : safeNotifications.length === 0 ? (
-          <div className="p-10 flex flex-col items-center justify-center text-[#B3B3B3] gap-3 text-center">
-            <div className="bg-[#121212] p-4 rounded-full">
-              <Bell className="w-8 h-8 opacity-20" />
-            </div>
-            <div>
-              <p className="font-bold text-white">Chưa có thông báo nào</p>
-              <p className="text-sm">Các cập nhật mới nhất sẽ hiện ở đây.</p>
-            </div>
+          <div className="p-20 flex flex-col items-center justify-center text-white/10 gap-6 text-center">
+             <div className="relative">
+                <Bell size={48} strokeWidth={1} className="opacity-10" />
+                <Zap size={16} className="absolute -top-2 -right-2 text-[#1db954] animate-pulse" />
+             </div>
+             <div className="space-y-2">
+                <p className="text-xs font-black text-white uppercase tracking-[0.3em]">No_Events_Logged</p>
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest italic">The system is currently in standby mode.</p>
+             </div>
           </div>
         ) : (
-          <div className="py-2">
-            {safeNotifications.map((n) => (
-              <NotificationItem 
-                key={n._id || Math.random().toString()} 
-                notification={n} 
-                onClick={() => {
-                  if (!n.isRead) markAsRead(n._id);
-                  handleNotificationClick(n, navigate);
-                }}
-                onDelete={(e) => {
-                  e.stopPropagation();
-                  deleteNotification(n._id);
-                }}
-              />
-            ))}
+          <div className="flex flex-col">
+            <AnimatePresence initial={false}>
+              {safeNotifications.map((n, idx) => (
+                <motion.div
+                  key={n._id || `notif-${idx}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <NotificationItem 
+                    notification={n} 
+                    onClick={() => {
+                      if (!n.isRead) markAsRead(n._id);
+                      handleNotificationClick(n, navigate);
+                    }}
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      deleteNotification(n._id);
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-white/5 bg-[#181818] flex justify-center">
-         <p className="text-xs text-[#B3B3B3]">Gần đây</p>
-      </div>
+      {/* ── Footer ── */}
+      <footer className="p-4 border-t border-white/10 bg-black flex items-center justify-between relative z-10">
+         <div className="flex items-center gap-4">
+            <Database size={12} className="text-white/20" />
+            <span className="text-[7px] font-black uppercase tracking-widest text-white/20 italic">Buffer_Sync: NOMINAL</span>
+         </div>
+         <div className="flex gap-4">
+            <Cpu size={12} className="text-white/10" />
+            <Zap size={12} className="text-white/10" />
+         </div>
+      </footer>
     </div>
   );
 };
@@ -97,50 +130,79 @@ const NotificationItem = ({
   onClick: () => void,
   onDelete: (e: React.MouseEvent) => void 
 }) => {
+  const isApproved = n.type.includes('APPROVED');
+  const isRejected = n.type.includes('REJECTED') || n.type.includes('BANNED');
+  const isWarning = n.type.includes('STRIKE');
+
   return (
     <div 
       onClick={onClick}
       className={cn(
-        "px-4 py-3 flex gap-3 hover:bg-white/5 cursor-pointer transition-all relative group",
-        !n.isRead && "bg-white/[0.02]"
+        "px-6 py-5 flex gap-5 border-b border-white/5 transition-all cursor-pointer relative group overflow-hidden",
+        !n.isRead ? "bg-white/[0.02]" : "hover:bg-white text-white hover:text-black"
       )}
     >
-      {/* Icon/Type Indicator */}
+      {/* ── Type Indicator Strip ── */}
+      <div className={cn(
+        "absolute left-0 top-0 bottom-0 w-[3px] transition-all",
+        !n.isRead ? (isApproved ? "bg-green-500" : isRejected ? "bg-red-500" : isWarning ? "bg-yellow-500" : "bg-blue-500") : "bg-transparent group-hover:bg-black"
+      )} />
+
+      {/* ── Icon Area ── */}
       <div className="flex-shrink-0 mt-1">
         <div className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center",
-          n.type.includes('APPROVED') ? "bg-green-500/10 text-green-500" :
-          n.type.includes('REJECTED') || n.type.includes('BANNED') ? "bg-red-500/10 text-red-500" :
-          n.type.includes('STRIKE') ? "bg-yellow-500/10 text-yellow-500" :
-          "bg-blue-500/10 text-blue-500"
+          "w-10 h-10 border flex items-center justify-center transition-colors",
+          !n.isRead 
+            ? "border-white/10 bg-white/5" 
+            : "border-white/5 bg-transparent group-hover:border-black group-hover:bg-black/5"
         )}>
-          {getTypeIcon(n.type)}
+          {getTypeIcon(n.type, !n.isRead)}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <p className={cn("text-sm font-bold truncate", !n.isRead ? "text-white" : "text-[#B3B3B3]")}>
+      {/* ── Content Area ── */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <p className={cn(
+            "text-[12px] font-black uppercase tracking-tighter truncate leading-none",
+            !n.isRead ? "text-white" : "text-white/40 group-hover:text-black"
+          )}>
             {n.title}
           </p>
-          <div className="flex items-center gap-2">
-            {!n.isRead && <div className="w-2 h-2 rounded-full bg-[#1DB954] shrink-0" />}
+          <div className="flex items-center gap-3">
+            {!n.isRead && <div className="w-1.5 h-1.5 bg-[#1db954] animate-pulse" />}
             <button 
               onClick={onDelete}
-              className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded-full text-[#B3B3B3] hover:text-red-500 transition-all ml-1"
+              className="opacity-0 group-hover:opacity-100 p-1 text-black/40 hover:text-red-600 transition-all"
             >
-              <Trash2 size={14} />
+              <Trash2 size={12} />
             </button>
           </div>
         </div>
-        <p className="text-xs text-[#B3B3B3] line-clamp-2 mt-0.5 leading-relaxed">
+        
+        <p className={cn(
+          "text-[10px] font-black uppercase tracking-widest line-clamp-2 leading-relaxed opacity-60 group-hover:opacity-100",
+          !n.isRead ? "text-white/60" : "text-white/20 group-hover:text-black/60"
+        )}>
           {n.body}
         </p>
-        <p className="text-[10px] text-[#5e5e5e] mt-2">
-          {dayjs(n.createdAt).fromNow()}
-        </p>
+
+        <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/[0.02] group-hover:border-black/5">
+           <div className="flex items-center gap-2">
+              <Activity size={8} className={cn("opacity-20 group-hover:opacity-40", !n.isRead ? "text-[#1db954]" : "text-inherit")} />
+              <span className={cn(
+                "text-[8px] font-black uppercase tracking-widest italic",
+                !n.isRead ? "text-white/30" : "text-white/10 group-hover:text-black/20"
+              )}>
+                {dayjs(n.createdAt).fromNow()}
+              </span>
+           </div>
+           <span className="text-[7px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-20 transition-opacity">Execute_Action_Now</span>
+        </div>
       </div>
+      
+      {/* ── Hover Decoration ── */}
+      <div className="absolute right-0 top-0 bottom-0 w-[4px] bg-[#1db954] translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
     </div>
   );
 };
@@ -150,27 +212,23 @@ const handleNotificationClick = (n: Notification, navigate: any) => {
   
   if (type === 'NEW_RELEASE' || type === 'CONTENT_APPROVED') {
     if (data?.songId) {
-      // Vì trang song/:id là placeholder, ta hướng user tới Artist page để nghe
-      if (data.artistId) {
-        navigate(`/track/${data.songId}`);
-      } else {
-        navigate(`/track/${data.songId}`);
-      }
+      navigate(`/track/${data.songId}`);
     }
   } else if (type === 'ARTIST_VERIFIED') {
     if (data?.artistId) navigate(`/artist/${data.artistId}`);
-  } else if (type === 'STRIKE_ISSUED' || type === 'ACCOUNT_BANNED') {
-    // Navigate to settings or profile if needed
   }
 };
 
-const getTypeIcon = (type: string) => {
+const getTypeIcon = (type: string, isUnread: boolean) => {
+  const sizeClass = "w-4 h-4 transition-colors";
+  const iconColor = isUnread ? "text-white" : "group-hover:text-black";
+  
   switch (type) {
-    case 'CONTENT_APPROVED': return <Check className="w-5 h-5" />;
-    case 'CONTENT_REJECTED': return <XIcon className="w-5 h-5" />;
-    case 'STRIKE_ISSUED': return <AlertTriangle className="w-5 h-5" />;
-    case 'ACCOUNT_BANNED': return <Lock className="w-4 h-4" />;
-    case 'NEW_RELEASE': return <Music className="w-5 h-5" />;
-    default: return <Bell className="w-5 h-5" />;
+    case 'CONTENT_APPROVED': return <Check className={cn(sizeClass, iconColor)} />;
+    case 'CONTENT_REJECTED': return <XIcon className={cn(sizeClass, iconColor)} />;
+    case 'STRIKE_ISSUED': return <AlertTriangle className={cn(sizeClass, iconColor)} />;
+    case 'ACCOUNT_BANNED': return <Lock className={cn(sizeClass, iconColor)} />;
+    case 'NEW_RELEASE': return <Music className={cn(sizeClass, iconColor)} />;
+    default: return <Bell className={cn(sizeClass, iconColor)} />;
   }
 };

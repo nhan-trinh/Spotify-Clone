@@ -81,7 +81,7 @@ export const LyricsPage = () => {
   return (
     <div className="flex flex-col h-full w-full relative overflow-hidden isolate bg-black group/lyrics selection:bg-[#1db954] selection:text-black">
       {/* 1. Texture Layer (Grain) */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
       {/* 2. Giant Background Typography (Asymmetric) - Consistent with TrackPage */}
       <div className="fixed -right-20 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center rotate-90 whitespace-nowrap z-0">
