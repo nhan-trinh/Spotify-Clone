@@ -52,7 +52,7 @@ export const SearchPage = () => {
               <div className="w-12 h-[2px] bg-[#1db954]" />
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1db954]">Query_Manifest_V4</span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-[0.8] italic">
+            <h1 className="text-6xl md:text-7xl font-black text-white uppercase tracking-tighter leading-[0.8] italic">
               Discovery_Console
             </h1>
           </motion.header>
@@ -136,28 +136,27 @@ export const SearchPage = () => {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
 
       <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
-        <div className="mb-24 border-b border-white/10 pb-16 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-end gap-12">
+        <div className="mb-24 border-b border-white/10 pb-16 flex flex-col gap-12">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            className="space-y-12"
           >
-            <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-[0.8] mb-6">Search_Manifest</h1>
-            <div className="flex items-center gap-4">
-              <div className="h-[2px] w-16 bg-[#1db954]" />
-              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/30 italic">Query_Origin: "{query}"</p>
+            <div>
+              <h1 className="text-7xl md:text-8xl font-black uppercase tracking-tighter italic leading-[0.8] mb-6">Search_Manifest</h1>
+              <div className="flex items-center gap-4">
+                <div className="h-[2px] w-16 bg-[#1db954]" />
+                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/30 italic">Query_Origin: "{query}"</p>
+              </div>
             </div>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-col items-start lg:items-end gap-4"
-          >
-            <SearchFilterChips activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="flex items-center gap-2 opacity-10">
-              <span className="text-[8px] font-black uppercase tracking-[0.3em]">Filtering_Protocol_Active</span>
-              <Database size={10} />
+            <div className="flex flex-col gap-6">
+              <SearchFilterChips activeTab={activeTab} onTabChange={setActiveTab} />
+
+              <div className="flex items-center gap-2 opacity-10">
+                <span className="text-[8px] font-black uppercase tracking-[0.3em]">Filtering_Protocol_Active</span>
+                <Database size={10} />
+              </div>
             </div>
           </motion.div>
         </div>

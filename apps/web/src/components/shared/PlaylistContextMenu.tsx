@@ -6,6 +6,7 @@ import { useUIStore } from '../../stores/ui.store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { ConfirmModal } from '../shared/ConfirmModal';
 
 interface Playlist {
   id: string;
@@ -32,6 +33,8 @@ export const PlaylistContextMenu = ({
   const { user } = useAuthStore();
   const { openReportModal } = useUIStore();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isOwner = playlist.ownerId === user?.id;
 
@@ -42,6 +45,8 @@ export const PlaylistContextMenu = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      // Đừng đóng menu nếu đang nhấn vào Modal xóa
+      if (isDeleteModalOpen) return;
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
     };
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -51,97 +56,115 @@ export const PlaylistContextMenu = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEsc);
     };
-  }, [onClose]);
+  }, [onClose, isDeleteModalOpen]);
 
   const handleDelete = async () => {
-    if (confirm(`Sếp có chắc chắn muốn xóa playlist "${playlist.title}" không?`)) {
+    setIsDeleting(true);
+    try {
       await deletePlaylist(playlist.id);
+      setIsDeleteModalOpen(false);
       onClose();
+    } catch {
+      toast.error('Purge Failed: System Interruption');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      ref={menuRef}
-      style={{ position: 'fixed', top: adjustedPos.y, left: adjustedPos.x, zIndex: 9999 }}
-      className="bg-black border border-white/20 shadow-[20px_20px_60px_rgba(0,0,0,0.8)] w-60 py-0 overflow-hidden isolate select-none"
-      onClick={(e) => e.stopPropagation()}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay z-0 bg-noise" />
+    <>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        ref={menuRef}
+        style={{ position: 'fixed', top: adjustedPos.y, left: adjustedPos.x, zIndex: 9999 }}
+        className="bg-black border border-white/20 shadow-[20px_20px_60px_rgba(0,0,0,0.8)] w-60 py-0 overflow-hidden isolate select-none"
+        onClick={(e) => e.stopPropagation()}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay z-0 bg-noise" />
 
-      <div className="relative z-10">
-        <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02]">
-           <p className="text-white font-black uppercase tracking-tighter truncate text-[11px]">{playlist.title}</p>
-           <p className="text-white/30 text-[8px] font-black uppercase tracking-widest mt-0.5">Playlist_Archive</p>
-        </div>
+        <div className="relative z-10">
+          <div className="px-4 py-3 border-b border-white/10 bg-white/[0.02]">
+             <p className="text-white font-black uppercase tracking-tighter truncate text-[11px]">{playlist.title}</p>
+             <p className="text-white/30 text-[8px] font-black uppercase tracking-widest mt-0.5">Playlist_Archive</p>
+          </div>
 
-        <div className="py-2">
-           {isOwner && (
-             <MenuItem 
-               icon={<Edit2 size={14} />} 
-               label="Rename Archive" 
-               index="01"
-               onClick={() => { if (onRename) onRename(); onClose(); }} 
-             />
-           )}
-           <MenuItem 
-             icon={<Share2 size={14} />} 
-             label="Copy Archive Link" 
-             index="LNK"
-             onClick={() => { 
-               navigator.clipboard.writeText(`${window.location.origin}/playlist/${playlist.id}`);
-               toast.success('Link copied to clipboard');
-               onClose(); 
-             }} 
-           />
-        </div>
-
-        <div className="border-t border-white/10" />
-
-        <div className="py-2">
-           {isOwner && (
-             <MenuItem 
-               icon={playlist.isPublic ? <Lock size={14} /> : <Globe size={14} />} 
-               label={playlist.isPublic ? "Set Private" : "Set Public"} 
-               index="MOD"
-               onClick={async () => {
-                 await updatePlaylist(playlist.id, { isPublic: !playlist.isPublic });
-                 onClose();
-               }} 
-             />
-           )}
-           {!isOwner && user && (
-             <MenuItem 
-               icon={<AlertTriangle size={14} />} 
-               label="Flag_Archive" 
-               index="RPT"
-               onClick={() => {
-                 openReportModal(playlist.id, 'PLAYLIST', playlist.title);
-                 onClose();
-               }} 
-             />
-           )}
-        </div>
-
-        {isOwner && (
-          <>
-            <div className="border-t border-white/10" />
-            <div className="py-1 bg-white/[0.01]">
+          <div className="py-2">
+             {isOwner && (
                <MenuItem 
-                 icon={<Trash2 size={14} />} 
-                 label="Purge Archive" 
-                 index="DEL"
-                 onClick={handleDelete}
-                 danger 
+                 icon={<Edit2 size={14} />} 
+                 label="Rename Archive" 
+                 index="01"
+                 onClick={() => { if (onRename) onRename(); onClose(); }} 
                />
-            </div>
-          </>
-        )}
-      </div>
-    </motion.div>
+             )}
+             <MenuItem 
+               icon={<Share2 size={14} />} 
+               label="Copy Archive Link" 
+               index="LNK"
+               onClick={() => { 
+                 navigator.clipboard.writeText(`${window.location.origin}/playlist/${playlist.id}`);
+                 toast.success('Link copied to clipboard');
+                 onClose(); 
+               }} 
+             />
+          </div>
+
+          <div className="border-t border-white/10" />
+
+          <div className="py-2">
+             {isOwner && (
+               <MenuItem 
+                 icon={playlist.isPublic ? <Lock size={14} /> : <Globe size={14} />} 
+                 label={playlist.isPublic ? "Set Private" : "Set Public"} 
+                 index="MOD"
+                 onClick={async () => {
+                   await updatePlaylist(playlist.id, { isPublic: !playlist.isPublic });
+                   onClose();
+                 }} 
+               />
+             )}
+             {!isOwner && user && (
+               <MenuItem 
+                 icon={<AlertTriangle size={14} />} 
+                 label="Flag_Archive" 
+                 index="RPT"
+                 onClick={() => {
+                   openReportModal(playlist.id, 'PLAYLIST', playlist.title);
+                   onClose();
+                 }} 
+               />
+             )}
+          </div>
+
+          {isOwner && (
+            <>
+              <div className="border-t border-white/10" />
+              <div className="py-1 bg-white/[0.01]">
+                 <MenuItem 
+                   icon={<Trash2 size={14} />} 
+                   label="Purge Archive" 
+                   index="DEL"
+                   onClick={() => setIsDeleteModalOpen(true)}
+                   danger 
+                 />
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Execute_Purge"
+        message={`Are you sure you want to permanently delete "${playlist.title}"?`}
+        confirmText="Confirm_Purge"
+        isLoading={isDeleting}
+      />
+    </>
   );
 };
 

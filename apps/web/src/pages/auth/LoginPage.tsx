@@ -329,38 +329,92 @@ export const LoginPage = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
           >
-            <div className="absolute inset-0 opacity-[0.1] pointer-events-none bg-noise" />
+            <div className="absolute inset-0 opacity-[0.2] pointer-events-none bg-noise" />
             
+            {/* Background Lightning/Sparks */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  animate={{ 
+                    opacity: [0, 1, 0], 
+                    scale: [0.5, 2, 0],
+                    x: (Math.random() - 0.5) * 800,
+                    y: (Math.random() - 0.5) * 400,
+                    rotate: Math.random() * 360
+                  }}
+                  transition={{ 
+                    duration: 0.3, 
+                    repeat: Infinity, 
+                    delay: Math.random() * 0.5,
+                    repeatDelay: Math.random() * 0.2
+                  }}
+                  className="absolute w-[2px] h-[100px] bg-[#1db954] shadow-[0_0_20px_#1db954]"
+                />
+              ))}
+            </div>
+
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ opacity: 0, scale: 0.5 }}
               animate={{ 
-                scale: [0.8, 1.1, 1],
-                opacity: 1,
-                x: [0, -10, 10, -5, 0],
-                filter: ["blur(0px)", "blur(10px)", "blur(0px)"]
+                opacity: [0, 1, 0.8, 1, 0],
+                scale: [0.8, 1.2, 0.9, 1.1, 1.5],
+                x: [0, -5, 5, -2, 2, 0],
+                y: [0, 2, -2, 1, -1, 0],
+                skewX: [0, 10, -10, 5, -5, 0],
+                filter: [
+                  "drop-shadow(0 0 0px #1db954)",
+                  "drop-shadow(0 0 30px #1db954) blur(2px)",
+                  "drop-shadow(0 0 0px #1db954) blur(0px)"
+                ]
               }}
-              transition={{ duration: 0.4, times: [0, 0.1, 0.2, 0.3, 1] }}
+              transition={{ 
+                duration: 0.8,
+                times: [0, 0.2, 0.4, 0.6, 1],
+                ease: "easeInOut"
+              }}
               className="relative"
             >
-               <h2 className="text-[15vw] font-black italic uppercase tracking-tighter text-[#1db954] leading-none select-none">
+               {/* Multiple Layers for Glitch Effect */}
+               <h2 className="text-[18vw] font-black italic uppercase tracking-tighter text-[#1db954] leading-none select-none relative z-10">
                  Activated
                </h2>
-               <div className="absolute top-0 left-0 w-full h-full text-[15vw] font-black italic uppercase tracking-tighter text-white mix-blend-difference animate-pulse opacity-50">
+               <div className="absolute top-0 left-0 w-full h-full text-[18vw] font-black italic uppercase tracking-tighter text-white mix-blend-difference opacity-50 animate-glitch-1">
+                 Activated
+               </div>
+               <div className="absolute top-0 left-0 w-full h-full text-[18vw] font-black italic uppercase tracking-tighter text-cyan-400 mix-blend-screen opacity-30 animate-glitch-2">
                  Activated
                </div>
             </motion.div>
 
-            {/* Technical scanlines/glitch bars */}
-            <motion.div 
-              animate={{ y: ["-100%", "100%"] }}
-              transition={{ duration: 0.2, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 bg-white/5 h-20 w-full pointer-events-none"
-            />
+            {/* Horizontal Glitch Strips */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ 
+                  y: ["-100%", "200%"],
+                  opacity: [0, 1, 0],
+                  scaleY: [1, 5, 1]
+                }}
+                transition={{ 
+                  duration: 0.2, 
+                  repeat: Infinity, 
+                  delay: i * 0.1,
+                  ease: "linear"
+                }}
+                className="absolute inset-x-0 h-[2px] bg-[#1db954]/20 pointer-events-none z-50"
+              />
+            ))}
             
             <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-               <span className="text-[10px] font-black uppercase tracking-[1em] text-[#1db954] animate-pulse">
+               <motion.span 
+                 animate={{ opacity: [0.2, 1, 0.2] }}
+                 transition={{ duration: 0.1, repeat: Infinity }}
+                 className="text-[10px] font-black uppercase tracking-[1em] text-[#1db954]"
+               >
                  SYNC_SUCCESS_01
-               </span>
+               </motion.span>
             </div>
           </motion.div>
         )}

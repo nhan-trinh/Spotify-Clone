@@ -32,60 +32,13 @@ export const PlaybackControls = () => {
   const isDisable = !currentTrack;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
-      {/* Nút bấm điều khiển - Geometric Minimalism */}
-      <div className="flex items-center gap-8 mb-4">
-
-        <button
-          onClick={toggleShuffle}
-          className={cn(
-            "transition-all p-1",
-            isShuffle ? "text-[#1db954]" : "text-[#444] hover:text-white"
-          )}
-          disabled={isDisable}
-        >
-          <Shuffle size={16} />
-        </button>
-
-        <button onClick={prevTrack} className="text-[#666] hover:text-white transition-all p-1" disabled={isDisable}>
-          <SkipBack size={22} className="fill-current" />
-        </button>
-
-        <button
-          onClick={togglePlay}
-          className={cn(
-            "w-12 h-12 flex items-center justify-center bg-white text-black transition-all",
-            "hover:bg-[#1db954] hover:text-black active:scale-95"
-          )}
-          disabled={isDisable}
-        >
-          {isPlaying ? <Pause size={24} className="fill-current" /> : <Play size={24} className="fill-current ml-1" />}
-        </button>
-
-        <button onClick={nextTrack} className="text-[#666] hover:text-white transition-all p-1" disabled={isDisable}>
-          <SkipForward size={22} className="fill-current" />
-        </button>
-
-        <button
-          onClick={toggleRepeat}
-          className={cn(
-            "transition-all p-1",
-            repeatMode !== 'off' ? "text-[#1db954]" : "text-[#444] hover:text-white"
-          )}
-          disabled={isDisable}
-        >
-          {repeatMode === 'one' ? <Repeat1 size={16} /> : <Repeat size={16} />}
-        </button>
-
-      </div>
-
-
-      {/* Thanh Progress - Brutalist Line */}
-      <div className="flex items-center w-full gap-4 text-[10px] font-mono font-bold tracking-tighter text-[#444]">
-        <span className="min-w-[40px] text-right">{formatTime(localProgress)}</span>
+    <div className="flex flex-col items-center justify-center w-full gap-2">
+      {/* ── Progress Manifest ── */}
+      <div className="flex items-center w-full gap-3 text-[8px] font-black tracking-[0.2em] text-white/20 uppercase">
+        <span className="min-w-[40px] text-right tabular-nums">{formatTime(localProgress)}</span>
 
         <Slider.Root
-          className="relative flex items-center select-none touch-none w-full h-4 group cursor-pointer"
+          className="relative flex items-center select-none touch-none w-full h-3 group cursor-pointer"
           value={[localProgress]}
           max={duration || 100}
           step={1}
@@ -93,13 +46,67 @@ export const PlaybackControls = () => {
           onValueCommit={handleValueCommit}
           disabled={isDisable}
         >
-          <Slider.Track className="bg-[#222] relative grow h-[4px] overflow-hidden">
+          <Slider.Track className="bg-white/5 relative grow h-[1px] overflow-hidden">
             <Slider.Range className="absolute bg-[#1db954] h-full" />
           </Slider.Track>
-          <Slider.Thumb className="hidden group-hover:block w-[10px] h-[10px] bg-white outline-none" />
+          <Slider.Thumb className="hidden group-hover:block w-1.5 h-1.5 bg-white outline-none rounded-none shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
         </Slider.Root>
 
-        <span className="min-w-[40px] text-left">{formatTime(duration)}</span>
+        <span className="min-w-[40px] text-left tabular-nums">{formatTime(duration)}</span>
+      </div>
+
+      {/* ── Controller Keys ── */}
+      <div className="flex items-center gap-6">
+        <button
+          onClick={toggleShuffle}
+          className={cn(
+            "transition-all p-2 border border-transparent",
+            isShuffle ? "text-[#1db954]" : "text-white/20 hover:text-white"
+          )}
+          disabled={isDisable}
+        >
+          <Shuffle size={14} />
+        </button>
+
+        <button 
+          onClick={prevTrack} 
+          className="text-white/40 hover:text-white transition-all p-2" 
+          disabled={isDisable}
+        >
+          <SkipBack size={18} className="fill-current" />
+        </button>
+
+        <button
+          onClick={togglePlay}
+          className={cn(
+            "w-10 h-10 flex items-center justify-center bg-white text-black transition-all relative group",
+            "hover:bg-[#1db954] active:translate-x-0.5 active:translate-y-0.5"
+          )}
+          disabled={isDisable}
+        >
+          {/* Shadow Block Effect */}
+          <div className="absolute inset-0 border border-black/10 z-10" />
+          {isPlaying ? <Pause size={20} className="fill-current" /> : <Play size={20} className="fill-current ml-1" />}
+        </button>
+
+        <button 
+          onClick={nextTrack} 
+          className="text-white/40 hover:text-white transition-all p-2" 
+          disabled={isDisable}
+        >
+          <SkipForward size={18} className="fill-current" />
+        </button>
+
+        <button
+          onClick={toggleRepeat}
+          className={cn(
+            "transition-all p-2",
+            repeatMode !== 'off' ? "text-[#1db954]" : "text-white/20 hover:text-white"
+          )}
+          disabled={isDisable}
+        >
+          {repeatMode === 'one' ? <Repeat1 size={14} /> : <Repeat size={14} />}
+        </button>
       </div>
     </div>
   );

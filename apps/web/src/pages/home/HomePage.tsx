@@ -1,4 +1,4 @@
-import { useMemo, memo } from 'react';
+import { useMemo, memo, useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { MediaCard } from '../../components/shared/MediaCard';
@@ -215,25 +215,46 @@ export const HomePage = () => {
   );
 };
 
-const Section = memo(({ title, index, showAllLink, children }: { title: string; index: string; showAllLink?: string; children: React.ReactNode }) => (
-  <section className="mb-20 w-full">
-    <div className="flex items-end justify-between mb-8 border-b border-white/5 pb-4">
-      <div className="flex flex-col gap-1">
-         <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-[#1db954]">{index}</span>
-            <div className="w-4 h-[1px] bg-white/20" />
-         </div>
-         <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
-            {title}
-         </h2>
+const Section = memo(({ title, index, showAllLink, children }: { title: string; index: string; showAllLink?: string; children: React.ReactNode }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        if (ref.current) observer.unobserve(ref.current);
+      }
+    }, { rootMargin: '300px' });
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section ref={ref} className="mb-20 w-full min-h-[350px]">
+      <div className="flex items-end justify-between mb-8 border-b border-white/5 pb-4">
+        <div className="flex flex-col gap-1">
+           <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-[#1db954]">{index}</span>
+              <div className="w-4 h-[1px] bg-white/20" />
+           </div>
+           <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+              {title}
+           </h2>
+        </div>
+        {showAllLink && (
+          <Link to={showAllLink} className="text-[10px] font-black text-[#555] hover:text-white transition-colors uppercase tracking-widest border border-white/10 px-4 py-1">
+            View_All
+          </Link>
+        )}
       </div>
-      {showAllLink && (
-        <Link to={showAllLink} className="text-[10px] font-black text-[#555] hover:text-white transition-colors uppercase tracking-widest border border-white/10 px-4 py-1">
-          View_All
-        </Link>
+      {isVisible ? children : (
+        <div className="w-full h-[250px] bg-white/5 animate-pulse flex items-center justify-center opacity-30">
+          <div className="w-12 h-[1px] bg-[#1db954] animate-pulse" />
+        </div>
       )}
-    </div>
-    {children}
-  </section>
-));
+    </section>
+  );
+});
 Section.displayName = 'Section';
