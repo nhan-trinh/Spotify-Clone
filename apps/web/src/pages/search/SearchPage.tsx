@@ -9,6 +9,7 @@ import { Play, Search as SearchIcon, Zap, Cpu, Database } from 'lucide-react';
 import { usePlayerStore } from '../../stores/player.store';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 
 const BROWSE_CATEGORIES = [
   { id: '01', name: 'Podcasts_Archive', color: 'border-white/20' },
@@ -26,6 +27,7 @@ export const SearchPage = () => {
   const query = searchParams.get('q');
   const [activeTab, setActiveTab] = useState('all');
   const { setContextAndPlay } = usePlayerStore();
+  const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
 
   const { data: results, isLoading: loading } = useQuery({
     queryKey: ['search', query],
@@ -189,6 +191,7 @@ export const SearchPage = () => {
                         coverUrl: song.coverUrl, audioUrl: song.audioUrl, canvasUrl: song.canvasUrl,
                         duration: song.duration, hasLyrics: song.hasLyrics,
                       }], 0, song.id)}
+                      onContextMenu={(e) => { e.preventDefault(); openTrackMenu(e, song); }}
                       whileHover={{ x: 4 }}
                       className="group flex items-center gap-6 p-4 border-b border-white/5 hover:bg-white transition-all cursor-pointer relative overflow-hidden"
                     >
@@ -319,6 +322,13 @@ export const SearchPage = () => {
           </div>
         </footer>
       </div>
+
+      {/* ── CONTEXT MENU ── */}
+      {trackMenu && (
+        <SongContextMenu 
+          song={trackMenu.song} position={trackMenu.position} onClose={closeTrackMenu}
+        />
+      )}
     </div>
   );
 };
