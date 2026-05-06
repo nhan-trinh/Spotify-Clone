@@ -134,7 +134,10 @@ export const PlaylistService = {
 
     const ext = file.mimetype.split('/')[1] || 'jpg';
     const filePath = `playlist-covers/${playlistId}.${ext}`;
-    const coverUrl = await SupabaseUtil.uploadBuffer('images', filePath, file.buffer, file.mimetype);
+    const baseCoverUrl = await SupabaseUtil.uploadBuffer('images', filePath, file.buffer, file.mimetype);
+
+    // Cache busting: Ép trình duyệt tải ảnh mới bằng cách thêm query param thời gian
+    const coverUrl = `${baseCoverUrl}?t=${Date.now()}`;
 
     await prisma.playlist.update({
       where: { id: playlistId },

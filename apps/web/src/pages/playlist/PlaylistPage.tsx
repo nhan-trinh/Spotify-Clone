@@ -107,12 +107,17 @@ export const PlaylistPage = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.patch(`/playlists/${id}`, editForm);
+      // Dùng destructuring để bóc tách coverUrl ra khỏi các trường còn lại
+      const { coverUrl, ...rest } = editForm;
+      // Chỉ gửi coverUrl nếu nó thực sự có dữ liệu (URL hợp lệ)
+      const payload = coverUrl ? { ...rest, coverUrl } : rest;
+      
+      await api.patch(`/playlists/${id}`, payload);
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
       setIsEditing(false);
       toast.success('Archive updated successfully');
     } catch (e: any) {
-      toast.error('Failed to update archive');
+      toast.error(e.response?.data?.message || 'Failed to update archive');
     } finally {
       setSaving(false);
     }
@@ -125,9 +130,7 @@ export const PlaylistPage = () => {
     try {
       const formData = new FormData();
       formData.append('cover', file);
-      const res = await api.patch(`/playlists/${id}/cover`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }) as any;
+      const res = await api.patch(`/playlists/${id}/cover`, formData) as any;
       setEditForm((prev: any) => ({ ...prev, coverUrl: res.data.coverUrl }));
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
     } catch (e) {

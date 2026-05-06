@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { api } from '../../lib/api';
-import { Plus, Disc3, Trash2, Edit2, Upload, Loader2, Globe, EyeOff, Zap, Layers, Activity } from 'lucide-react';
+import { Plus, Disc3, Trash2, Edit2, Upload, Loader2, Globe, EyeOff, Zap, Layers, Activity, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Modal } from '../../components/ui/modal';
@@ -189,6 +189,14 @@ export const ArtistAlbumsPage = () => {
     } catch { toast.error('Lỗi tuyến bài hát'); }
   };
 
+  const handleRemoveFromAlbum = async (albumId: string, songId: string) => {
+    try {
+      await api.delete(`/albums/${albumId}/songs/${songId}`);
+      toast.success('Signal_Detached: Đã gỡ khỏi Collection.');
+      fetchData();
+    } catch { toast.error('Lỗi khi gỡ bài hát'); }
+  };
+
   const handleTogglePublish = async (album: any) => {
     const newStatus = album.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
     try {
@@ -344,6 +352,27 @@ export const ArtistAlbumsPage = () => {
                                <option key={s.id} value={s.id} className="bg-black">{s.title.toUpperCase()}</option>
                              ))}
                            </select>
+                        </div>
+                      )}
+
+                      {/* Danh sách bài hát đã thêm */}
+                      {songs.filter(s => s.albumId === album.id).length > 0 && (
+                        <div className="pt-4 border-t border-white/5 space-y-2 max-h-32 overflow-y-auto no-scrollbar">
+                           <div className="flex items-center gap-2 text-white/20 mb-2">
+                              <span className="text-[8px] font-black uppercase tracking-widest">Assigned_Units:</span>
+                           </div>
+                           {songs.filter(s => s.albumId === album.id).map(s => (
+                             <div key={s.id} className="flex items-center justify-between group/song">
+                               <span className="text-[9px] font-black text-white/60 uppercase truncate flex-1 pr-2 leading-tight">{s.title}</span>
+                               <button 
+                                 onClick={() => handleRemoveFromAlbum(album.id, s.id)}
+                                 className="text-white/20 hover:text-red-500 opacity-0 group-hover/song:opacity-100 transition-all p-1 flex-shrink-0"
+                                 title="Remove_Unit"
+                               >
+                                 <X size={10} />
+                               </button>
+                             </div>
+                           ))}
                         </div>
                       )}
                    </div>

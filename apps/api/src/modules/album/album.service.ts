@@ -23,7 +23,7 @@ export const AlbumService = {
     const album = await prisma.album.findUnique({
       where: { id: albumId },
       include: {
-        artist: { select: { id: true, stageName: true, avatarUrl: true, isVerified: true } },
+        artist: { select: { id: true, userId: true, stageName: true, avatarUrl: true, isVerified: true } },
         songs: {
           select: {
             id: true,
