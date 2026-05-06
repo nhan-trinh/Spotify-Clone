@@ -1,4 +1,4 @@
-import { useEffect, useState, memo } from 'react';
+import { memo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { api } from '../../lib/api';
@@ -9,46 +9,46 @@ import { useUIStore } from '../../stores/ui.store';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const ProfilePage = () => {
   const { id } = useParams();
   const { user: currentUser } = useAuthStore();
   const { openReportModal } = useUIStore();
-  const [profile, setProfile] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const isOwnProfile = !id || id === currentUser?.id;
   const targetId = id || currentUser?.id;
 
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      setLoading(true);
-      try {
-        const profileRes = await api.get(`/users/${targetId}`) as any;
-        setProfile(profileRes.data);
+  // 🛡️ IMPLEMENTING CACHING: 5 minutes staleTime for Profile
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['user-profile', targetId],
+    queryFn: async () => {
+      const res = await api.get(`/users/${targetId}`) as any;
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    enabled: !!targetId,
+  });
 
-        if (isOwnProfile) {
-          const historyRes = await api.get('/users/history') as any;
-          setHistory(historyRes.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch profile:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (targetId) fetchProfileData();
-  }, [targetId, isOwnProfile]);
+  // 🛡️ CACHING for History: 1 minute
+  const { data: history = [] } = useQuery({
+    queryKey: ['user-history', targetId],
+    queryFn: async () => {
+      const res = await api.get('/users/history') as any;
+      return res.data;
+    },
+    staleTime: 60 * 1000,
+    enabled: !!targetId && isOwnProfile,
+  });
 
   const handleFollow = async () => {
     if (!profile || isOwnProfile) return;
     try {
       await api.post(`/users/${profile.id}/follow`);
-      setProfile({ ...profile, isFollowing: true, stats: { ...profile.stats, followers: profile.stats.followers + 1 } });
-      const { socketService } = await import('../../lib/socket');
-      socketService.emit('social:follow_success', { followingId: profile.id });
+      toast.success('Registry Link Established');
+      queryClient.invalidateQueries({ queryKey: ['user-profile', targetId] });
     } catch (error) {
       console.error('Follow failed:', error);
     }
@@ -58,13 +58,14 @@ export const ProfilePage = () => {
     if (!profile || isOwnProfile) return;
     try {
       await api.delete(`/users/${profile.id}/unfollow`);
-      setProfile({ ...profile, isFollowing: false, stats: { ...profile.stats, followers: Math.max(0, profile.stats.followers - 1) } });
+      toast.info('Registry Link Terminated');
+      queryClient.invalidateQueries({ queryKey: ['user-profile', targetId] });
     } catch (error) {
       console.error('Unfollow failed:', error);
     }
   };
 
-  if (loading) return <ProfileSkeleton />;
+  if (profileLoading) return <ProfileSkeleton />;
 
   if (!profile) {
     return (

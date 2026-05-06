@@ -6,7 +6,7 @@ import { queryClient } from '../../lib/query-client';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
 import { useAuthStore } from '../../stores/auth.store';
-import { Play, Pause, Heart, MoreHorizontal, Camera, X, Loader2, UserPlus, Activity, Database, Zap, Cpu } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Camera, X, Loader2, UserPlus, Activity, Database, Zap, Cpu, Shuffle } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
@@ -25,7 +25,7 @@ export const PlaylistPage = () => {
   const [showCollaborators, setShowCollaborators] = useState(false);
 
   const { user } = useAuthStore();
-  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay, isShuffle, toggleShuffle } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingPlaylist, toggleFollowPlaylist, removeSongFromPlaylist } = useLibraryStore();
   const playlistFollowed = id ? isFollowingPlaylist(id) : false;
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
@@ -66,7 +66,17 @@ export const PlaylistPage = () => {
   }
 
   if (!playlist) {
-    return <div className="p-32 text-center font-black uppercase tracking-[0.5em] text-white/20">Archive_Not_Found</div>;
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-black text-white p-32">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-0 bg-noise" />
+        <Database size={64} className="text-white/10 mb-8" />
+        <div className="text-white/20 font-black uppercase tracking-[0.5em] mb-12">Archive_Not_Found</div>
+        <Link to="/" className="px-10 py-4 border border-white/20 hover:border-white text-[11px] font-black uppercase tracking-widest transition-all italic relative group overflow-hidden">
+          <span className="relative z-10">Return_to_Dashboard</span>
+          <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-0" />
+        </Link>
+      </div>
+    );
   }
 
   const isThisPlaying = currentContextId === id && isPlaying;
@@ -136,8 +146,10 @@ export const PlaylistPage = () => {
     try {
       await removeSongFromPlaylist(id, songId);
       queryClient.invalidateQueries({ queryKey: ['playlist', id] });
+      toast.success('Registry Entry Removed');
     } catch (err) {
       console.error(err);
+      toast.error('Removal protocol failed');
     }
   };
 
@@ -145,6 +157,13 @@ export const PlaylistPage = () => {
     <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
       {/* Grain Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
+
+      {/* Giant Background Label (Editorial Style) */}
+      <div className="fixed -left-48 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center -rotate-90 whitespace-nowrap z-0">
+        <span className="text-[220px] font-black text-white/[0.02] tracking-tighter uppercase leading-none italic">
+          {playlist.title}
+        </span>
+      </div>
 
       <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
 
@@ -214,14 +233,14 @@ export const PlaylistPage = () => {
               </div>
               <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest">
                 <Zap size={12} />
-                <span>Total_Duration: {Math.floor(playlist.songs.reduce((acc: number, s: any) => acc + s.song.duration, 0) / 60)}M</span>
+                <span>Total_Duration: {formatTime(playlist.songs.reduce((acc: number, s: any) => acc + (s.song?.duration || 0), 0))}</span>
               </div>
             </div>
           </div>
         </motion.header>
 
         {/* ── ACTIONS ── */}
-        <div className="flex items-center gap-8 mb-16">
+        <div className="flex items-center gap-6 mb-16">
           <button
             onClick={handleMainPlay}
             className="group relative flex items-center gap-4 px-10 py-5 bg-[#1db954] text-black transition-all hover:bg-white overflow-hidden shadow-[10px_10px_0px_rgba(29,185,84,0.2)]"
@@ -232,6 +251,21 @@ export const PlaylistPage = () => {
             </div>
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-0" />
           </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleShuffle}
+              className={cn(
+                "p-4 border transition-all duration-300 relative group/btn",
+                isShuffle ? "bg-[#1db954] text-black border-[#1db954]" : "border-white/10 text-white/40 hover:border-white hover:text-white"
+              )}
+              title="Shuffle_Toggle"
+            >
+              <Shuffle size={20} className={isShuffle ? "drop-shadow-[0_0_8px_rgba(0,0,0,0.5)]" : ""} />
+            </button>
+          </div>
+
+          <div className="w-[1px] h-8 bg-white/10 mx-2" />
 
           <button
             onClick={() => id && toggleFollowPlaylist(id, playlist.title)}
@@ -281,7 +315,7 @@ export const PlaylistPage = () => {
                 <motion.div
                   key={item.songId}
                   onClick={() => handleTrackPlay(index)}
-                  onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist.stageName })}
+                  onContextMenu={(e) => openTrackMenu(e, { ...track, artistName: track.artist?.stageName || 'Unknown_Artist' })}
                   whileHover={{ x: 4 }}
                   className={cn(
                     "group grid grid-cols-[40px_1fr_120px_120px_60px] gap-6 items-center px-6 py-4 border-b border-white/5 transition-all cursor-pointer relative overflow-hidden",
@@ -307,7 +341,7 @@ export const PlaylistPage = () => {
                         "text-[9px] font-black uppercase tracking-widest truncate block",
                         isRowPlaying ? "text-white/60" : "text-white/20 group-hover:text-black/60 hover:underline"
                       )}>
-                        {track.artist.stageName}
+                        {track.artist?.stageName || 'Unknown_Artist'}
                       </Link>
                     </div>
                   </div>

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { usePlayerStore } from '../../stores/player.store';
 import { useLibraryStore } from '../../stores/library.store';
-import { Play, Pause, Heart, MoreHorizontal, Clock, BadgeCheck, Activity, Database, Zap, Cpu } from 'lucide-react';
+import { Play, Pause, Heart, MoreHorizontal, Clock, BadgeCheck, Activity, Database, Zap, Cpu, Shuffle } from 'lucide-react';
 import { formatTime, cn } from '../../lib/utils';
 import { SongContextMenu, useContextMenu } from '../../components/shared/SongContextMenu';
 import { useInteractionTracker } from '../../hooks/useInteractionTracker';
@@ -21,7 +21,7 @@ export const AlbumPage = () => {
     enabled: !!id,
   });
 
-  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const { setContextAndPlay, currentContextId, currentTrack, isPlaying, togglePlay, isShuffle, toggleShuffle } = usePlayerStore();
   const { isLiked, toggleLike, isFollowingAlbum, toggleFollowAlbum } = useLibraryStore();
   const albumFollowed = id ? isFollowingAlbum(id) : false;
   const { menu: trackMenu, openMenu: openTrackMenu, closeMenu: closeTrackMenu } = useContextMenu();
@@ -77,6 +77,13 @@ export const AlbumPage = () => {
     <div className="flex-1 w-full min-h-full bg-black overflow-y-auto no-scrollbar relative isolate selection:bg-[#1db954] selection:text-black text-white">
       {/* Grain Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-50 bg-noise" />
+
+      {/* Giant Background Label (Editorial Style) */}
+      <div className="fixed -left-48 top-1/2 -translate-y-1/2 select-none pointer-events-none origin-center -rotate-90 whitespace-nowrap z-0">
+        <span className="text-[220px] font-black text-white/[0.02] tracking-tighter uppercase leading-none italic">
+          {album.title}
+        </span>
+      </div>
 
       <div className="px-8 lg:px-16 pt-24 pb-32 relative z-10 w-full max-w-screen-2xl mx-auto">
 
@@ -136,7 +143,7 @@ export const AlbumPage = () => {
         </motion.header>
 
         {/* ── ACTIONS ── */}
-        <div className="flex items-center gap-8 mb-16">
+        <div className="flex items-center gap-6 mb-16">
           <button
             onClick={handleMainPlay}
             disabled={trackList.length === 0}
@@ -148,6 +155,21 @@ export const AlbumPage = () => {
             </div>
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-0" />
           </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleShuffle}
+              className={cn(
+                "p-4 border transition-all duration-300 relative group/btn",
+                isShuffle ? "bg-[#1db954] text-black border-[#1db954]" : "border-white/10 text-white/40 hover:border-white hover:text-white"
+              )}
+              title="Shuffle_Toggle"
+            >
+              <Shuffle size={20} className={isShuffle ? "drop-shadow-[0_0_8px_rgba(0,0,0,0.5)]" : ""} />
+            </button>
+          </div>
+
+          <div className="w-[1px] h-8 bg-white/10 mx-2" />
 
           <button
             onClick={() => id && toggleFollowAlbum(id, album.title)}

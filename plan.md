@@ -1,0 +1,4 @@
+1 Cho phép user tự xóa tài khoản vĩnh viễn. Cần confirm bằng cách gõ lại tên hoặc nhập password để tránh xóa nhầm. Đây là tính năng user luôn tìm nhưng hay bị app giấu.
+2 Hiển thị danh sách thiết bị đang đăng nhập — thiết bị, thời gian, địa điểm gần đúng. Cho phép "đăng xuất khỏi tất cả thiết bị khác". Rất hữu ích khi bị lộ tài khoản.
+3 Toggle bật/tắt từng loại thông báo: khi có người follow, khi playlist được thêm bài, email digest hàng tuần. Không cần push notification — chỉ cần lưu preferences.
+4 2 toggle đơn giản: profile có công khai không, lịch sử nghe có hiển thị không. Đây là tính năng user hay hỏi, đặc biệt với music app vì nhiều người nghe nhạc "xấu hổ".

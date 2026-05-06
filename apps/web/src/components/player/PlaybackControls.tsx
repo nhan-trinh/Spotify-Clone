@@ -60,52 +60,43 @@ export const PlaybackControls = () => {
         <button
           onClick={toggleShuffle}
           className={cn(
-            "transition-all p-2 border border-transparent",
-            isShuffle ? "text-[#1db954]" : "text-white/20 hover:text-white"
+            "transition-all hover:scale-110",
+            isShuffle ? "text-[#1db954] drop-shadow-[0_0_8px_rgba(29,185,84,0.5)]" : "text-white/40 hover:text-white"
           )}
-          disabled={isDisable}
+          title="Shuffle"
         >
-          <Shuffle size={14} />
+          <Shuffle size={18} />
         </button>
 
-        <button 
-          onClick={prevTrack} 
-          className="text-white/40 hover:text-white transition-all p-2" 
-          disabled={isDisable}
-        >
-          <SkipBack size={18} className="fill-current" />
+        <button onClick={prevTrack} className="text-white/60 hover:text-white transition-all hover:scale-110" disabled={isDisable}>
+          <SkipBack size={24} fill="currentColor" />
         </button>
 
         <button
           onClick={togglePlay}
-          className={cn(
-            "w-10 h-10 flex items-center justify-center bg-white text-black transition-all relative group",
-            "hover:bg-[#1db954] active:translate-x-0.5 active:translate-y-0.5"
-          )}
+          className="w-10 h-10 flex items-center justify-center bg-white text-black rounded-full hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           disabled={isDisable}
         >
-          {/* Shadow Block Effect */}
-          <div className="absolute inset-0 border border-black/10 z-10" />
-          {isPlaying ? <Pause size={20} className="fill-current" /> : <Play size={20} className="fill-current ml-1" />}
+          {isPlaying ? <Pause size={20} fill="black" /> : <Play size={20} fill="black" className="ml-1" />}
         </button>
 
-        <button 
-          onClick={nextTrack} 
-          className="text-white/40 hover:text-white transition-all p-2" 
-          disabled={isDisable}
-        >
-          <SkipForward size={18} className="fill-current" />
+        <button onClick={nextTrack} className="text-white/60 hover:text-white transition-all hover:scale-110" disabled={isDisable}>
+          <SkipForward size={24} fill="currentColor" />
         </button>
 
         <button
           onClick={toggleRepeat}
           className={cn(
-            "transition-all p-2",
-            repeatMode !== 'off' ? "text-[#1db954]" : "text-white/20 hover:text-white"
+            "transition-all hover:scale-110 relative",
+            repeatMode !== 'off' ? "text-[#1db954] drop-shadow-[0_0_8px_rgba(29,185,84,0.5)]" : "text-white/40 hover:text-white"
           )}
+          title={`Repeat ${repeatMode}`}
           disabled={isDisable}
         >
-          {repeatMode === 'one' ? <Repeat1 size={14} /> : <Repeat size={14} />}
+          {repeatMode === 'one' ? <Repeat1 size={18} /> : <Repeat size={18} />}
+          {repeatMode !== 'off' && (
+            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#1db954] rounded-full" />
+          )}
         </button>
       </div>
     </div>

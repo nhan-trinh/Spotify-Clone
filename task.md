@@ -113,7 +113,8 @@ Dưới đây là tiến độ tổng quan của toàn bộ dự án dựa trên
   - [x] Resizer Layout: Kéo thả resize Sidebar và lưu kích thước.
   - [x] Library Upgrade: Menu chuột phải LeftBar, ghim (Pin) playlist.
 
-- [ ] **Phase 23: Settings & Hệ thống Tài khoản**
-  - [ ] Account Management: Thay avatar, đổi mật khẩu, liên kết Google.
-  - [ ] UI Customization: Dark/Light mode và chọn Màu nhấn (Accent Color).
-  - [ ] Audio Settings: Chọn chất lượng âm thanh, Crossfade & Normalize.
+- [ ] **Phase 23: Settings & Hệ thống Tài khoản (Advanced)**
+  - [ ] Account Management: Xóa tài khoản vĩnh viễn (Confirm code).
+  - [ ] Session Control: Danh sách thiết bị đang đăng nhập & Đăng xuất từ xa.
+  - [ ] Privacy & Telemetry: Toggle Profile công khai, Ẩn/Hiện lịch sử nghe nhạc.
+  - [ ] Notification System: Tùy chỉnh thông báo Activity (Follow, Playlist update).
